@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import TabPanel from "./TabPanel";
+import TabPanel from "./App";
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

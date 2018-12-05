@@ -1,16 +1,11 @@
-import {ADD_ARTICLE} from "../constants/action-types";
+import { combineReducers } from 'redux'
+import morfologia from './morfologia';
+import variables_internas from './variablesInternas';
 
-const initialState = {
-    articles: []
-};
 
-const rootReducer = (state = initialState, action) => {
-    switch (action.type) {
-        case ADD_ARTICLE:
-            return { ...state, articles: [...state.articles, action.payload]};
-        default:
-            return state;
-    }
-};
+const App = combineReducers({
+    morfologia,
+    variables_internas,
+});
 
-export default rootReducer;
+export default App;

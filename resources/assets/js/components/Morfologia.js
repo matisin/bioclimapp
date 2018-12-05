@@ -1,4 +1,11 @@
 import React, {Component} from 'react'
+import { connect } from "react-redux";
+import {
+    casaPredefinidaSimple,
+    casaPredefinidaDoble,
+    casaPredefinidaDobleDosPisos,
+    casaPredefinidaSimpleDosPisos
+} from '../actions/index';
 import * as THREE from 'three'
 import OrbitControls from 'orbit-controls-es6';
 import {MeshText2D, textAlign} from 'three-text2d';
@@ -9,6 +16,25 @@ import axios from "axios";
 import ManagerCasas from "../Utils/ManagerCasas";
 import Typography from "@material-ui/core/Typography/Typography";
 
+const mapStateToProps = state => {
+    console.log(state);
+    return {
+        personas: state.variables_internas.personas,
+        temperatura: state.variables_internas.temperatura,
+        iluminacion:  state.variables_internas.iluminacion,
+        aire: state.variables_internas.aire,
+        morfologia: state.morfologia,
+    };
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        casaPredefinidaSimple: () => dispatch(casaPredefinidaSimple()),
+        casaPredefinidaDoble: () => dispatch(casaPredefinidaDoble()),
+        casaPredefinidaSimpleDosPisos: () => dispatch(casaPredefinidaSimpleDosPisos()),
+        casaPredefinidaDobleDosPisos: () => dispatch(casaPredefinidaDobleDosPisos()),
+    }
+};
 
 
 class Morfologia extends Component {
@@ -189,6 +215,21 @@ class Morfologia extends Component {
 
     handleCasaPredefinida(casaPredefinida) {
         this.managerCasas.handleCasaPredefinida(casaPredefinida);
+        switch (casaPredefinida) {
+            case 0:
+                this.props.casaPredefinidaSimple();
+                break;
+            case 1:
+                this.props.casaPredefinidaDoble();
+                break;
+            case 2:
+                this.props.casaPredefinidaSimpleDosPisos();
+                break;
+            case 3:
+                this.props.casaPredefinidaDobleDosPisos();
+                break;
+
+        }
         this.props.onCasaPredefinidaChanged(-1);
         this.props.onParedesChanged(this.paredes);
         this.props.onVentanasChanged(this.ventanas);
@@ -1018,6 +1059,13 @@ Morfologia.propTypes = {
     onCapaReady: PropTypes.func,
     onCasaPredefinidaChanged: PropTypes.func,
 
+    casaPredefinidaSimple: PropTypes.func,
+    casaPredefinidaDoble: PropTypes.func,
+    casaPredefinidaSimpleDosPisos: PropTypes.func,
+    casaPredefinidaDobleDosPisos: PropTypes.func,
+
+
+
 };
 
 Morfologia.tipos = {PARED : 0, VENTANA : 1, PUERTA : 2, TECHO : 3, PISO : 4,};
@@ -1041,4 +1089,4 @@ Morfologia.texto_accion = {
     techos: '\nAgregar techos: Click izquierdo dentro de un bloque de paredes',
 };
 
-export default Morfologia
+export default connect(mapStateToProps,mapDispatchToProps)(Morfologia);

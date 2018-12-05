@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import { connect } from "react-redux";
 import Sound from 'react-sound';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
@@ -177,6 +178,12 @@ const styles = theme => ({
     }
 });
 
+const mapStateToProps = state => {
+    return {
+        articles: state.articles
+    };
+};
+
 function AlertDialog(props){
     const {classes, open} = props;
     return (
@@ -195,9 +202,10 @@ function AlertDialog(props){
     );
 }
 
-class TabPanel extends Component {
+class App extends Component {
     constructor(props, context) {
         super(props, context);
+        console.log(props.articles);
         this.state = {
             value: 0,
             click2D: false,
@@ -727,9 +735,9 @@ class TabPanel extends Component {
     }
 }
 
-TabPanel.propTypes = {
+App.propTypes = {
     classes: PropTypes.object.isRequired,
     theme: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles, {withTheme: true})(TabPanel)
+export default connect(mapStateToProps)(withStyles(styles, {withTheme: true})(App));

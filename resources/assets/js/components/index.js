@@ -1,12 +1,12 @@
-import React from 'react'
-import { render } from 'react-dom'
-import TabPanel from "./TabPanel";
-
+import React from 'react';
+import { render } from 'react-dom';
+import { Provider } from "react-redux";
 import store from "../store/index";
-import { addArticle } from "../actions/index";
+import App from "./App";
 
-window.store = store;
-window.addArticle = addArticle;
-
-
-render(<TabPanel/>, document.getElementById('root'))
+render(
+    <Provider store={store}>
+        <App/>
+    </Provider>,
+    document.getElementById('root')
+);

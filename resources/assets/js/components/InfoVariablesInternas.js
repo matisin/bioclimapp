@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import { connect } from "react-redux";
+import { cambiarVarsInterna} from "../actions/index";
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
@@ -29,28 +31,43 @@ const styles = theme => ({
     },
 });
 
+const mapStateToProps = state => {
+    console.log(state);
+    return {
+        personas: state.variables_internas.personas,
+        temperatura: state.variables_internas.temperatura,
+        iluminacion:  state.variables_internas.iluminacion,
+        aire: state.variables_internas.aire,
+    };
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        cambiarVarsInterna: variable => dispatch(cambiarVarsInterna(variable))
+    }
+};
+
 class InfoVariablesInternas extends React.Component {
     constructor(props){
         super(props);
-        this.state={
-            personas: 5,
-            temperatura: 14,
-            iluminacion: 5,
-            aire: 3,
-        }
-        this.handleChange = prop => event => {
-            this.setState({ [prop]: event.target.value });
-            this.props.handleChange(prop,event.target.value);
-        };
+        this.handleChange = this.handleChange.bind(this);
         this.handleClick = this.handleClick.bind(this);
+    }
+
+    handleChange(event,prop){
+        event.preventDefault();
+        this.props.cambiarVarsInterna({
+            name :event.target.name,
+            value: parseInt(event.target.value),
+        });
     }
 
     handleClick(){
         this.props.handleClose();
     }
 
-
     render(){
+        const {personas,temperatura,iluminacion, aire} = this.props;
         return(
             <div style={{marginLeft:'30%',marginRight:'30%',padding:20}}>
                 <Paper>
@@ -64,8 +81,9 @@ class InfoVariablesInternas extends React.Component {
                             <TextField
                                 type="number"
                                 label="Número de Personas"
-                                value={this.state.personas}
-                                onChange={this.handleChange('personas')}
+                                value={personas}
+                                name={'personas'}
+                                onChange={this.handleChange}
                             />
                         </Grid>
                         <Grid item xs={4}>
@@ -79,8 +97,9 @@ class InfoVariablesInternas extends React.Component {
                             <TextField
                                 type="number"
                                 label="Temperatura de Confort"
-                                value={this.state.temperatura}
-                                onChange={this.handleChange('temperatura')}
+                                value={temperatura}
+                                name={'temperatura'}
+                                onChange={this.handleChange}
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -96,9 +115,10 @@ class InfoVariablesInternas extends React.Component {
                         <Grid item xs={8}>
                             <TextField
                                 type="number"
+                                name={'iluminacion'}
                                 label="Horas de iluminación"
-                                value={this.state.iluminacion}
-                                onChange={this.handleChange('iluminacion')}
+                                value={iluminacion}
+                                onChange={this.handleChange}
                             />
                         </Grid>
                         <Grid item xs={4}>
@@ -115,8 +135,9 @@ class InfoVariablesInternas extends React.Component {
                             <TextField
                                 type="number"
                                 label="Renovacion de aire diaria"
-                                value={this.state.aire}
-                                onChange={this.handleChange('aire')}
+                                value={aire}
+                                name={'aire'}
+                                onChange={this.handleChange}
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -136,4 +157,4 @@ InfoVariablesInternas.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(InfoVariablesInternas)
+export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InfoVariablesInternas));
