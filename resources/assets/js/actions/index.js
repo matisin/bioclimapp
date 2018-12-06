@@ -18,6 +18,7 @@ import {
     MODIFICAR_MARCO_VENTANA,
     MODIFICAR_MATERIAL_VENTANA, MODIFICAR_MATERIAL_PUERTA,
 } from "../constants/action-types";
+import store from "../store";
 
 export const addArticle = article => (
     {
@@ -34,9 +35,10 @@ export const cambiarVarsInterna = variable => (
     }
 );
 
-export const agregarNivel = () => (
+export const agregarNivel = (altura) => (
     {
         type: AGREGAR_NIVEL,
+        altura: altura,
 
     }
 );
@@ -45,10 +47,25 @@ export const agregarBloque = (bloque, nivel) =>(
     {
         type: AGREGAR_BLOQUE,
         nivel : nivel,
-        payload: bloque,
+        bloque: bloque,
 
     }
 );
+
+export const thunk_agregar_bloque = (bloque, nivel) => {
+
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        //HACER CALCULOS
+        const state = getState().morfologia.present;
+        dispatch(agregarBloque(bloque, nivel));
+        console.log('niveles',state.niveles);
+        if(state.niveles[nivel+1] === undefined){
+            dispatch(agregarNivel((nivel+1)*bloque.dimensiones.alto));
+        }
+
+    }
+};
 
 export const agregarVentana = (ventana, nivel, bloque, pared) =>(
     {

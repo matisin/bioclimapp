@@ -33,7 +33,10 @@ import {
 
 const initialState = {
     rotacion: 0,//TODO: REVISAR ROTACION INICIAL.
-    niveles:[],
+    niveles:[{
+        bloques:[],
+        altura: 0,
+    }],
     aporteInterno: 0,
     perdidaVentilacion: 0,
     perdidaConduccion: 0,
@@ -46,10 +49,10 @@ const morfologia = (state = initialState, action) =>
     produce(state, draft => {
         switch (action.type) {
             case AGREGAR_NIVEL:
-                draft.niveles.push({bloques: []});
+                draft.niveles.push({bloques: [],altura: action.altura});
                 break;
             case AGREGAR_BLOQUE:
-                draft.niveles[action.nivel].bloques.push(action.payload);
+                draft.niveles[action.nivel].bloques.push(action.bloque);
                 break;
             case AGREGAR_PUERTA:
                 draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].puertas.push(action.payload);
