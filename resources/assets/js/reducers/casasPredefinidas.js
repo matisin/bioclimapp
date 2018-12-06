@@ -1,5 +1,5 @@
 const ventanaPredefinida = {
-    dimensiones: {ancho: 0.5,alto: 1},
+    dimensiones: {ancho: 0.9,alto: 0.6},
     material: {
         material: 0,
         tipo: 0,
@@ -41,9 +41,14 @@ const capasPredefinidas = [
 const paredPredefinidaFrontal = {
     ventanas: [
         Object.assign({posicion: {x: 1, y: 1}},ventanaPredefinida),
-        Object.assign({posicion: {x: 3, y: 1}},ventanaPredefinida),
+        Object.assign({posicion: {x: -1, y: 1}},ventanaPredefinida),
     ],
+    puertas: [],
     separacion: 0,
+    superficie: 2.5*5,
+    orientacion: {x:0,y:0,z:-1},
+    posicion: {x:0,y:0,z:8/2},
+    dimensiones: {ancho: 5, alto: 2.5},
     capas: Object.assign([],capasPredefinidas),
 };
 
@@ -51,12 +56,15 @@ const paredPredefinidaLateral = {
     ventanas: [
         Object.assign({posicion: {x: 1, y: 1}},ventanaPredefinida),
         Object.assign({posicion: {x: 2, y: 1}},ventanaPredefinida),
-        Object.assign({posicion: {x: 5, y: 1}},ventanaPredefinida),
-        Object.assign({posicion: {x: 6, y: 1}},ventanaPredefinida),
+        Object.assign({posicion: {x: -1, y: 1}},ventanaPredefinida),
+        Object.assign({posicion: {x: -2, y: 1}},ventanaPredefinida),
     ],
     puertas: [],
-
     separacion: 0,
+    superficie: 2.5*8,
+    orientacion: {x:-1,y:0,z:0},
+    posicion: {x:5/2,y:0,z:0},
+    dimensiones: {ancho: 8, alto: 2.5},
     capas: Object.assign([],capasPredefinidas),
 };
 
@@ -73,7 +81,7 @@ const techoPredeterminado = {
 const predefinidaSimpleState = {
     niveles:[{
         bloques: [{
-            posicion: {x:0,z:0},
+            posicion: {x:0.5,z:0},
             dimensiones: {
                 alto: 2.5,
                 ancho: 5,
@@ -83,14 +91,21 @@ const predefinidaSimpleState = {
                 Object.assign(
                     {},
                     paredPredefinidaFrontal,
-                    {puertas: [Object.assign({posicion: {x:2,y:0}},puertaPredefinida)]}),
+                    {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                 Object.assign({},paredPredefinidaLateral),
-                Object.assign({},paredPredefinidaFrontal),
-                Object.assign({},paredPredefinidaLateral),
+                Object.assign({},paredPredefinidaFrontal,{
+                    orientacion: {x:0,y:0,z:1},
+                    posicion: {x:0,y:0,z:-8/2}
+                }),
+                Object.assign({},paredPredefinidaLateral,{
+                    orientacion: {x:1,y:0,z:0},
+                    posicion: {x:-5/2,y:0,z:0}
+                }),
             ],
             piso: Object.assign({},pisoPredeterminado),
             techo: Object.assign({},techoPredeterminado)
-        }]
+        }],
+        altura: 0,
     }]
 };
 
@@ -107,14 +122,20 @@ const predefinidaSimpleDosPisosState = {
                 Object.assign(
                     {},
                     paredPredefinidaFrontal,
-                    {puertas: [Object.assign({posicion: {x:2,y:0}},puertaPredefinida)]}),
+                    {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                 Object.assign({},paredPredefinidaLateral),
-                Object.assign({},paredPredefinidaFrontal),
-                Object.assign({},paredPredefinidaLateral),
+                Object.assign({},paredPredefinidaFrontal,{
+                    orientacion: {x:0,y:0,z:1},
+                    posicion: {x:0,y:0,z:-8/2}
+                }),
+                Object.assign({},paredPredefinidaLateral,{
+                    orientacion: {x:1,y:0,z:0},
+                    posicion: {x:-5/2,y:0,z:0}
+                }),
             ],
             piso: Object.assign({},pisoPredeterminado),
-            techo: Object.assign({},techoPredeterminado)
-        }]
+        }],
+        altura: 0,
     },{
         bloques: [{
             posicion: {x:0,z:0},
@@ -126,12 +147,19 @@ const predefinidaSimpleDosPisosState = {
             paredes: [
                 Object.assign({},paredPredefinidaFrontal),
                 Object.assign({},paredPredefinidaLateral),
-                Object.assign({},paredPredefinidaFrontal),
-                Object.assign({},paredPredefinidaLateral),
+                Object.assign({},paredPredefinidaFrontal,{
+                    orientacion: {x:0,y:0,z:1},
+                    posicion: {x:0,y:0,z:-8/2}
+                }),
+                Object.assign({},paredPredefinidaLateral,{
+                    orientacion: {x:1,y:0,z:0},
+                    posicion: {x:-5/2,y:0,z:0}
+                }),
             ],
             piso: Object.assign({},pisoPredeterminado),
             techo: Object.assign({},techoPredeterminado)
-        }]
+        }],
+        altura: 2.5,
     }]
 };
 
@@ -149,10 +177,16 @@ const predefinidaDobleState = {
                     Object.assign(
                         {},
                         paredPredefinidaFrontal,
-                        {puertas: [Object.assign({posicion: {x:2,y:0}},puertaPredefinida)]}),
-                    Object.assign({},paredPredefinidaLateral,{separacion: 1}),
-                    Object.assign({},paredPredefinidaFrontal),
-                    Object.assign({},paredPredefinidaLateral),
+                        {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
+                    Object.assign({},paredPredefinidaLateral,{separacion: 1,ventanas: []}),
+                    Object.assign({},paredPredefinidaFrontal,{
+                        orientacion: {x:0,y:0,z:1},
+                        posicion: {x:0,y:0,z:-8/2}
+                    }),
+                    Object.assign({},paredPredefinidaLateral,{
+                        orientacion: {x:1,y:0,z:0},
+                        posicion: {x:-5/2,y:0,z:0}
+                    }),
                 ],
                 piso: Object.assign({},pisoPredeterminado),
                 techo: Object.assign({},techoPredeterminado)
@@ -169,15 +203,19 @@ const predefinidaDobleState = {
                     Object.assign(
                         {},
                         paredPredefinidaFrontal,
-                        {puertas: [Object.assign({posicion: {x:2,y:0}},puertaPredefinida)]}),
+                        {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                     Object.assign({},paredPredefinidaLateral),
-                    Object.assign({},paredPredefinidaFrontal),
+                    Object.assign({},paredPredefinidaFrontal,{
+                        orientacion: {x:0,y:0,z:1},
+                        posicion: {x:0,y:0,z:-8/2}
+                    }),
                 ],
                 piso: Object.assign({},pisoPredeterminado),
                 techo: Object.assign({},techoPredeterminado)
 
             }
-        ]
+        ],
+        altura: 0,
     }]
 };
 
@@ -195,13 +233,18 @@ const predefinidaDobleDosPisosState = {
                     Object.assign(
                         {},
                         paredPredefinidaFrontal,
-                        {puertas: [Object.assign({posicion: {x:2,y:0}},puertaPredefinida)]}),
-                    Object.assign({},paredPredefinidaLateral,{separacion: 1}),
-                    Object.assign({},paredPredefinidaFrontal),
-                    Object.assign({},paredPredefinidaLateral),
+                        {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
+                    Object.assign({},paredPredefinidaLateral,{separacion: 1,ventanas: []}),
+                    Object.assign({},paredPredefinidaFrontal,{
+                        orientacion: {x:0,y:0,z:1},
+                        posicion: {x:0,y:0,z:-8/2}
+                    }),
+                    Object.assign({},paredPredefinidaLateral,{
+                        orientacion: {x:1,y:0,z:0},
+                        posicion: {x:-5/2,y:0,z:0}
+                    }),
                 ],
                 piso: Object.assign({},pisoPredeterminado),
-                techo: Object.assign({},techoPredeterminado)
 
             },
             {
@@ -215,15 +258,18 @@ const predefinidaDobleDosPisosState = {
                     Object.assign(
                         {},
                         paredPredefinidaFrontal,
-                        {puertas: [Object.assign({posicion: {x:2,y:0}},puertaPredefinida)]}),
+                        {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                     Object.assign({},paredPredefinidaLateral),
-                    Object.assign({},paredPredefinidaFrontal),
+                    Object.assign({},paredPredefinidaFrontal,{
+                        orientacion: {x:0,y:0,z:1},
+                        posicion: {x:0,y:0,z:-8/2}
+                    }),
                 ],
                 piso: Object.assign({},pisoPredeterminado),
-                techo: Object.assign({},techoPredeterminado)
 
             }
-        ]
+        ],
+        altura: 0,
     },{
         bloques: [
             {
@@ -235,9 +281,15 @@ const predefinidaDobleDosPisosState = {
                 },
                 paredes: [
                     Object.assign({},paredPredefinidaFrontal),
-                    Object.assign({},paredPredefinidaLateral,{separacion: 1}),
-                    Object.assign({},paredPredefinidaFrontal),
-                    Object.assign({},paredPredefinidaLateral),
+                    Object.assign({},paredPredefinidaLateral,{separacion: 1,ventanas: []}),
+                    Object.assign({},paredPredefinidaFrontal,{
+                        orientacion: {x:0,y:0,z:1},
+                        posicion: {x:0,y:0,z:-8/2}
+                    }),
+                    Object.assign({},paredPredefinidaLateral,{
+                        orientacion: {x:1,y:0,z:0},
+                        posicion: {x:-5/2,y:0,z:0}
+                    }),
                 ],
                 piso: Object.assign({},pisoPredeterminado),
                 techo: Object.assign({},techoPredeterminado)
@@ -253,13 +305,17 @@ const predefinidaDobleDosPisosState = {
                 paredes: [
                     Object.assign({},paredPredefinidaFrontal),
                     Object.assign({},paredPredefinidaLateral),
-                    Object.assign({},paredPredefinidaFrontal),
+                    Object.assign({},paredPredefinidaFrontal,{
+                        orientacion: {x:0,y:0,z:1},
+                        posicion: {x:0,y:0,z:-8/2}
+                    }),
                 ],
                 piso: Object.assign({},pisoPredeterminado),
                 techo: Object.assign({},techoPredeterminado)
 
             }
-        ]
+        ],
+        altura: 2.5,
     }]
 };
 

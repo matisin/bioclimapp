@@ -30,6 +30,7 @@ import Dialog from "@material-ui/core/Dialog/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent/DialogContent";
 import CircularProgress from "@material-ui/core/CircularProgress/CircularProgress";
+import MorfologiaRedux from "./MorfologiaRedux";
 
 function TabContainer(props) {
     return (
@@ -584,38 +585,54 @@ class App extends Component {
                         })}>
                             <TabContainer dir={theme.direction}>
                                 {this.state.width ?
-                                    <Morfologia
-                                        width={width}
-                                        height={height - (heightBar+heightBarra)}
-                                        onParedesChanged={this.onParedesChanged}
-                                        onSeleccionadoChanged={this.onSeleccionadoMorfChanged}
-                                        sunPosition={this.state.sunPosition}
-                                        sunPath={this.state.sunPath}
-                                        click2D={click2D}
-                                        dibujando={dibujandoMorf}
-                                        seleccionando={seleccionandoMorf}
-                                        borrando={borrandoMorf}
-                                        onVentanasChanged={this.onVentanasChanged}
-                                        dimensiones={dimensiones}
-                                        alturaPiso={alturaPiso}
-                                        paredes={this.props.paredes}
-                                        comuna={this.state.comuna}
-                                        onCasaChanged={this.onCasaChanged}
-                                        onCapaReady={this.onCapaReady}
-                                        paredCapaChange={paredCapaChange}
-                                        seleccionadoMorf={seleccionadoMorf}
-                                        sunPathClicked={this.state.sunPathClicked}
-                                        rotando={this.state.rotando}
-                                        casaPredefinida={this.state.casaPredefinida}
-                                        onCasaPredefinidaChanged={this.onCasaPredefinidaChanged}
-                                        personas={this.state.personas}
-                                        iluminacion={this.state.iluminacion}
-                                        temperatura={this.state.temperatura}
-                                        aire={this.state.aire}
-                                        onRotationChanged={this.onRotationChanged}
-                                        fecha={this.state.fecha}
-                                        onFarChanged={this.onFarChanged}
-                                    />:
+                                    <div>
+                                        {/*<Morfologia
+                                            width={width}
+                                            height={height - (heightBar+heightBarra)}
+                                            onParedesChanged={this.onParedesChanged}
+                                            onSeleccionadoChanged={this.onSeleccionadoMorfChanged}
+                                            sunPosition={this.state.sunPosition}
+                                            sunPath={this.state.sunPath}
+                                            click2D={click2D}
+                                            dibujando={dibujandoMorf}
+                                            seleccionando={seleccionandoMorf}
+                                            borrando={borrandoMorf}
+                                            onVentanasChanged={this.onVentanasChanged}
+                                            dimensiones={dimensiones}
+                                            alturaPiso={alturaPiso}
+                                            paredes={this.props.paredes}
+                                            comuna={this.state.comuna}
+                                            onCasaChanged={this.onCasaChanged}
+                                            onCapaReady={this.onCapaReady}
+                                            paredCapaChange={paredCapaChange}
+                                            seleccionadoMorf={seleccionadoMorf}
+                                            sunPathClicked={this.state.sunPathClicked}
+                                            rotando={this.state.rotando}
+                                            casaPredefinida={this.state.casaPredefinida}
+                                            onCasaPredefinidaChanged={this.onCasaPredefinidaChanged}
+                                            personas={this.state.personas}
+                                            iluminacion={this.state.iluminacion}
+                                            temperatura={this.state.temperatura}
+                                            aire={this.state.aire}
+                                            onRotationChanged={this.onRotationChanged}
+                                            fecha={this.state.fecha}
+                                            onFarChanged={this.onFarChanged}
+                                        />*/}
+                                        <MorfologiaRedux
+                                            width={width}
+                                            height={height - (heightBar+heightBarra)}
+                                            onSeleccionadoChanged={this.onSeleccionadoMorfChanged}
+                                            click2D={click2D}
+                                            dibujando={dibujandoMorf}
+                                            seleccionando={seleccionandoMorf}
+                                            borrando={borrandoMorf}
+                                            comuna={this.state.comuna}
+                                            seleccionadoMorf={seleccionadoMorf}
+                                            casaPredefinida={this.state.casaPredefinida}
+                                            rotando={this.state.rotando}
+                                        />
+                                    </div>
+                                    :
                                     <div></div>
                                 }
                                 <Paper className={classes.paper} >

@@ -14,27 +14,32 @@ import {
     AGREGAR_TECHO,
     AGREGAR_VENTANA,
     BORRAR_BLOQUE,
-    BORRAR_NIVEL,
+    BORRAR_NIVEL, BORRAR_PUERTA,
     BORRAR_TECHO,
     BORRAR_VENTANA,
     CASA_PREDEFINIDA_DOBLE,
     CASA_PREDEFINIDA_DOBLE_DOS_PISOS,
     CASA_PREDEFINIDA_SIMPLE,
     CASA_PREDEFINIDA_SIMPLE_DOS_PISOS,
+    MODIFICAR_CAPA_PARED,
+    MODIFICAR_CAPA_PISO,
+    MODIFICAR_CAPA_TECHO,
     MODIFICAR_DIMENSIONES_BLOQUE,
     MODIFICAR_DIMENSIONES_PUERTA,
-    MODIFICAR_MARCO_VENTANA, MODIFICAR_MATERIAL_PUERTA
+    MODIFICAR_DIMENSIONES_VENTANA,
+    MODIFICAR_MARCO_VENTANA,
+    MODIFICAR_MATERIAL_PUERTA, MODIFICAR_MATERIAL_VENTANA, ROTAR_CASA
 } from "../constants/action-types";
 
 const initialState = {
     rotacion: 0,//TODO: REVISAR ROTACION INICIAL.
-    niveles:[{
-        bloques: [
-            {
-
-            }
-        ]
-    }],
+    niveles:[],
+    aporteInterno: 0,
+    perdidaVentilacion: 0,
+    perdidaConduccion: 0,
+    transmitanciaSuperficies: 0,
+    volumen: 0,
+    area: 0,
 };
 
 const morfologia = (state = initialState, action) =>
@@ -115,7 +120,7 @@ const morfologia = (state = initialState, action) =>
             case MODIFICAR_CAPA_TECHO:
                 draft.niveles[action.nivel].bloques[action.bloque].techo.capas = action.capas;
                 break;
-            case MODIFICAR_MARCO_VENTANA://TERMINAR ACÄ
+            case MODIFICAR_MARCO_VENTANA:
                 break;
             case MODIFICAR_MATERIAL_VENTANA:
                 break;

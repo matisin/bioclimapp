@@ -47,6 +47,7 @@
     "react-swipeable-views": "^0.12.14",
     "reactjs-popup": "^1.1.1",
     "reactstrap": "^6.1.0",
+    "redux-thunk": "^2.3.0",
     "redux-undo": "^0.6.1",
     "suncalc": "^1.8.0",
     "three": "^0.93.0",

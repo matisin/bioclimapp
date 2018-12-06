@@ -19,6 +19,15 @@ import Grid from "@material-ui/core/Grid/Grid";
 import Select from "@material-ui/core/Select/Select";
 import InputLabel from "@material-ui/core/InputLabel/InputLabel";
 import CalendarToday from "@material-ui/icons/CalendarToday";
+import { ActionCreators as UndoActionCreators } from 'redux-undo'
+import { connect } from 'react-redux'
+
+import {
+    casaPredefinidaDoble,
+    casaPredefinidaDobleDosPisos,
+    casaPredefinidaSimple,
+    casaPredefinidaSimpleDosPisos
+} from "../actions";
 
 
 const styles = theme => ({
@@ -38,6 +47,24 @@ const styles = theme => ({
         pointerEvents: 'none',
     },
 });
+
+const mapDispatchToProps = dispatch => {
+    return {
+        casaPredefinidaSimple: () => dispatch(casaPredefinidaSimple()),
+        casaPredefinidaDoble: () => dispatch(casaPredefinidaDoble()),
+        casaPredefinidaSimpleDosPisos: () => dispatch(casaPredefinidaSimpleDosPisos()),
+        casaPredefinidaDobleDosPisos: () => dispatch(casaPredefinidaDobleDosPisos()),
+        onUndo: () => dispatch(UndoActionCreators.undo()),
+        onRedo: () => dispatch(UndoActionCreators.redo())
+    }
+};
+
+const mapStateToProps = state => {
+    return {
+        canUndo: state.morfologia.past.length > 0,
+        canRedo: state.morfologia.future.length > 0
+    }
+}
 
 function WallIcon() {
     return (
@@ -432,7 +459,21 @@ class BarraHerramientasMorfologia extends Component {
         this.setState({
             casaPredefinida: casaPredefinida,
         });
-        this.props.onCasaPredefinidaChanged(casaPredefinida);
+        switch (casaPredefinida) {
+            case 0:
+                this.props.casaPredefinidaSimple();
+                break;
+            case 1:
+                this.props.casaPredefinidaDoble();
+                break;
+            case 2:
+                this.props.casaPredefinidaSimpleDosPisos();
+                break;
+            case 3:
+                this.props.casaPredefinidaDobleDosPisos();
+                break;
+
+        };
     }
 
     handleDibujo(event) {
@@ -516,7 +557,8 @@ class BarraHerramientasMorfologia extends Component {
 
 
     render() {
-        const {classes,width} = this.props;
+        const {classes,width,canUndo, canRedo, onUndo, onRedo } = this.props;
+
         const {dibujandoStatesButtons, borrando, seleccionando, click2D, anchorEl, anchor, anchorCamara, anchorSol, anchorFecha} = this.state;
         return (
             <div style={{display: 'table',
@@ -759,6 +801,32 @@ class BarraHerramientasMorfologia extends Component {
 
                 </Menu>
 
+                <Tooltip title="Deshacer"
+                         disableFocusListener={true}>
+                    <div>
+                        <IconButton
+                            className={classes.button}
+                            aria-label="Seleccionar"
+                            disabled={!canUndo}
+                            onClick={onUndo}>
+                            <Undo/>
+                        </IconButton>
+                    </div>
+                </Tooltip>
+
+                <Tooltip title="Rehacer"
+                         disableFocusListener={true}>
+                    <div>
+                        <IconButton
+                            className={classes.button}
+                            aria-label="Seleccionar"
+                            disabled={!canRedo}
+                            onClick={onRedo}>
+                            <Redo/>
+                        </IconButton>
+                    </div>
+                </Tooltip>
+
                 <Tooltip title="Seleccionar elementos"
                          disableFocusListener={true}>
                     <div>
@@ -895,4 +963,4 @@ BarraHerramientasMorfologia.propTypes = {
     onCasaPredefinidaChanged: PropTypes.func,
 };
 
-export default withStyles(styles)(BarraHerramientasMorfologia);
+export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(BarraHerramientasMorfologia));

@@ -1,5 +1,19 @@
 import * as THREE from 'three'
 import Morfologia from "../components/Morfologia";
+import {
+    PARED,
+    PISO,
+    PUERTA,
+    TECHO,
+    VENTANA,
+    EXTERIOR,
+    INTERIOR,
+    AISLADO,
+    MEDIO,
+    CORRIENTE,
+} from "../constants/morofologia-types";
+
+
 var SunCalc = require('suncalc');
 
 var periodo = [];
@@ -50,6 +64,88 @@ function gradosDias(temperaturasMes, temperaturaConfort){
 
     return [gd,periodo];
 }
+
+function transmitanciaSuperficieRedux(elemento,zona) {
+    let transmitancia = 0,u,res;
+    switch (elemento.tipo) {
+        case PARED:
+            for(let capa of elemento.capas){
+                transmitancia += capa.espesor / capa.conductividad;
+            }
+            transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
+            u = 1 / transmitancia;
+            return {
+                transmitancia: u,
+                transmitanciaObjetivo: uObjetivoMuro[zona-1],
+                transSup : u * elemento.superficie,
+                transSupObjetivo: uObjetivoMuro[zona-1] * elemento.superficie,
+            };
+        case PISO:
+            for(let capa of elemento.capas){
+                transmitancia += capa.espesor / capa.conductividad;
+            }
+            transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
+            u = 1 / transmitancia;
+
+            res = {
+                transmitancia : u,
+                transmitanciaObjetivo : uObjetivoPiso[zona-1],
+                transSup : u * elemento.superficie,
+                transSupObjetivo : uObjetivoPiso[zona-1] * elemento.superficie,
+            };
+
+            if(res.transSup >=0.15 && res.transSup <=0.25){
+                res.aislacion = CORRIENTE;
+            }else if(res.transSup >=0.26 && res.transSup <=0.60){
+                res.aislacion = MEDIO;
+            }else{
+                res.aislacion = AISLADO;
+            }
+            return res;
+        case TECHO:
+            for(let capa of elemento.capas){
+                transmitancia += capa.espesor / capa.conductividad;
+            }
+            transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
+            u = 1 / transmitancia;
+            return {
+                transmitancia : u,
+                transmitanciaObjetivo : uObjetivoTecho[zona-1],
+                transSup : u * elemento.superficie,
+                transSupObjetivo : uObjetivoTecho[zona-1] * elemento.superficie,
+            };
+        case VENTANA:
+            return {
+                transSupObjetivo : 5.8 * elemento.superficie,
+                transSup : elemento.material.u * elemento.superficie,
+            };
+        case PUERTA:
+            transmitancia += elemento.material.espesor / elemento.conductividad;
+            transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
+
+            u = 1 / transmitancia;
+
+            return {
+                transmitancia : u,
+                transmitanciaObjetivo : uObjetivoMuro[zona-1],
+                transSup : u * elemento.superficie,
+                transSupObjetivo : uObjetivoMuro[zona-1] * elemento.superficie,
+            };
+    }
+}
+
+function puenteTermicoRedux(piso,zona){
+    let aislacionObjetivo = CORRIENTE;
+    if(rtObjetivoPiso[zona-1] > 0.6) aislacionObjetivo = AISLADO;
+    else if(rtObjetivoPiso[zona-1] < 0.6 && rtObjetivoPiso[zona-1] > 0.26) aislacionObjetivo = MEDIO;
+    return {
+        puenteTermico : piso.perimetro * transmitanciaLineal[piso.aislacion],
+        puenteTermicoObjetivo : piso.perimetro * transmitanciaLineal[aislacionObjetivo],
+    }
+}
+
+
+
 
 function transmitanciaSuperficie(elemento,zona) {
     let transmitancia = 0,u;
