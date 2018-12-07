@@ -664,7 +664,6 @@ class Morfologia extends Component {
         };
         this.control3D = control3D;
 
-
         //Plano se agrega a objetos
         let sizePlano = 30;
         let planoGeometria = new THREE.PlaneBufferGeometry(sizePlano, sizePlano);
