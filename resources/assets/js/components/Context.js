@@ -179,13 +179,6 @@ class Context extends Component {
         this.control.minAzimuthAngle = 0;
         this.control.enabled = true;
         this.control.enableKeys = true;
-        // 3D camara
-        // this.camara = new THREE.PerspectiveCamera( 45, width / height, 1, 1000 );
-        // this.camara.position.set( 5, 8, 13 );
-        // this.camara.lookAt( new THREE.Vector3() );
-        // this.control = new Orbitcontrols( this.camara, this.renderer.domElement );
-        // this.control.enabled = true;
-        // this.control.maxDistance = 500;
 
         //Plano
         let planoGeometria = new THREE.PlaneBufferGeometry(150, 150);
@@ -213,7 +206,6 @@ class Context extends Component {
         this.cardinalPointsCircle.rotateX(-Math.PI / 2);
         this.cardinalPointsCircle.position.set(0, 0.001, 0);
         this.cardinalPointsCircle.name = "cardinalPointsCircle";
-        this.circlePoints = points;
         this.escena.add(this.cardinalPointsCircle);
         let sprite = new MeshText2D("S", {
             align: textAlign.center,
@@ -279,19 +271,13 @@ class Context extends Component {
             new THREE.Vector2(0.3,1),
             new THREE.Vector2(-0.3,1),
             new THREE.Vector2(-0.3, -0.2)
-        ]
+        ];
         shape.holes = [new THREE.Path(vertices)];
         let geometria = new THREE.ShapeBufferGeometry(shape);
         geometria.rotateX(Math.PI/2);
         var mesh = new THREE.Mesh( geometria, new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.DoubleSide}) );
         mesh.position.set(0,0.1,0);
         this.escena.add(mesh);
-
-
-        /*let centerBoxGeom = new THREE.BoxBufferGeometry(1, 1, 1);
-        let centerBoxMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
-        let centerBox = new THREE.Mesh(centerBoxGeom, centerBoxMaterial);
-        this.escena.add(centerBox);*/
 
         const light = new THREE.AmbientLight(0x404040, 100); // soft white light
         this.escena.add(light);

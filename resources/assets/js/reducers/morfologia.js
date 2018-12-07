@@ -7,16 +7,16 @@ import {
     predefinidaDobleDosPisosState,
 } from './casasPredefinidas'
 import {
-    ADD_ARTICLE,
     AGREGAR_BLOQUE,
     AGREGAR_NIVEL,
     AGREGAR_PUERTA,
     AGREGAR_TECHO,
     AGREGAR_VENTANA,
     BORRAR_BLOQUE,
-    BORRAR_NIVEL, BORRAR_PUERTA,
+    BORRAR_NIVEL,
     BORRAR_TECHO,
     BORRAR_VENTANA,
+    BORRAR_PUERTA,
     CASA_PREDEFINIDA_DOBLE,
     CASA_PREDEFINIDA_DOBLE_DOS_PISOS,
     CASA_PREDEFINIDA_SIMPLE,
@@ -55,10 +55,10 @@ const morfologia = (state = initialState, action) =>
                 draft.niveles[action.nivel].bloques.push(action.bloque);
                 break;
             case AGREGAR_PUERTA:
-                draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].puertas.push(action.payload);
+                draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].puertas.push(action.puerta);
                 break;
             case AGREGAR_VENTANA:
-                draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].ventanas.push(action.payload);
+                draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].ventanas.push(action.ventana);
                 break;
             case AGREGAR_TECHO:
                 draft.niveles[action.nivel].bloques[action.bloque].techo = action.techo;
@@ -83,13 +83,14 @@ const morfologia = (state = initialState, action) =>
                 delete draft.niveles[action.nivel];
                 break;
             case BORRAR_BLOQUE:
-                delete draft.niveles[action.nivel].bloques[action.bloque];
+                draft.niveles[action.nivel].bloques.splice(action.bloque,1);
                 break;
             case BORRAR_VENTANA:
-                delete draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].ventanas[action.ventana];
+                draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].ventanas.splice(action.ventana,1);
                 break;
             case BORRAR_PUERTA:
-                delete draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].puertas[action.ventana];
+                draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].puertas.splice(action.puerta,1);
+                console.log('draft',draft);
                 break;
             case BORRAR_TECHO:
                 delete draft.niveles[action.nivel].bloques[action.bloque].techo;

@@ -622,7 +622,7 @@ class App extends Component {
                                             width={width}
                                             height={height - (heightBar+heightBarra)}
                                             onSeleccionadoChanged={this.onSeleccionadoMorfChanged}
-                                            click2D={click2D}
+
                                             dibujando={dibujandoMorf}
                                             seleccionando={seleccionandoMorf}
                                             borrando={borrandoMorf}

@@ -106,13 +106,13 @@ const predefinidaSimpleState = {
             techo: Object.assign({},techoPredeterminado)
         }],
         altura: 0,
-    }]
+    },{bloques:[],altura: 2.5}]
 };
 
 const predefinidaSimpleDosPisosState = {
     niveles:[{
         bloques: [{
-            posicion: {x:0,z:0},
+            posicion: {x:0.5,z:0},
             dimensiones: {
                 alto: 2.5,
                 ancho: 5,
@@ -138,7 +138,7 @@ const predefinidaSimpleDosPisosState = {
         altura: 0,
     },{
         bloques: [{
-            posicion: {x:0,z:0},
+            posicion: {x:0.5,z:0},
             dimensiones: {
                 alto: 2.5,
                 ancho: 5,
@@ -160,7 +160,7 @@ const predefinidaSimpleDosPisosState = {
             techo: Object.assign({},techoPredeterminado)
         }],
         altura: 2.5,
-    }]
+    },{bloques:[],altura: 5}]
 };
 
 const predefinidaDobleState = {
@@ -216,7 +216,7 @@ const predefinidaDobleState = {
             }
         ],
         altura: 0,
-    }]
+    },{bloques:[],altura: 2.5}]
 };
 
 const predefinidaDobleDosPisosState = {
@@ -316,7 +316,7 @@ const predefinidaDobleDosPisosState = {
             }
         ],
         altura: 2.5,
-    }]
+    },{bloques:[],altura: 5}]
 };
 
 export {

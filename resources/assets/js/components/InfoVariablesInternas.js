@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import { connect } from "react-redux";
-import { cambiarVarsInterna} from "../actions/index";
+import { thunk_cambiar_variables_internas} from "../actions/index";
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
@@ -43,7 +43,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        cambiarVarsInterna: variable => dispatch(cambiarVarsInterna(variable))
+        thunk_cambiar_variables_internas: variable => dispatch(thunk_cambiar_variables_internas(variable)),
     }
 };
 
@@ -56,7 +56,7 @@ class InfoVariablesInternas extends React.Component {
 
     handleChange(event,prop){
         event.preventDefault();
-        this.props.cambiarVarsInterna({
+        this.props.thunk_cambiar_variables_internas({
             name :event.target.name,
             value: parseInt(event.target.value),
         });

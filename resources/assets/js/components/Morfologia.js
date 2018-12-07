@@ -23,6 +23,8 @@ const mapStateToProps = state => {
         iluminacion:  state.variables_internas.iluminacion,
         aire: state.variables_internas.aire,
         morfologia: state.morfologia,
+        acciones: state.barra_herramientas_morfologia.acciones,
+        camara3D : state.barra_herramientas_morfologia.camara3D,
     };
 };
 
@@ -67,6 +69,7 @@ class Morfologia extends Component {
     };
 
     componentDidUpdate(prevProps) {
+
         if (this.props.sunPosition !== prevProps.sunPosition || (this.sunPath == null && this.props.sunPosition != null)) {
             this.onSunpositionChanged();
             if(this.props.fecha != null) this.getSunPath(this.props.fecha);
@@ -75,7 +78,8 @@ class Morfologia extends Component {
         /*if(this.props.sunPath !== prevProps.sunPath || (this.sunPath == null && this.props.sunPosition != null)){
             this.getSunPath();
         }*/
-        if (this.props.click2D !== prevProps.click2D) {
+        if (this.props.camara3D !== prevProps.camara3D) {
+            console.log("das");
             this.onPerspectiveChanged();
         }
         if(this.paredes !== this.props.paredes && this.props.paredes != null){
@@ -306,7 +310,7 @@ class Morfologia extends Component {
     }
 
     onPerspectiveChanged() {
-        if (this.props.click2D) {
+        if (this.props.camara3D) {
             this.camara = this.camara2D;
             this.control2D.enabled = true;
             this.control3D.enabled = false;
