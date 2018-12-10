@@ -35,7 +35,7 @@ import {
     verSol,
     cambiarFecha,
     activarRotar,
-    activarMoverCamara,
+    activarMoverCamara, morfologiaUndo, morfologiaRedo,
 } from "../actions";
 
 const styles = theme => ({
@@ -157,8 +157,8 @@ const mapDispatchToProps = dispatch => {
         casaPredefinidaDoble: () => dispatch(casaPredefinidaDoble()),
         casaPredefinidaSimpleDosPisos: () => dispatch(casaPredefinidaSimpleDosPisos()),
         casaPredefinidaDobleDosPisos: () => dispatch(casaPredefinidaDobleDosPisos()),
-        onUndo: () => dispatch(UndoActionCreators.undo()),
-        onRedo: () => dispatch(UndoActionCreators.redo()),
+        onUndo: () => dispatch(morfologiaUndo()),
+        onRedo: () => dispatch(morfologiaRedo()),
         cambioTipoCamara : () => dispatch(cambioTipoCamara()),
         activarAgregarBloque : () => dispatch(activarAgregarBloque()),
         activarAgregarVentana : () => dispatch(activarAgregarVentana()),

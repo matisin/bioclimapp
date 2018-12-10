@@ -15,7 +15,7 @@ import axios from "axios";
 
 import {
     crearGeometriaPared,crearMeshPared,crearMeshPiso,
-    crearMeshTecho,crearMeshVentana,crearMeshPuerta
+    crearMeshTecho,crearMeshVentana,crearMeshPuerta,clearThree
 } from '../Utils/dibujosMesh'
 
 import {
@@ -144,9 +144,7 @@ class Morfologia extends Component {
 
         let estadoCasa = this.props.morfologia.present.niveles;
 
-        console.log('estado',estadoCasa);
-
-        this.clearThree(this.casa);
+        clearThree(this.casa);
         let nivelGroup;
         for(let nivel of estadoCasa){
             nivelGroup = new THREE.Group();
@@ -254,7 +252,7 @@ class Morfologia extends Component {
         worldStart = worldStart.clone();
         worldEnd = worldEnd.clone();
 
-        this.clearThree(this.puertaDibujo);
+        clearThree(this.puertaDibujo);
         let width = Math.abs(start.x - end.x), heigth = end.y;
         let alturaPiso = worldEnd.y;
         if(width === 0 || heigth === 0){
@@ -294,7 +292,7 @@ class Morfologia extends Component {
     }
 
     ventanaDibujada(start,end, worldStart, worldEnd, pared){
-        this.clearThree(this.ventanaDibujo);
+        clearThree(this.ventanaDibujo);
         let width = Math.abs(start.x - end.x), heigth = Math.abs(start.y - end.y);
         let alturaPiso = Math.max(worldStart.y,worldEnd.y);
         if(width === 0 || heigth === 0){
@@ -334,7 +332,7 @@ class Morfologia extends Component {
     }
 
     bloqueDibujado(start, end, height, altura ){
-        this.clearThree(this.bloqueDibujo);
+        clearThree(this.bloqueDibujo);
 
         let width = Math.abs(start.x - end.x), depth = Math.abs(start.z - end.z);
         let widths = [width, depth, width, depth];
@@ -418,15 +416,7 @@ class Morfologia extends Component {
 
     }
 
-    clearThree(obj){
-        while(obj.children.length > 0){
-            this.clearThree(obj.children[0]);
-            obj.remove(obj.children[0]);
-        }
-        if(obj.geometry) obj.geometry.dispose();
-        if(obj.material) obj.material.dispose();
-        if(obj.texture) obj.texture.dispose();
-    }
+
 
     onComunaChanged() {
         axios.get("https://bioclimapp.host/api/temperaturas/"+this.props.comuna.id)
@@ -680,7 +670,7 @@ class Morfologia extends Component {
         }
 
         let plano = new THREE.Mesh(planoGeometria, new THREE.MeshLambertMaterial({
-            color: '#3D7B00',
+            color: '#549833',
             side: THREE.DoubleSide,
         }));
         plano.receiveShadow = true;
@@ -693,7 +683,7 @@ class Morfologia extends Component {
         //Grid del plano
         let gridHelper = new THREE.GridHelper(sizePlano,sizePlano, 0xCCCCCC, 0xCCCCCC);
         gridHelper.material = new THREE.LineBasicMaterial( {
-            color: 0xffffff,
+            color: 0x1E3E0E,
             linewidth: 4,
             linecap: 'round', //ignored by WebGLRenderer
             linejoin:  'round' //ignored by WebGLRenderer
@@ -703,7 +693,7 @@ class Morfologia extends Component {
 
         //Ejes x e y
         let lineMaterial = new THREE.LineBasicMaterial({
-            color: 0x950714,
+            color: 0x90E567,
             linewidth: 6,
             linecap: 'round', //ignored by WebGLRenderer
             linejoin:  'round' //ignored by WebGLRenderer
@@ -730,7 +720,7 @@ class Morfologia extends Component {
 
         var points = curve.getPoints(360);
         var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
-        var circleMaterial = new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 4});
+        var circleMaterial = new THREE.LineBasicMaterial({color: 0x90E567, linewidth: 4});
         var cardinalPointsCircle = new THREE.Line(circleGeometry, circleMaterial,);
 
         cardinalPointsCircle.rotateX(-Math.PI / 2);
@@ -1142,7 +1132,7 @@ class Morfologia extends Component {
                     nivel = 0
                 }
                 this.props.thunk_agregar_bloque(bloque, nivel);
-                this.clearThree(this.bloqueDibujo);
+                clearThree(this.bloqueDibujo);
                 this.construyendo = false;
 
             }
@@ -1157,11 +1147,11 @@ class Morfologia extends Component {
                 if(this.props.acciones.agregar_ventana ){
                     let ventana = this.datosVentana(this.ventanaDibujo);
                     this.props.thunk_agregar_ventana(bloque,nivel,pared,ventana);
-                    this.clearThree(this.ventanaDibujo);
+                    clearThree(this.ventanaDibujo);
                 }else{
                     let puerta = this.datosPuerta(this.puertaDibujo);
                     this.props.thunk_agregar_puerta(bloque,nivel,pared,puerta);
-                    this.clearThree(this.puertaDibujo);
+                    clearThree(this.puertaDibujo);
                 }
 
 

@@ -1,22 +1,22 @@
 import {
     CAMBIAR_VARS_INTERNA,
 
-    AGREGAR_BLOQUE,AGREGAR_NIVEL,AGREGAR_PUERTA,AGREGAR_VENTANA,BORRAR_PUERTA,
-    BORRAR_BLOQUE,BORRAR_NIVEL,BORRAR_VENTANA,CASA_PREDEFINIDA_DOBLE,
-    CASA_PREDEFINIDA_DOBLE_DOS_PISOS,CASA_PREDEFINIDA_SIMPLE,
-    CASA_PREDEFINIDA_SIMPLE_DOS_PISOS,MODIFICAR_DIMENSIONES_BLOQUE,
-    MODIFICAR_DIMENSIONES_VENTANA,MODIFICAR_DIMENSIONES_PUERTA,
-    MODIFICAR_MARCO_VENTANA,MODIFICAR_MATERIAL_VENTANA,MODIFICAR_MATERIAL_PUERTA,
+    AGREGAR_BLOQUE, AGREGAR_NIVEL, AGREGAR_PUERTA, AGREGAR_VENTANA, BORRAR_PUERTA,
+    BORRAR_BLOQUE, BORRAR_NIVEL, BORRAR_VENTANA, CASA_PREDEFINIDA_DOBLE,
+    CASA_PREDEFINIDA_DOBLE_DOS_PISOS, CASA_PREDEFINIDA_SIMPLE,
+    CASA_PREDEFINIDA_SIMPLE_DOS_PISOS, MODIFICAR_DIMENSIONES_BLOQUE,
+    MODIFICAR_DIMENSIONES_VENTANA, MODIFICAR_DIMENSIONES_PUERTA,
+    MODIFICAR_MARCO_VENTANA, MODIFICAR_MATERIAL_VENTANA, MODIFICAR_MATERIAL_PUERTA,
 
-    CAMBIO_TIPO_CAMARA,ACTIVAR_ELIMINAR_MORFOLOGIA,VER_SOL,ACTIVAR_ROTAR,
-    ACTIVAR_AGREGAR_BLOQUE,ACTIVAR_AGREGAR_PUERTA, ACTIVAR_AGREGAR_VENTANA,
+    CAMBIO_TIPO_CAMARA, ACTIVAR_ELIMINAR_MORFOLOGIA, VER_SOL, ACTIVAR_ROTAR,
+    ACTIVAR_AGREGAR_BLOQUE, ACTIVAR_AGREGAR_PUERTA, ACTIVAR_AGREGAR_VENTANA,
     ACTIVAR_MOVER_CAMARA, ACTIVAR_SELECCIONAR_MORFOLOGIA,
 
-    ACTIVAR_AGREGAR_CONTEXTO,ACTIVAR_ELIMINAR_CONTEXTO,MOSTRAR_OCULTAR_MAPA,
+    ACTIVAR_AGREGAR_CONTEXTO, ACTIVAR_ELIMINAR_CONTEXTO, MOSTRAR_OCULTAR_MAPA,
     ACTIVAR_SELECCIONAR_CONTEXTO,
 
-    AGREGAR_OBSTRUCCION,ELIMINAR_OBSTRUCCION,SELECCIONAR_OBSTRUCCION,SETEAR_COMUNA,
-    MODIFICAR_OBSTRUCCION,
+    AGREGAR_OBSTRUCCION, ELIMINAR_OBSTRUCCION, SELECCIONAR_OBSTRUCCION, SETEAR_COMUNA,
+    MODIFICAR_OBSTRUCCION, CONTEXTO_UNDO, CONTEXTO_REDO, MORFOLOGIA_UNDO, MORFOLOGIA_REDO,
 
 } from "../constants/action-types";
 import store from "../store";
@@ -52,7 +52,7 @@ export const agregarObstruccion = obstruccion => (
     }
 );
 
-export const thunk_agregar_obstruccion = obstruccion => {
+export const thunk_agregar_obstruccion = (obstruccion) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
@@ -61,53 +61,58 @@ export const thunk_agregar_obstruccion = obstruccion => {
     }
 };
 
-export const eliminarObstruccion = obstruccion => (
+export const eliminarObstruccion = (indice) => (
     {
         type: ELIMINAR_OBSTRUCCION,
-        obstruccion: obstruccion,
+        indice: indice,
     }
 );
 
-export const thunk_eliminar_obstruccion = obstruccion => {
+export const thunk_eliminar_obstruccion = (indice) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
+        let seleccionado = getState().seleccion.contexto;
+        if(seleccionado === indice){
+            dispatch(seleccionarObstruccion(null));
+        }
+        if(seleccionado !== null && seleccionado > indice){
+            dispatch(seleccionarObstruccion(seleccionado-1));
+        }
         //HACER CALCULOS
-        dispatch(eliminarObstruccion(obstruccion));
+        dispatch(eliminarObstruccion(indice));
     }
 };
 
 
-export const seleccionarObstruccion = obstruccion => (
+export const seleccionarObstruccion = indice => (
     {
         type: SELECCIONAR_OBSTRUCCION,
-        obstruccion: obstruccion,
+        indice: indice,
     }
 );
 
-export const thunk_seleccionar_obstruccion = obstruccion => {
-
-    //SETEAR CALCULANDO
-    return function (dispatch, getState) {
-        //HACER CALCULOS
-        dispatch(seleccionarObstruccion(obstruccion));
+export const seleccionarMorfologia = indice => (
+    {
+        type: SELECCIONAR_MORFOLOGIA,
+        indice: indice,
     }
-};
+);
 
-
-export const modificarObstrucion = obstruccion => (
+export const modificarObstrucion = (obstruccion,indice) => (
     {
         type: MODIFICAR_OBSTRUCCION,
         obstruccion: obstruccion,
+        indice: indice,
     }
 );
 
-export const thunk_modificar_obstruccion = obstruccion => {
+export const thunk_modificar_obstruccion = (obstruccion,indice) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         //HACER CALCULOS
-        dispatch(modificarObstrucion(obstruccion));
+        dispatch(modificarObstrucion(obstruccion,indice));
     }
 };
 
@@ -169,9 +174,7 @@ export const thunk_agregar_bloque = (bloque, nivel) => {
         dispatch(agregarBloque(bloque, nivel));
         console.log('niveles',state.niveles);
         //AGREGAR NIVEL EN CASAS PREDEFINIDAS
-        if(state.niveles[nivel+1] === undefined){
-            dispatch(agregarNivel((nivel+1)*bloque.dimensiones.alto));
-        }
+
 
     }
 };
@@ -480,6 +483,48 @@ export const activarMoverCamara = () => (
         type: ACTIVAR_MOVER_CAMARA,
     }
 );
+
+export const contextoUndo = () => {
+
+    //SETEAR CALCULANDO
+    return function (dispatch) {
+        //HACER CALCULOS
+        dispatch(seleccionarObstruccion(null));
+        dispatch({ type: CONTEXTO_UNDO });
+
+    }
+};
+
+export const contextoRedo = () => {
+
+    //SETEAR CALCULANDO
+    return function (dispatch) {
+        //HACER CALCULOS
+        dispatch(seleccionarObstruccion(null));
+        dispatch({ type: CONTEXTO_REDO });
+
+    }
+};
+
+export const morfologiaUndo = () => {
+
+    //SETEAR CALCULANDO
+    return function (dispatch) {
+        //HACER CALCULOS
+        dispatch({ type: MORFOLOGIA_UNDO });
+
+    }
+};
+
+export const morfologiaRedo = () => {
+
+    //SETEAR CALCULANDO
+    return function (dispatch) {
+        //HACER CALCULOS
+        dispatch({ type: MORFOLOGIA_REDO });
+
+    }
+};
 
 
 

@@ -7,7 +7,15 @@ import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import Popper from '@material-ui/core/Popper';
 import InfoObstruccion from './InfoObstruccion';
-import {eliminarObstruccion, modificarObstrucion, seleccionarObstruccion} from "../actions";
+import {
+    eliminarObstruccion,
+    modificarObstrucion,
+    seleccionarObstruccion,
+    thunk_agregar_obstruccion,
+    thunk_eliminar_obstruccion
+} from "../actions";
+import {clearThree, crearMeshObstruccion} from "../Utils/dibujosMesh";
+import {materialHovered, materialObstruccion, materialSeleccionObstruccion} from "../constants/materiales-threejs";
 
 const styles = theme => ({
     typography: {
@@ -17,18 +25,20 @@ const styles = theme => ({
 
 const mapStateToProps = state => {
     return{
-        context: state.context,
-        seleccion: state.context.present.seleccion,
-        obstrucciones: state.context.present.obstrucciones,
+        contexto: state.contexto,
+        seleccion: state.contexto.present.seleccion,
+        obstrucciones: state.contexto.present.obstrucciones,
+        acciones: state.barra_herramientas_contexto.acciones,
+        seleccionado: state.seleccion.contexto,
+
     }
 };
 
 const mapDispatchToProps = dispatch => {
     return {
-        agregarObstruccion: (obstruccion) => dispatch(agregarObstruccion(obstruccion)),
-        eliminarObstruccion: (obstruccion) => dispatch(eliminarObstruccion(obstruccion)),
-        seleccionarObstruccion: (obstruccion) => dispatch(seleccionarObstruccion(obstruccion)),
-        modificarObstruccion: (obstruccion) => dispatch(modificarObstrucion(obstruccion)),
+        thunk_agregar_obstruccion: (obstruccion) => dispatch(thunk_agregar_obstruccion(obstruccion)),
+        thunk_eliminar_obstruccion: (indice) => dispatch(thunk_eliminar_obstruccion(indice)),
+        seleccionarObstruccion: (indice) => dispatch(seleccionarObstruccion(indice)),
     }
 };
 
@@ -139,6 +149,10 @@ class Context extends Component {
             this.dibujarEstado();
         }
 
+        if(this.props.seleccionado !== prevProps.seleccionado){
+            this.handleSeleccionadoChange();
+        }
+
         if (this.props.width !== prevProps.width || this.props.height !== prevProps.height) {
             if (this.props.width < prevProps.width) {
                 this.dif = prevProps.width - this.props.width;
@@ -164,8 +178,52 @@ class Context extends Component {
         }
     }
 
+    handleSeleccionadoChange(){
+        let seleccionado = this.props.seleccionado;
+        if(this.seleccionado != null){
+            this.seleccionado.material = materialObstruccion;
+        }
+        if(seleccionado === null){
+            this.seleccionado = null;
+        }else{
+            this.seleccionado = this.obstrucciones[seleccionado];
+            this.seleccionado.material = materialSeleccionObstruccion;
+        }
+
+    }
+
     dibujarEstado(){
         this.obstrucciones = [];
+
+        clearThree(this.obstruccionesGroup);
+        let estadoObstruccinoes = this.props.contexto.present.obstrucciones;
+        let meshObstruccion;
+        for(let obstruccion of estadoObstruccinoes){
+            meshObstruccion = crearMeshObstruccion(obstruccion.longitud,obstruccion.altura,obstruccion.rotacion);
+            meshObstruccion.position.set(obstruccion.posicion.x,0.01,obstruccion.posicion.z);
+            meshObstruccion.rotation.z = obstruccion.rotacion;
+            let indice = estadoObstruccinoes.indexOf(obstruccion);
+
+            meshObstruccion.userData.info ={
+                longitud: obstruccion.longitud,
+                altura: obstruccion.altura,
+                posicion: {
+                    x: obstruccion.posicion.x,
+                    z: obstruccion.posicion.z,
+                },
+                rotacion: obstruccion.rotacion,
+            };
+            meshObstruccion.userData.indice = indice;
+
+            /*if(indice === this.props.contexto.present.seleccion){
+                this.seleccionado = meshObstruccion;
+                meshObstruccion.material = materialSeleccionObstruccion;
+                //POPER ACA.
+            }*/
+
+            this.obstrucciones.push(meshObstruccion);
+            this.obstruccionesGroup.add(meshObstruccion);
+        }
     }
 
     componentDidMount() {
@@ -304,6 +362,17 @@ class Context extends Component {
         const light = new THREE.AmbientLight(0x404040, 100); // soft white light
         this.escena.add(light);
 
+        this.obstruccionesGroup = new THREE.Group();
+        this.escena.add(this.obstruccionesGroup);
+        this.dibujarEstado();
+
+        this.obstruccionDibujo = new THREE.Group();
+        this.escena.add(this.obstruccionDibujo);
+
+        this.selectedObstruction = null;
+        this.hoveredObstruction = null;
+        this.hoveredSelected = false;
+
         this.mount.appendChild(this.renderer.domElement);
         this.start();
     }
@@ -346,7 +415,7 @@ class Context extends Component {
         mouse.y = -((event.clientY - rect.top) / (rect.height)) * 2 + 1;
         this.raycasterMouse.setFromCamera(mouse, this.camara);
         let intersections = this.raycasterMouse.intersectObject(this.plano);
-        let point = {x: 0, y: 0}
+        let point = {x: 0, y: 0};
         if (intersections.length > 0) {
             point = {x: intersections[0].point.x, y: -intersections[0].point.z}
         }
@@ -364,34 +433,46 @@ class Context extends Component {
         text2.style.left = (event.clientX + 20 + (window.innerWidth - this.dif) - this.dif) + 'px';
         this.mount.parentNode.insertBefore(text2, this.mount);
 
-        if (this.dibujando) {
-            this.nuevaObstruccion();
+        if (this.props.acciones.agregar) {
+            if(this.dibujando){
+                this.obstruccionDibujado();
+            }
+
+            //this.nuevaObstruccion();
         }
-        if (this.seleccionando) {
+        if (this.props.acciones.seleccionar || this.props.acciones.eliminar) {
             this.onHoverObstruction();
         }
     }
 
     onClick(event) {
-        if (this.seleccionando) {
+        if (this.props.acciones.seleccionar) {
             this.onSelectObstruction(event.clientX, event.clientY);
         }
-        if (this.borrando) {
+        if (this.props.acciones.eliminar) {
             this.onDeleteObstruction();
         }
     }
 
     onMouseDown(event) {
-        if (this.agregarContexto && event.button === 0) {
+        if (this.props.acciones.agregar && event.button === 0) {
+            this.construyendo = true;
             this.dibujando = true;
             this.puntoInicial = new THREE.Vector3(Math.round(this.mousePoint.x), 0,
                 -Math.round(this.mousePoint.y));
+            console.log(this.mousePoint.y);
         }
     }
 
     onMouseUp(event) {
-        if (this.dibujando) {
-            let material = new THREE.MeshBasicMaterial({color: 0x000000});
+        if (this.props.acciones.agregar) {
+            if(this.dibujando){
+                this.dibujando = false;
+                this.props.thunk_agregar_obstruccion(this.obstruccionDibujo.userData.info);
+                clearThree(this.obstruccionDibujo);
+
+            }
+            /*let material = new THREE.MeshBasicMaterial({color: 0x000000});
             let obstruccion = this.obstruccionFantasma.clone();
             obstruccion.material = material;
             obstruccion.ventanas = [];
@@ -401,7 +482,7 @@ class Context extends Component {
             this.crearTextoObstruccion(obstruccion);
             this.obstruccionFantasma.visible = false;
             this.dibujando = false;
-            this.calcularFAR(this.ventanas);
+            this.calcularFAR(this.ventanas);*/
         }
     }
 
@@ -416,20 +497,31 @@ class Context extends Component {
         this.intersections = this.raycasterMouse.intersectObjects(this.obstrucciones);
         if (this.intersections.length > 0) {
             if (this.intersections[0].object !== this.hoveredObstruction) {
-                if (this.intersections[0].object.currentHex == null) this.intersections[0].object.currentHex = this.intersections[0].object.material.color.getHex();
-                this.hoveredObstruction = this.intersections[0].object;
-                this.hoveredObstruction.material = this.obstruccionFantasma.material;
+                if(this.intersections[0].object.userData.indice !== this.props.seleccionado){
+                    this.hoveredObstruction = this.intersections[0].object;
+                    this.hoveredObstruction.material = materialHovered;
+                    this.hoveredSelected = false;
+                }else{
+                    this.hoveredSelected = true;
+                }
             }
         }
         else {
-            if ((this.hoveredObstruction != null && this.selectedObstruction == null) || (this.selectedObstruction !== this.hoveredObstruction)) {
-                this.hoveredObstruction.material = new THREE.MeshBasicMaterial({color: this.hoveredObstruction.currentHex});
+            this.hoveredSelected = false;
+            if (this.hoveredObstruction !== null) {
+
+                this.hoveredObstruction.material = materialObstruccion;
                 this.hoveredObstruction = null;
             }
         }
     }
 
     onSelectObstruction(x, y) {
+        if(this.hoveredObstruction !== null){
+
+            this.props.seleccionarObstruccion(this.hoveredObstruction.userData.indice);
+            this.hoveredObstruction = null;
+        }/*
         if (this.intersections.length > 0) {
             if (this.selectedObstruction !== this.hoveredObstruction && this.selectedObstruction != null) {
                 this.selectedObstruction.material = new THREE.MeshBasicMaterial({color: this.selectedObstruction.currentHex});
@@ -441,17 +533,27 @@ class Context extends Component {
             this.selectedObstruction.material = new THREE.MeshBasicMaterial({color: this.selectedObstruction.currentHex});
             this.selectedObstruction = null;
             this.setState({open: false});
-        }
+        }*/
     }
 
     onDeleteObstruction() {
-        this.setState({open: false});
+        /*this.setState({open: false});
         this.escena.remove(this.selectedObstruction);
         let index = this.obstrucciones.indexOf(this.selectedObstruction);
-        this.obstrucciones.splice(index, 1);
-        this.selectedObstruction = null;
+        this.obstrucciones.splice(index, 1);*/
+
+        let state = this.props.contexto.present;
+        let seleccion = state.seleccion;
+
+        if(this.hoveredObstruction !== null){
+            this.props.thunk_eliminar_obstruccion(this.hoveredObstruction.userData.indice);
+        }else{
+            if(seleccion !== null && this.hoveredSelected){
+                this.props.thunk_eliminar_obstruccion(this.seleccionado.userData.indice);
+            }
+        }
         this.hoveredObstruction = null;
-        this.calcularFAR(this.ventanas);
+        /*this.calcularFAR(this.ventanas);*/
     }
 
     onKeyDown(event) {
@@ -488,6 +590,7 @@ class Context extends Component {
             let pos = new THREE.Vector3();
             ventana.getWorldPosition(pos);
             for (let x = 0; x < 90; x++) {
+                angle = angle.normalize();
                 angle = angle.normalize();
                 raycasterFAR.set(new THREE.Vector3(0,pos.y,0), angle);
                 let intersections = raycasterFAR.intersectObjects(this.obstrucciones);
@@ -580,6 +683,40 @@ class Context extends Component {
             ventana.userData.far = f1 + f2;
         }
         this.props.onFarChanged(ventanas);
+    }
+
+    obstruccionDibujado(){
+        clearThree(this.obstruccionDibujo);
+        let puntoActual = new THREE.Vector3(Math.round(this.mousePoint.x), 0,
+            -Math.round(this.mousePoint.y));
+        let dir = puntoActual.sub(this.puntoInicial);
+        let largo = dir.length();
+        largo = Math.round(largo );
+
+        dir = dir.normalize().multiplyScalar(largo / 2);
+        let pos = this.puntoInicial.clone().add(dir);
+        let rotacion;
+        if(dir.x > 0){
+            rotacion = Math.atan2(-dir.z, dir.x);
+        }else{
+            rotacion = Math.atan2(dir.z, -dir.x);
+        }
+
+        let meshObstruccion = crearMeshObstruccion(largo,10,rotacion);
+        meshObstruccion.position.set(pos.x, 0.01, pos.z);
+
+        meshObstruccion.rotation.z = rotacion;
+        this.obstruccionDibujo.add(meshObstruccion);
+        this.obstruccionDibujo.userData.info = {
+            longitud: largo,
+            altura: 10,
+            posicion: {
+                x: pos.x,
+                z: pos.z,
+            },
+            rotacion: rotacion,
+        };
+
     }
 
 
@@ -714,6 +851,9 @@ class Context extends Component {
 
 Context.propTypes = {
     classes: PropTypes.object.isRequired,
+    thunk_agregar_obstruccion: PropTypes.func,
+    thunk_eliminar_obstruccion: PropTypes.func,
+    seleccionarObstruccion: PropTypes.func,
 };
 
 export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(Context));

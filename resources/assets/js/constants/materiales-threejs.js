@@ -81,3 +81,8 @@ export const materialGrid = new THREE.LineBasicMaterial( {
     linejoin:  'round' //ignored by WebGLRenderer
 } );
 
+export const materialObstruccion = new THREE.MeshBasicMaterial({color: 0x000000});
+
+export const materialHovered = new THREE.MeshBasicMaterial({color: 0x8BC5BF});
+
+export const materialSeleccionObstruccion = new THREE.MeshBasicMaterial({color: 0xff0000});

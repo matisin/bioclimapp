@@ -16,7 +16,8 @@ import {
     mostrarOcultarMapa,
     activarAgregarContexto,
     activarEliminarContexto,
-    activarSeleccionarContexto,} from "../actions";
+    activarSeleccionarContexto, morfologiaUndo, morfologiaRedo, contextoUndo, contextoRedo,
+} from "../actions";
 import MenuItem from "@material-ui/core/MenuItem";
 
 const styles = theme => ({
@@ -46,15 +47,15 @@ const mapDispatchToProps = dispatch => {
         activarAgregarContexto: () => dispatch(activarAgregarContexto()),
         activarEliminarContexto: () => dispatch(activarEliminarContexto()),
         activarSeleccionarContexto: () => dispatch(activarSeleccionarContexto()),
-        onUndo: () => dispatch(UndoActionCreators.undo()),
-        onRedo: () => dispatch(UndoActionCreators.redo()),
+        onUndo: () => dispatch(contextoUndo()),
+        onRedo: () => dispatch(contextoRedo()),
     }
 };
 
 const mapStateToProps = state => {
     return {
-        //canUndo: state.morfologia.past.length > 0,
-        //canRedo: state.morfologia.future.length > 0,
+        canUndo: state.contexto.past.length > 0,
+        canRedo: state.contexto.future.length > 0,
         mostrar_mapa: state.barra_herramientas_contexto.mostrar_mapa,
         acciones: state.barra_herramientas_contexto.acciones,
     }
@@ -67,7 +68,7 @@ class BarraHerramientasContexto extends Component {
 
     render() {
         const {classes,width,mostrarOcultarMapa,activarAgregarContexto,
-            activarEliminarContexto,activarSeleccionarContexto,
+            activarEliminarContexto,activarSeleccionarContexto, canUndo, canRedo,
             onUndo,onRedo,mostrar_mapa,acciones
         } = this.props;
 
@@ -119,8 +120,8 @@ class BarraHerramientasContexto extends Component {
                             className={classes.button}
                             aria-label="Seleccionar"
                             disabled={true}
-                            //disabled={!canUndo}
-                            //onClick={onUndo}
+                            disabled={!canUndo}
+                            onClick={onUndo}
                         >
                             <Undo/>
                         </IconButton>
@@ -134,8 +135,8 @@ class BarraHerramientasContexto extends Component {
                             className={classes.button}
                             aria-label="Seleccionar"
                             disabled={true}
-                            //disabled={!canRedo}
-                            //onClick={onRedo}
+                            disabled={!canRedo}
+                            onClick={onRedo}
                             >
                             <Redo/>
                         </IconButton>

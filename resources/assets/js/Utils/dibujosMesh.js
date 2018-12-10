@@ -2,6 +2,24 @@ import * as THREE from "three";
 import {MeshText2D, textAlign} from "three-text2d";
 import * as materiales from "../constants/materiales-threejs";
 
+export function crearGeometriaObstruccion(width) {
+    let height = 1;
+    let x1 = width / -2, x2 = width / 2, y1 = 0, y2 = height;
+    let vertices = [
+        new THREE.Vector2(x1,y1),
+        new THREE.Vector2(x1,y2),
+        new THREE.Vector2(x2,y2),
+        new THREE.Vector2(x2,y1),
+
+    ];
+    let ParedShape = new THREE.Shape(vertices);
+
+    let geometria = new THREE.ShapeBufferGeometry(ParedShape);
+    geometria.userData.shape = ParedShape;
+
+    return geometria;
+}
+
 export function crearGeometriaPared(width, height, holes) {
     let x1 = width / -2, x2 = width / 2, y1 = 0, y2 = height;
     let vertices = [
@@ -85,7 +103,7 @@ function crearSpriteTexto(texto){
     return sprite;
 }
 
-function agregarDimensionesMesh(width, height, mesh){
+function agregarDimensionesMesh(width, height, mesh,z = false){
     var derecha = new THREE.Vector3( 1, 0, 0 );
     var izquierda = new THREE.Vector3( -1, 0, 0 );
 
@@ -98,7 +116,7 @@ function agregarDimensionesMesh(width, height, mesh){
     arriba.normalize();
     abajo.normalize();
 
-    const offsetV = 0.15;
+    const offsetV = 0.25;
     const offsetH = 0.10;
 
     let lineGeometry;
@@ -156,17 +174,17 @@ function agregarDimensionesMesh(width, height, mesh){
     if(height > offsetH*2){
 
         const offsetHorizontal = 0.06;
-        var originArriba = new THREE.Vector3( width/2 + offsetHorizontal, height/2 + offsetH, 0 );
-        var destinoArriba = new THREE.Vector3( width/2 + offsetHorizontal, height , 0 );
+        var originArriba = new THREE.Vector3( -(width / 2 + offsetHorizontal), (height/2 + offsetH), 0 );
+        var destinoArriba = new THREE.Vector3( -(width / 2 + offsetHorizontal), height , 0 );
 
-        var marcaArribaArriba = new THREE.Vector3( width/2 , height, 0 );
-        var marcaArribaAbajo = new THREE.Vector3( width/2 + offsetHorizontal*2, height, 0 );
+        var marcaArribaArriba = new THREE.Vector3( -width/2 , height, 0 );
+        var marcaArribaAbajo = new THREE.Vector3( -(width/2 + offsetHorizontal*2), height, 0 );
 
-        var marcaAbajoArriba = new THREE.Vector3( width/2 , 0, 0 );
-        var marcaAbajoAbajo = new THREE.Vector3( width/2 + offsetHorizontal*2, 0, 0 );
+        var marcaAbajoArriba = new THREE.Vector3( -width/2 , 0, 0 );
+        var marcaAbajoAbajo = new THREE.Vector3( -(width / 2 + offsetHorizontal * 2), 0, 0 );
 
-        var originAbajo = new THREE.Vector3( width/2 + offsetHorizontal, height/2 - offsetH, 0 );
-        var destinoAbajo = new THREE.Vector3( width/2 + offsetHorizontal, 0, 0 );
+        var originAbajo = new THREE.Vector3( -(width / 2 + offsetHorizontal), height/2 - offsetH, 0 );
+        var destinoAbajo = new THREE.Vector3(-(width / 2 + offsetHorizontal), 0, 0 );
 
         lineGeometry = new THREE.Geometry();
         lineGeometry.vertices.push(
@@ -203,14 +221,15 @@ function agregarDimensionesMesh(width, height, mesh){
     }
 
     var spriteAncho = crearSpriteTexto(width.toString()+' m');
-    spriteAncho.position.set(0,height+0.12, 0.009);
-    spriteAncho.scale.setX(0.002);
-    spriteAncho.scale.setY(0.002);
+    spriteAncho.position.set(0,height+0.15, 0.009);
+    let scale = 0.004;
+    spriteAncho.scale.setX(scale);
+    spriteAncho.scale.setY(scale);
 
     var spriteAlto = crearSpriteTexto(height.toString()+' m');
-    spriteAlto.position.set(width/2 + 0.06,height/2+0.06 , 0.009);
-    spriteAlto.scale.setX(0.002);
-    spriteAlto.scale.setY(0.002);
+    spriteAlto.position.set(-(width/2 + 0.1),height/2+0.06 , 0.009);
+    spriteAlto.scale.setX(scale);
+    spriteAlto.scale.setY(scale);
 
     mesh.add(spriteAncho);
     mesh.add(spriteAlto);
@@ -283,7 +302,60 @@ export function crearMeshPuerta(width, height) {
     puerta.userData.width = width;
     puerta.userData.height = height;
 
-    agregarDimensionesMesh(width, height,puerta);
+    agregarDimensionesMesh(width, height, puerta);
 
     return puerta;
 }
+
+export function crearMeshObstruccion(width,height,rotacion) {
+    let geometria = crearGeometriaObstruccion(width);
+
+    let obstruccion = new THREE.Mesh(geometria, materiales.materialObstruccion);
+    crearTextoObstruccion(obstruccion,height,width);
+    obstruccion.rotation.x = -Math.PI / 2;
+    crearTextoObstruccionRotacion(obstruccion,rotacion);
+    return obstruccion;
+}
+
+function crearTextoObstruccion(obstruccion,altura,longitud) {
+    let sprite = new MeshText2D("Altura: " + altura + " m   Longitud: " + longitud+" m  ", {
+        align: textAlign.center,
+        font: '40px Arial',
+        fillStyle: '#000000',
+        antialias: false
+    });
+    sprite.scale.setX(0.045);
+    sprite.scale.setY(0.045);
+    sprite.position.set(sprite.position.x, sprite.position.y, sprite.position.z + 1);
+    //sprite.rotateZ(-Math.PI / 2);
+    sprite.name = "info";
+    obstruccion.add(sprite);
+}
+
+function crearTextoObstruccionRotacion(obstruccion,rotacion) {
+    let degree = rotacion * 180 / Math.PI;
+    degree = Math.round(degree*10)/10;
+    let sprite = new MeshText2D("Rotación: " + degree+ " °", {
+        align: textAlign.center,
+        font: '40px Arial',
+        fillStyle: '#000000',
+        antialias: false
+    });
+    sprite.scale.setX(0.045);
+    sprite.scale.setY(0.045);
+    sprite.position.set(sprite.position.x, sprite.position.y+3, sprite.position.z + 1);
+    //sprite.rotateZ(-Math.PI / 2);
+    sprite.name = "info";
+    obstruccion.add(sprite);
+}
+
+export function clearThree(obj){
+    while(obj.children.length > 0){
+        clearThree(obj.children[0]);
+        obj.remove(obj.children[0]);
+    }
+    if(obj.geometry) obj.geometry.dispose();
+    if(obj.material) obj.material.dispose();
+    if(obj.texture) obj.texture.dispose();
+}
+

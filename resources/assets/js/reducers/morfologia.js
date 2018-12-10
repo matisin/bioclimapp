@@ -28,8 +28,9 @@ import {
     MODIFICAR_DIMENSIONES_PUERTA,
     MODIFICAR_DIMENSIONES_VENTANA,
     MODIFICAR_MARCO_VENTANA,
-    MODIFICAR_MATERIAL_PUERTA, MODIFICAR_MATERIAL_VENTANA, ROTAR_CASA
+    MODIFICAR_MATERIAL_PUERTA, MODIFICAR_MATERIAL_VENTANA, ROTAR_CASA, MORFOLOGIA_UNDO, MORFOLOGIA_REDO,
 } from "../constants/action-types";
+import {agregarNivel} from "../actions";
 
 const initialState = {
     rotacion: 0,//TODO: REVISAR ROTACION INICIAL.
@@ -53,6 +54,9 @@ const morfologia = (state = initialState, action) =>
                 break;
             case AGREGAR_BLOQUE:
                 draft.niveles[action.nivel].bloques.push(action.bloque);
+                if(draft.niveles[action.nivel+1] === undefined){
+                    draft.niveles.push({bloques: [],altura: action.bloque.dimensiones.alto+draft.niveles[action.nivel].altura});
+                }
                 break;
             case AGREGAR_PUERTA:
                 draft.niveles[action.nivel].bloques[action.bloque].paredes[action.pared].puertas.push(action.puerta);
@@ -136,7 +140,9 @@ const morfologia = (state = initialState, action) =>
     });
 
 const undoableMorfologia = undoable(morfologia, {
-    filter: distinctState()
+    filter: distinctState(),
+    undoType: MORFOLOGIA_UNDO,
+    redoType: MORFOLOGIA_REDO,
 });
 
 export default undoableMorfologia
