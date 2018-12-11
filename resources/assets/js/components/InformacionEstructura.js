@@ -90,7 +90,7 @@ InformacionEstructura.propTypes = {
     onDimensionChanged: PropTypes.func,
     onAlturaVentanaChanged: PropTypes.func,
     onCapaChanged: PropTypes.func,
-    seleccionado: PropTypes.object,
+    seleccion: PropTypes.object,
 };
 
 export default withStyles(styles)(InformacionEstructura);

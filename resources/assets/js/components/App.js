@@ -181,7 +181,8 @@ const styles = theme => ({
 
 const mapStateToProps = state => {
     return {
-        articles: state.articles
+        mostrar_mapa: state.barra_herramientas_contexto.mostrar_mapa,
+        cargando: state.app.cargando,
     };
 };
 
@@ -391,7 +392,7 @@ class App extends Component {
         this.setState({aporte_solar: aporte_solar});
     }
 
-    //OJO, es objeto seleccionado desde morfologia
+    //OJO, es objeto seleccion desde morfologia
     onSeleccionadoMorfChanged(seleccionado) {
         this.setState({
             seleccionadoMorf: seleccionado,
@@ -492,7 +493,7 @@ class App extends Component {
 
 
     render() {
-        const {classes, theme} = this.props;
+        const {classes, theme, mostrar_mapa, cargando} = this.props;
         const {value, click2D, dibujandoMorf, seleccionandoMorf, borrandoMorf, width, height, openMorf, seleccionadoMorf, dimensiones, alturaPiso, paredCapaChange,loaded} = this.state;
         const heightContent = height-heightBarra;
         return (
@@ -506,7 +507,7 @@ class App extends Component {
                     loop={true}
                 />
                 <AlertDialog
-                            open={!loaded}
+                            open={cargando}
                             classes={{
                                  paper: classes.paper,
                                  progress : classes.progress,
@@ -679,8 +680,8 @@ class App extends Component {
                     </div>
                     <div className={classes.frameTabs}>
                         <div className={classNames(classes.contentInside, classes.contentRight, {
-                            [classes.contentShift]: !this.state.drawer_localidad ,
-                            [classes.contentShiftRight]: !this.state.drawer_localidad ,
+                            [classes.contentShift]: !mostrar_mapa ,
+                            [classes.contentShiftRight]: !mostrar_mapa ,
 
                         })}>
                             <TabContainer dir={theme.direction}>
@@ -714,16 +715,16 @@ class App extends Component {
                         <Drawer
                             variant="persistent"
                             anchor={'right'}
-                            open={this.state.drawer_localidad}
-                            style={{visibility: this.state.drawer_localidad ? 'visible' : 'hidden'}}
+                            open={mostrar_mapa}
+                            style={{visibility: mostrar_mapa ? 'visible' : 'hidden'}}
 
                             classes={{
                                 paper: classes.drawerRightPaper,
                             }}
                         >
                             <MapContainer
-                                lat={-36.82013519999999}
-                                lng={-73.0443904}
+                                /*lat={-36.82013519999999}
+                                lng={-73.0443904}*/
                                 zoom={12}
                                 markers={[]}
                                 fecha={this.state.fecha}

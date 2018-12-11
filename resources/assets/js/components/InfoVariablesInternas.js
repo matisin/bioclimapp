@@ -34,10 +34,10 @@ const styles = theme => ({
 const mapStateToProps = state => {
     console.log(state);
     return {
-        personas: state.variables_internas.personas,
-        temperatura: state.variables_internas.temperatura,
-        iluminacion:  state.variables_internas.iluminacion,
-        aire: state.variables_internas.aire,
+        personas: state.app.personas,
+        temperatura: state.app.temperatura,
+        iluminacion:  state.app.iluminacion,
+        aire: state.app.aire,
     };
 };
 

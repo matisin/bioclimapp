@@ -334,7 +334,7 @@ function crearTextoObstruccion(obstruccion,altura,longitud) {
 
 function crearTextoObstruccionRotacion(obstruccion,rotacion) {
     let degree = rotacion * 180 / Math.PI;
-    degree = Math.round(degree*10)/10;
+    degree = Math.round(degree);
     let sprite = new MeshText2D("Rotación: " + degree+ " °", {
         align: textAlign.center,
         font: '40px Arial',

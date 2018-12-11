@@ -118,13 +118,13 @@ class InformacionPisoTecho extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.seleccionado !== prevProps.seleccionado) {
-            if (this.props.seleccionado !== null && this.props.seleccionado.userData.tipo === Morfologia.tipos.PISO) {
+        if (this.props.seleccion !== prevProps.seleccion) {
+            if (this.props.seleccion !== null && this.props.seleccion.userData.tipo === Morfologia.tipos.PISO) {
                 let seleccionados;
-                if(this.props.seleccionado.userData.techo !== undefined){
-                    seleccionados = [this.props.seleccionado, this.props.seleccionado.userData.techo];
+                if(this.props.seleccion.userData.techo !== undefined){
+                    seleccionados = [this.props.seleccion, this.props.seleccion.userData.techo];
                 }else{
-                    seleccionados = [this.props.seleccionado];
+                    seleccionados = [this.props.seleccion];
                 }
                 for(let seleccionado of seleccionados){
                     let capas = seleccionado.userData.capas;
@@ -147,8 +147,8 @@ class InformacionPisoTecho extends Component {
                     });
                 }
                 this.setState({
-                    width: this.props.seleccionado.userData.width,
-                    depth: this.props.seleccionado.userData.depth,
+                    width: this.props.seleccion.userData.width,
+                    depth: this.props.seleccion.userData.depth,
                 })
             }
         }
@@ -290,7 +290,7 @@ class InformacionPisoTecho extends Component {
     }
 
     handleChangeDimension(event) {
-        let piso = this.props.seleccionado;
+        let piso = this.props.seleccion;
         let depth = piso.userData.depth, width = piso.userData.width;
         if (event.target.name === 'profundidad') {
             if(parseInt(event.target.value) >= depth){
@@ -1128,7 +1128,7 @@ class InformacionPisoTecho extends Component {
 
 InformacionPisoTecho.propTypes = {
     classes: PropTypes.object.isRequired,
-    seleccionado: PropTypes.object,
+    seleccion: PropTypes.object,
     onDimensionChanged: PropTypes.func,/*
     onCapaChanged: PropTypes.func,*/
 };

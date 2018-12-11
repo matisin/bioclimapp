@@ -26,10 +26,10 @@ const styles = theme => ({
 const mapStateToProps = state => {
     return{
         contexto: state.contexto,
-        seleccion: state.contexto.present.seleccion,
+        seleccion: state.app.seleccion_contexto,
         obstrucciones: state.contexto.present.obstrucciones,
         acciones: state.barra_herramientas_contexto.acciones,
-        seleccionado: state.seleccion.contexto,
+        seleccionado: state.app.seleccion_contexto,
 
     }
 };
@@ -149,7 +149,7 @@ class Context extends Component {
             this.dibujarEstado();
         }
 
-        if(this.props.seleccionado !== prevProps.seleccionado){
+        if(this.props.seleccion !== prevProps.seleccion){
             this.handleSeleccionadoChange();
         }
 
@@ -179,7 +179,7 @@ class Context extends Component {
     }
 
     handleSeleccionadoChange(){
-        let seleccionado = this.props.seleccionado;
+        let seleccionado = this.props.seleccion;
         if(this.seleccionado != null){
             this.seleccionado.material = materialObstruccion;
         }
@@ -194,7 +194,6 @@ class Context extends Component {
 
     dibujarEstado(){
         this.obstrucciones = [];
-
         clearThree(this.obstruccionesGroup);
         let estadoObstruccinoes = this.props.contexto.present.obstrucciones;
         let meshObstruccion;
@@ -215,11 +214,11 @@ class Context extends Component {
             };
             meshObstruccion.userData.indice = indice;
 
-            /*if(indice === this.props.contexto.present.seleccion){
+            if(indice === this.props.seleccion){
                 this.seleccionado = meshObstruccion;
                 meshObstruccion.material = materialSeleccionObstruccion;
                 //POPER ACA.
-            }*/
+            }
 
             this.obstrucciones.push(meshObstruccion);
             this.obstruccionesGroup.add(meshObstruccion);
@@ -497,7 +496,7 @@ class Context extends Component {
         this.intersections = this.raycasterMouse.intersectObjects(this.obstrucciones);
         if (this.intersections.length > 0) {
             if (this.intersections[0].object !== this.hoveredObstruction) {
-                if(this.intersections[0].object.userData.indice !== this.props.seleccionado){
+                if(this.intersections[0].object.userData.indice !== this.props.seleccion){
                     this.hoveredObstruction = this.intersections[0].object;
                     this.hoveredObstruction.material = materialHovered;
                     this.hoveredSelected = false;
@@ -517,11 +516,19 @@ class Context extends Component {
     }
 
     onSelectObstruction(x, y) {
+        this.props.seleccionarObstruccion(null);
         if(this.hoveredObstruction !== null){
-
+            this.setState({ popperCoords: {x: x, y: y}});
             this.props.seleccionarObstruccion(this.hoveredObstruction.userData.indice);
             this.hoveredObstruction = null;
-        }/*
+        }else{
+            if(!this.hoveredSelected){
+                this.props.seleccionarObstruccion(null);
+            }else{
+                this.props.seleccionarObstruccion(this.seleccion.userData.indice);
+            }
+        }
+        /*
         if (this.intersections.length > 0) {
             if (this.selectedObstruction !== this.hoveredObstruction && this.selectedObstruction != null) {
                 this.selectedObstruction.material = new THREE.MeshBasicMaterial({color: this.selectedObstruction.currentHex});
@@ -543,13 +550,13 @@ class Context extends Component {
         this.obstrucciones.splice(index, 1);*/
 
         let state = this.props.contexto.present;
-        let seleccion = state.seleccion;
+        //let seleccion = state.seleccion;
 
         if(this.hoveredObstruction !== null){
             this.props.thunk_eliminar_obstruccion(this.hoveredObstruction.userData.indice);
         }else{
-            if(seleccion !== null && this.hoveredSelected){
-                this.props.thunk_eliminar_obstruccion(this.seleccionado.userData.indice);
+            if(this.props.seleccion !== null && this.hoveredSelected){
+                this.props.thunk_eliminar_obstruccion(this.seleccion.userData.indice);
             }
         }
         this.hoveredObstruction = null;
@@ -807,14 +814,16 @@ class Context extends Component {
 
 
     render() {
-        const open = this.state.open;
+        const open = this.props.seleccion != null;
         const id = open ? 'simple-popper' : null;
+
         let divStyle = {
-            position: 'absolute',
+            position: 'absolute ',
             left: this.state.popperCoords != null ? (this.state.popperCoords.x + (window.innerWidth - this.dif) - this.dif) + 'px' : 0,
             top: this.state.popperCoords != null ? this.state.popperCoords.y + 'px' : 0,
             zIndex: 1
         };
+        console.log(open);
         return (
             <div style={{height: this.props.height}}>
                 <div
@@ -835,13 +844,13 @@ class Context extends Component {
                     onMouseLeave={this.onMouseLeave}
                     onKeyDown={this.onKeyDown}
                 />
-                <Popper id={id} open={open} anchorEl={this.popper} style={{zIndex: 1}}>
-                    <InfoObstruccion
-                        selectedObstruction={this.selectedObstruction}
-                        handleRotation={this.handleRotation}
-                        handleChange={this.handleParamChange}
-                    />
-                </Popper>
+                <div style={divStyle}>
+                    <Popper id={id} open={open} anchorEl={this.popper} style={{zIndex: 1}}>
+                        <InfoObstruccion
+                        />
+                    </Popper>
+                </div>
+
             </div>
 
 

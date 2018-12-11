@@ -47,7 +47,7 @@ const contexto = (state = initialState, action) =>
                 draft.comuna = comuna;
                 break;
             case MODIFICAR_OBSTRUCCION:
-                draft[action.indice] = action.obstruccion;
+                draft.obstrucciones[action.indice] = action.obstruccion;
                 break;
         }
     });

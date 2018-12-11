@@ -27,10 +27,10 @@ import {
 //El estado en redux se mapean como props.
 const mapStateToProps = state => {
     return {
-        personas: state.variables_internas.personas,
-        temperatura: state.variables_internas.temperatura,
-        iluminacion:  state.variables_internas.iluminacion,
-        aire: state.variables_internas.aire,
+        personas: state.app.personas,
+        temperatura: state.app.temperatura,
+        iluminacion:  state.app.iluminacion,
+        aire: state.app.aire,
         morfologia: state.morfologia,
         acciones: state.barra_herramientas_morfologia.acciones,
         camara3D : state.barra_herramientas_morfologia.camara3D,
@@ -923,7 +923,7 @@ class Morfologia extends Component {
         this.mouse.y = -((event.clientY - rect.top) / (rect.height)) * 2 + 1;
         this.raycaster.setFromCamera(this.mouse, this.camara);
 
-        //Si se está seleccionado
+        //Si se está seleccion
         if(this.props.acciones.seleccionar){
             let intersects = this.raycaster.intersectObjects(this.allObjects);
 
@@ -1113,7 +1113,7 @@ class Morfologia extends Component {
         this.mouse.y = -((event.clientY - rect.top) / (rect.height)) * 2 + 1;
         this.raycaster.setFromCamera(this.mouse, this.camara);
 
-        //seleccionado construccion de pared
+        //seleccion construccion de pared
         if (this.props.acciones.agregar_bloque) {
             //click derecho
             if (event.button === 0) {
@@ -1136,7 +1136,7 @@ class Morfologia extends Component {
                 this.construyendo = false;
 
             }
-        }//seleccionado construccion de ventana
+        }//seleccion construccion de ventana
         else if (this.props.acciones.agregar_ventana || this.props.acciones.agregar_puerta) {
             //click derecho
             if (event.button === 0) {

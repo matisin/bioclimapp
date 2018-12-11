@@ -4,47 +4,50 @@ import SearchBar from './SearchBar';
 
 var SunCalc = require('suncalc');
 import axios from 'axios'
+import { connect } from "react-redux";
+import {thunk_set_state_mapa} from "../actions";
 
 
-export default class MapContainer extends Component {
+const mapStateToProps = state => {
+    return {
+        lat: state.app.mapa.lat,
+        lng: state.app.mapa.lng,
+        comuna: state.app.mapa.comuna,
+        sunPosition: state.app.mapa.sunPosition,
+        sunPath: state.app.mapa.sunPath,
+
+    }
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        thunk_set_state_mapa : (lat,lng) => dispatch(thunk_set_state_mapa(lat,lng)),
+    }
+};
+class MapContainer extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            lat: this.props.lat,
-            lng: this.props.lng,
             zoom: this.props.zoom,
             markers: this.props.markers,
         };
         this.mapClicked = this.mapClicked.bind(this);
         this.getSunPosition = this.getSunPosition.bind(this);
-        this.getSolarTimes = this.getSolarTimes.bind(this);
-        this.handleLocationFound = this.handleLocationFound.bind(this);
-        this.getSunPath = this.getSunPath.bind(this);
+        this.locationFound = this.locationFound.bind(this);
     }
 
     componentDidUpdate(prevProps){
         if(this.props.fecha != prevProps.fecha){
             this.setState((state) => ({sunPosition: this.getSunPosition(state.lat,state.lng,this.props.fecha)}), () => {this.props.onComunaChanged(this.state)});
         }
+        if(this.props.comuna !== prevProps.comuna && this.props.comuna != null){
+            this.createMarker(this.props.lat,this.props.lng);
+        }
     }
 
     componentWillMount(){
         let comuna, sunPosition, sunPath;
-        axios.get("https://bioclimapp.host/api/comuna/" + this.state.lat + "/" + this.state.lng)
-            .then(response => {
-                comuna = response.data[0];
-                sunPosition = this.getSunPosition(this.state.lat,this.state.lng);
-                sunPath = this.getSunPath(this.state.lat,this.state.lng);
-                    this.setState({
-                        comuna:comuna,
-                        sunPosition: sunPosition,
-                        sunPath:sunPath
-                    }, () => {
-                        this.createMarker(this.state.lat, this.state.lng);
-                        this.props.onComunaChanged(this.state);
-                    });
-                }
-            );
+        this.props.thunk_set_state_mapa(this.props.lat,this.props.lng);
 
     }
 
@@ -59,44 +62,6 @@ export default class MapContainer extends Component {
         }
     }
 
-    getSunPath(lat, lng){
-        let sunPath = [];
-        let now = new Date();
-        let start = new Date(now.getFullYear(),0,0)
-        let invierno = new Date(now.getFullYear(),5,21);
-        let verano = new Date(now.getFullYear(),11,21);
-        let diff_invierno = (invierno - start) + ((start.getTimezoneOffset() - invierno.getTimezoneOffset()) * 60 * 1000);
-        let diff_verano = (verano - start) + ((start.getTimezoneOffset() - verano.getTimezoneOffset()) * 60 * 1000);
-        let oneDay = 1000 * 60 * 60 * 24;
-        let day_invierno = Math.floor(diff_invierno / oneDay);
-        let day_verano = Math.floor(diff_verano / oneDay);
-        for(let i = day_invierno; i < day_verano; i++){
-            let daySunPath = [];
-            for(let j = 0; j < 24; j++){
-                let date = this.dateFromDay(now.getFullYear(),i);
-                let dateWithTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), j);
-                let sunPosition = this.getSunPosition(lat, lng, dateWithTime);
-                daySunPath.push(sunPosition);
-            }
-            sunPath.push(daySunPath);
-        }
-        return sunPath;
-    }
-
-    dateFromDay(year, day){
-        let date = new Date(year, 0); // initialize a date in `year-01-01`
-        return new Date(date.setDate(day)); // add the number of days
-    }
-
-    getSolarTimes(lat, lng) {
-        let now = new Date().getFullYear();
-        let sunTimes=[];
-        for(let date = new Date(now,0,1); date <= new Date(now,11,31); date.setDate(date.getDate()+1)){
-            sunTimes.push(SunCalc.getTimes(date,lat,lng));
-        }
-        return sunTimes;
-    }
-
     createMarker(lat, lng) {
         let markers = [];
         markers.push([lat, lng]);
@@ -105,9 +70,15 @@ export default class MapContainer extends Component {
         });
     }
 
+    locationFound(e) {
+        console.log('location',e);
+    }
+
 
     mapClicked(e) {
-        this.props.setLoading(false);
+        this.props.thunk_set_state_mapa(e.latlng.lat,e.latlng.lng);
+
+        /*this.props.setLoading(false);
         axios.get("https://bioclimapp.host/api/comuna/" + e.latlng.lat + "/" + e.latlng.lng)
             .then(response => {
                     if(response.data.length > 0) {
@@ -127,38 +98,17 @@ export default class MapContainer extends Component {
                         alert("No se encuentra comuna en la base de datos");
                     }
                 }
-            );
+            );*/
 
-    }
-
-    handleLocationFound(e) {
-        let lng = parseFloat(e.location.x);
-        let lat = parseFloat(e.location.y);
-        //
-        this.createMarker(lat, lng);
-        axios.get("https://bioclimapp.host/api/comuna/" + lat + "/" + lng)
-            .then(response => {
-                    this.setState({
-                        lat: lat,
-                        lng: lng,
-                        comuna: response.data[0],
-                        sunPosition: this.getSunPosition(lat, lng),
-                        sunPath: this.getSunPath(e.latlng.lat, e.latlng.lng),
-                    },function () {
-                        this.createMarker(this.state.lat, this.state.lng);
-                        this.props.onComunaChanged(this.state);
-                    });
-                }
-            );
     }
 
 
     render() {
-        const position = [this.state.lat, this.state.lng];
+        const position = [this.props.lat, this.props.lng];
         const style = {
             width: '100%',
             height: '35vh'
-        }
+        };
         return (
             <div>
                 <Map
@@ -166,9 +116,6 @@ export default class MapContainer extends Component {
                     zoom={this.state.zoom}
                     style={style}
                     onDblclick={this.mapClicked}
-                    //onLocationfound={this.handleLocationFound}
-                    //onShowlocation={this.handleLocationFound}
-                    ref="map"
                     doubleClickZoom={false}
                 >
                     <TileLayer
@@ -180,12 +127,16 @@ export default class MapContainer extends Component {
                             <Marker key={position} position={position}>
                                 <Popup>
                                     <span>
-                                      {this.state.comuna ? this.state.comuna.nombre : ""}
+                                      {this.props.comuna ? this.props.comuna.nombre : ""}
                                     </span>
                                 </Popup>
                             </Marker>
                     )}
-                    <SearchBar/>
+                    <SearchBar
+                        style={{
+                            clear: 'none',
+                        }}
+                    />
                 </Map>
 
 
@@ -193,3 +144,5 @@ export default class MapContainer extends Component {
         )
     }
 }
+
+export default connect(mapStateToProps,mapDispatchToProps)(MapContainer);

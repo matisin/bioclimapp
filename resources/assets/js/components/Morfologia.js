@@ -18,10 +18,10 @@ import Typography from "@material-ui/core/Typography/Typography";
 const mapStateToProps = state => {
     console.log(state);
     return {
-        personas: state.variables_internas.personas,
-        temperatura: state.variables_internas.temperatura,
-        iluminacion:  state.variables_internas.iluminacion,
-        aire: state.variables_internas.aire,
+        personas: state.app.personas,
+        temperatura: state.app.temperatura,
+        iluminacion:  state.app.iluminacion,
+        aire: state.app.aire,
         morfologia: state.morfologia,
         acciones: state.barra_herramientas_morfologia.acciones,
         camara3D : state.barra_herramientas_morfologia.camara3D,
@@ -648,7 +648,7 @@ class Morfologia extends Component {
         this.mouse.y = -((event.clientY - rect.top) / (rect.height)) * 2 + 1;
         this.raycaster.setFromCamera(this.mouse, this.camara);
 
-        //seleccionado construccion de pared
+        //seleccion construccion de pared
         if (this.props.dibujando === 0) {
             if (event.button === 0) {
                 this.construyendo = true;
@@ -678,7 +678,7 @@ class Morfologia extends Component {
         this.mouse.y = -((event.clientY - rect.top) / (rect.height)) * 2 + 1;
         this.raycaster.setFromCamera(this.mouse, this.camara);
 
-                //seleccionado construccion de pared
+                //seleccion construccion de pared
         if (this.props.dibujando === 0) {
             //click derecho
             if (event.button === 0) {
@@ -773,7 +773,7 @@ class Morfologia extends Component {
         this.mouse.y = -((event.clientY - rect.top) / (rect.height)) * 2 + 1;
         this.raycaster.setFromCamera(this.mouse, this.camara);
 
-        //Si se está seleccionado
+        //Si se está seleccion
         if(this.props.seleccionando){
             let intersects = this.raycaster.intersectObjects(this.allObjects);
 
@@ -959,7 +959,7 @@ class Morfologia extends Component {
             this.changeColorSeleccion(this.objSeleccionado);
         }
         this.objSeleccionado = this.objApuntadoMouse;
-        console.log("objeto seleccionado", this.objSeleccionado);
+        console.log("objeto seleccion", this.objSeleccionado);
     }
 
     handleBorrado(){

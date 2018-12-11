@@ -89,17 +89,17 @@ class InformacionVentana extends Component {
             this.getFilteredRadiation(this.props.comuna.id,2,new Date().getMonth()+1);
             this.getFilteredRadiation(this.props.comuna.id,3,new Date().getMonth()+1);
         }
-        if (this.props.seleccionado !== prevProps.seleccionado) {
-            if (this.props.seleccionado !== null  && this.props.seleccionado.userData.tipo === Morfologia.tipos.VENTANA) {
+        if (this.props.seleccion !== prevProps.seleccion) {
+            if (this.props.seleccion !== null  && this.props.seleccion.userData.tipo === Morfologia.tipos.VENTANA) {
 
-                let info_material_ventana = this.props.seleccionado.userData.info_material;
-                let info_material_marco = this.props.seleccionado.userData.info_marco;
+                let info_material_ventana = this.props.seleccion.userData.info_material;
+                let info_material_marco = this.props.seleccion.userData.info_marco;
 
                 this.setState({
                     info_material_ventana: info_material_ventana,
                     info_material_marco: info_material_marco,
-                    /*height: this.props.seleccionado.userData.height,
-                    width: this.props.seleccionado.userData.width,*/
+                    /*height: this.props.seleccion.userData.height,
+                    width: this.props.seleccion.userData.width,*/
                 });
 
 
@@ -206,15 +206,15 @@ class InformacionVentana extends Component {
         let Um = this.info_marcos[this.state.marco].hasOwnProperty('tipos') ?
             this.info_marcos[this.state.marco].tipos[this.state.tipo_marco].propiedad.U :
             this.info_marcos[this.state.marco].propiedades[0].U;
-        this.props.seleccionado.fm = FM;
-        this.props.seleccionado.fs = FS;
+        this.props.seleccion.fm = FM;
+        this.props.seleccion.fs = FS;
         this.props.um = Um;
         let periodo = this.props.ventanas[0].parent.parent.parent.parent.parent.userData.periodo;
         let aporte_solar = BalanceEnergetico.calcularAporteSolar(periodo,this.props.ventanas,this.difusa,this.directa);
         this.props.onAporteSolarChanged(aporte_solar);
     }
     handleChangeDimension(event) {
-        let ventana = this.props.seleccionado;
+        let ventana = this.props.seleccion;
         let height = ventana.userData.height, width = ventana.userData.width;
 
         if (event.target.name === 'altura') {
@@ -226,7 +226,7 @@ class InformacionVentana extends Component {
     }
 
     handleChangeAlturaPiso(event){
-        let ventana = this.props.seleccionado;
+        let ventana = this.props.seleccion;
         let altura = parseFloat(event.target.value);
         this.props.onAlturaVentanaChanged(ventana, altura);
     }
@@ -256,7 +256,7 @@ class InformacionVentana extends Component {
             fm = info_material_marco.fs;
         }
 
-        //seleccionado != null ? console.log("seleccionado",seleccionado.uuid, seleccionado.userData) : seleccionado;
+        //seleccion != null ? console.log("seleccion",seleccion.uuid, seleccion.userData) : seleccion;
 
 
         return (
@@ -621,7 +621,7 @@ class InformacionVentana extends Component {
 
 InformacionVentana.propTypes = {
     classes: PropTypes.object.isRequired,
-    seleccionado: PropTypes.object,
+    seleccion: PropTypes.object,
     onAlturaVentanaChanged: PropTypes.func,
     onDimensionChanged: PropTypes.func,
 };

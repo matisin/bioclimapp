@@ -95,10 +95,10 @@ class InformacionPuerta extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.seleccionado !== prevProps.seleccionado ) {
+        if (this.props.seleccion !== prevProps.seleccion ) {
 
-            if (this.props.seleccionado !== null && this.props.seleccionado.userData.tipo === Morfologia.tipos.PUERTA) {
-                let capa = this.props.seleccionado.userData.info_material;
+            if (this.props.seleccion !== null && this.props.seleccion.userData.tipo === Morfologia.tipos.PUERTA) {
+                let capa = this.props.seleccion.userData.info_material;
 
                 this.setState({
                     capa: capa,
@@ -175,7 +175,7 @@ class InformacionPuerta extends Component {
     }
 
     handleChangeDimension(event) {
-        let puerta = this.props.seleccionado;
+        let puerta = this.props.seleccion;
         let height = puerta.userData.height, width = puerta.userData.width;
         if (event.target.name === 'altura') {
             height = parseFloat(event.target.value);
@@ -439,7 +439,7 @@ class InformacionPuerta extends Component {
 
 InformacionPuerta.propTypes = {
     classes: PropTypes.object.isRequired,
-    seleccionado: PropTypes.object,
+    seleccion: PropTypes.object,
     onDimensionChanged: PropTypes.func,
 }
 

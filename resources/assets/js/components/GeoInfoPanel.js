@@ -60,6 +60,12 @@ const styles = theme => ({
     }
 });
 
+const mapStateToProps = state => {
+    return {
+        temperaturaConfort: state.app.temperatura,
+        comuna: state.mapa.comuna,
+    }
+}
 class GeoInfoPanel extends Component {
 
     constructor(props) {

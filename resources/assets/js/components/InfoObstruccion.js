@@ -9,6 +9,8 @@ import Undo from "@material-ui/icons/Undo";
 import Redo from "@material-ui/icons/Redo";
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import {modificarObstrucion, thunk_modificar_obstruccion} from "../actions";
+import {connect} from "react-redux";
 
 
 
@@ -35,107 +37,100 @@ const styles = theme => ({
     },
 });
 
+const mapDispatchToProps = dispatch => {
+    return {
+        thunk_modificar_obstruccion: (obstruccion, indice) => dispatch(thunk_modificar_obstruccion(obstruccion,indice)),
+    }
+};
+
+const mapStateToProps = state => {
+    return {
+        seleccion: state.app.seleccion_contexto,
+        obstrucciones: state.contexto.present.obstrucciones,
+    }
+};
+
 class InfoObstruccion extends Component{
     constructor(props){
         super(props);
-        this.handleMouseDown = this.handleMouseDown.bind(this);
-        this.handleMouseUp = this.handleMouseUp.bind(this);
-        this.handleClick = this.handleClick.bind(this);
         this.handleChange = this.handleChange.bind(this);
-        this.timer = null;
-        // this.state ={
-        //     altura: this.props.selectedObstruction.geometry.parameters.height,
-        //     longitud: this.props.selectedObstruction.geometry.parameters.width,
-        // }
-        // 
     }
 
-    // componentDidUpdate(prevProps,prevState, snapshot){
-    //     
-    //     
-    //     if(this.props !== prevProps){
-    //         this.setState({
-    //             altura: this.props.selectedObstruction.geometry.parameters.height,
-    //             longitud: this.props.selectedObstruction.geometry.parameters.width,
-    //         });
-    //     }
-    // }
-
-    handleMouseDown(sentido){
-        let rotationFunction = this.props.handleRotation;
-        this.timer = setInterval(function(){rotationFunction(sentido);}, 100);
-
-    }
-    handleMouseUp(event){
-        clearInterval(this.timer);
-    }
-    handleClick(sentido){
-        this.props.handleRotation(sentido);
-    }
 
     handleChange(event){
         const target = event.target;
         const value = target.value;
-        const name = target.name;
-        this.props.handleChange(name,value);
+
+        let obstruccionState = this.props.obstrucciones[this.props.seleccion];
+        let obstruccion = {
+            longitud: obstruccionState.longitud,
+            altura: obstruccionState.altura,
+            posicion: {
+                x: obstruccionState.posicion.x,
+                z: obstruccionState.posicion.z,
+            },
+            rotacion : obstruccionState.rotacion,
+        };
+        if(target.name === 'rotacion'){
+            let valor = parseInt(value);
+            while (valor > 90){
+                valor-= 180;
+            }
+            while(valor < -90){
+                valor+=180;
+            }
+                obstruccion[target.name] = valor* Math.PI / 180;
+
+        }else{
+            obstruccion[target.name] = parseInt(value);
+        }
+
+        this.props.thunk_modificar_obstruccion(obstruccion,this.props.seleccion);
     }
 
     render(){
         //
-        const {classes} = this.props;
+        const {classes, seleccion, obstrucciones} = this.props;
         return(
+
             <div className={classes.root}>
-                <Paper className={classes.paper}>
-                    <Grid container spacing={0}>
-                        <Grid item xs={6}>
-                            <TextField
-                                name="altura"
-                                type="number"
-                                label="Altura"
-                                className={classes.textField}
-                                value={this.props.selectedObstruction.userData.altura}
-                                onChange={this.handleChange}
-                            />
-                            <Typography className={classes.typography}>Rotar</Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Grid item xs={12}>
+                {
+                    seleccion !== null ? <Paper className={classes.paper}>
+                        <Grid container spacing={0}>
+                            <Grid item xs={4}>
                                 <TextField
-                                    name="longitud"
+                                    name="altura"
                                     type="number"
-                                    label="Longitud"
+                                    label="Altura"
                                     className={classes.textField}
-                                    value={this.props.selectedObstruction.geometry.parameters.width}
+                                    value={obstrucciones[seleccion].altura}
                                     onChange={this.handleChange}
                                 />
                             </Grid>
-
-
-                            <Tooltip title="Horario">
-                                <IconButton
-                                    className={classes.button}
-                                    aria-label="Redo"
-                                    onMouseDown={this.handleMouseDown.bind(this,1)}
-                                    onMouseUp={this.handleMouseUp}
-                                    onClick={this.handleClick.bind(this,1)}
-                                >
-                                    <Redo/>
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Antihorario">
-                                <IconButton
-                                    className={classes.button}
-                                    aria-label="Undo"
-                                    onMouseDown={this.handleMouseDown.bind(this,-1)}
-                                    onMouseUp={this.handleMouseUp}
-                                    onClick={this.handleClick.bind(this,-1)}
-                                >
-                                    <Undo/>
-                                </IconButton>
-                            </Tooltip>
+                                <Grid item xs={4}>
+                                    <TextField
+                                        name="longitud"
+                                        type="number"
+                                        label="Longitud"
+                                        className={classes.textField}
+                                        value={obstrucciones[seleccion].longitud}
+                                        onChange={this.handleChange}
+                                    />
+                                </Grid>
+                            <Grid item xs={4}>
+                                <TextField
+                                    name="rotacion"
+                                    type="number"
+                                    label="Rotación (grados)"
+                                    className={classes.textField}
+                                    value={Math.round(obstrucciones[seleccion].rotacion* 180/Math.PI)}
+                                    onChange={this.handleChange}
+                                />
+                            </Grid>
                         </Grid>
-                    </Grid>
-                </Paper>
+                    </Paper> : <div/>
+                }
+
 
             </div>
         )
@@ -144,5 +139,6 @@ class InfoObstruccion extends Component{
 
 InfoObstruccion.propTypes = {
     classes: PropTypes.object.isRequired,
+    thunk_modificar_obstruccion: PropTypes.func,
 };
-export default withStyles(styles)(InfoObstruccion);
+export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InfoObstruccion));

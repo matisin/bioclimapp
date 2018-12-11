@@ -16,10 +16,60 @@ import {
     ACTIVAR_SELECCIONAR_CONTEXTO,
 
     AGREGAR_OBSTRUCCION, ELIMINAR_OBSTRUCCION, SELECCIONAR_OBSTRUCCION, SETEAR_COMUNA,
-    MODIFICAR_OBSTRUCCION, CONTEXTO_UNDO, CONTEXTO_REDO, MORFOLOGIA_UNDO, MORFOLOGIA_REDO,
+    MODIFICAR_OBSTRUCCION, CONTEXTO_UNDO, CONTEXTO_REDO, MORFOLOGIA_UNDO, MORFOLOGIA_REDO, SET_STATE_MAPA, SET_CARGANDO,
 
 } from "../constants/action-types";
 import store from "../store";
+import axios from "axios";
+import {getSunPath, getSunPosition} from "../Utils/sunMethods";
+
+export const setStateMapa = (mapa) => (
+    {
+        type: SET_STATE_MAPA,
+        mapa: mapa,
+    }
+);
+
+export const setCargando = (cargando) => (
+    {
+        type: SET_CARGANDO,
+        cargando: cargando,
+    }
+);
+
+export const thunk_set_state_mapa = (lat,lng) => {
+
+    store.dispatch(setCargando(true));
+    return function (dispatch, getState) {
+        axios.get("https://bioclimapp.host/api/comuna/" + lat + "/" + lng)
+            .then(response => {
+                    if(response.data.length > 0) {
+                        let map = {
+                            lat: lat,
+                            lng: lng,
+                            comuna: response.data[0],
+                            sunPosition: getSunPosition(lat, lng),
+                            sunPath: getSunPath(lat, lng)
+                        };
+                        dispatch(setCargando(false));
+                        dispatch(setStateMapa(map));
+                    }
+                    else{
+                        dispatch(setCargando(false));
+                        alert("No se encuentra comuna en la base de datos");
+                    }
+                }
+            );
+
+
+    }
+};
+
+export const clickMapa = (lat, long) => (
+    {
+
+    }
+);
 
 export const activarAgregarContexto = () => (
     {
