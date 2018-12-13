@@ -35,7 +35,7 @@ import {
     verSol,
     cambiarFecha,
     activarRotar,
-    activarMoverCamara, morfologiaUndo, morfologiaRedo,
+    activarMoverCamara, morfologiaUndo, morfologiaRedo, thunk_cambiar_fecha,
 } from "../actions";
 
 const styles = theme => ({
@@ -166,9 +166,9 @@ const mapDispatchToProps = dispatch => {
         activarEliminarMorfologia : () => dispatch(activarEliminarMorfologia()),
         activarSeleccionarMorfologia : () => dispatch(activarSeleccionarMorfologia()),
         verSol : () => dispatch(verSol()),
-        cambiarFecha : () => dispatch(cambiarFecha()),
         activarRotar : () => dispatch(activarRotar()),
         activarMoverCamara : () => dispatch(activarMoverCamara()),
+        thunk_cambiar_fecha: (fecha) => dispatch(thunk_cambiar_fecha(fecha)),
     }
 };
 
@@ -197,10 +197,6 @@ class BarraHerramientasMorfologia extends Component {
             anchor: null,
             anchorCamara: null,
             anchorSol: null,
-            dia: new Date().getDate(),
-            mes: new Date().getMonth()+1,
-            hora: new Date().getHours(),
-            minutos: new Date().getMinutes(),
         };
 
         this.handleCasaPredefinida = this.handleCasaPredefinida.bind(this);
@@ -303,11 +299,25 @@ class BarraHerramientasMorfologia extends Component {
 
 
     onDateChange(event){
-        this.setState({ [event.target.name]: event.target.value }, () => {
-            let año = new Date().getFullYear();
-            let fecha = new Date(año,this.state.mes-1, this.state.dia, this.state.hora, this.state.minutos);
+        const fecha = this.props.fecha;
+
+        let date = {
+            mes : fecha.getMonth(), //months from 1-12
+            dia : fecha.getDate(),
+            minutos : fecha.getMinutes(),
+            hora : fecha.getHours(),
+            year : fecha.getFullYear(),
+        };
+
+        date[event.target.name] = event.target.value;
+
+        let newFecha = new Date(date.year,date.mes-1,date.dia,date.hora,date.minutos);
+        this.props.thunk_cambiar_fecha(newFecha);
+        /*this.setState({ [event.target.name]: event.target.value }, () => {
+            let year = new Date().getFullYear();
+            let fecha = new Date(year,this.state.mes-1, this.state.dia, this.state.hora, this.state.minutos);
             this.props.handleChangeFecha("fecha",fecha);
-        });
+        });*/
     }
 
 
@@ -327,6 +337,11 @@ class BarraHerramientasMorfologia extends Component {
             acciones,
             fecha,
             sol} = this.props;
+
+        const month = fecha.getMonth() + 1; //months from 1-12
+        const day = fecha.getDate();
+        const min = fecha.getMinutes();
+        const hour = fecha.getHours();
 
         const {dibujandoStatesButtons, anchorEl, anchor, anchorCamara, anchorSol, anchorFecha} = this.state;
         return (
@@ -703,10 +718,10 @@ class BarraHerramientasMorfologia extends Component {
 
                     >
                         <DatePicker
-                            dia={this.state.dia}
-                            mes={this.state.mes}
-                            hora={this.state.hora}
-                            minutos={this.state.minutos}
+                            dia={day}
+                            mes={month}
+                            hora={hour}
+                            minutos={min}
                             onDateChange={this.onDateChange}/>
                     </Menu>
 

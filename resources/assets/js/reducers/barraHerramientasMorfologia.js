@@ -19,7 +19,7 @@ const initialState = {
         rotar: false,
 
     },
-    fecha: null,
+    fecha: new Date(),
     sol: true,
 };
 

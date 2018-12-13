@@ -10,11 +10,11 @@ import {thunk_set_state_mapa} from "../actions";
 
 const mapStateToProps = state => {
     return {
-        lat: state.app.mapa.lat,
-        lng: state.app.mapa.lng,
-        comuna: state.app.mapa.comuna,
-        sunPosition: state.app.mapa.sunPosition,
-        sunPath: state.app.mapa.sunPath,
+        lat: state.variables.mapa.lat,
+        lng: state.variables.mapa.lng,
+        comuna: state.variables.mapa.comuna,
+        sunPosition: state.variables.mapa.sunPosition,
+        sunPath: state.variables.mapa.sunPath,
 
     }
 };
@@ -33,7 +33,6 @@ class MapContainer extends Component {
         };
         this.mapClicked = this.mapClicked.bind(this);
         this.getSunPosition = this.getSunPosition.bind(this);
-        this.locationFound = this.locationFound.bind(this);
     }
 
     componentDidUpdate(prevProps){
@@ -69,11 +68,6 @@ class MapContainer extends Component {
             markers: markers
         });
     }
-
-    locationFound(e) {
-        console.log('location',e);
-    }
-
 
     mapClicked(e) {
         this.props.thunk_set_state_mapa(e.latlng.lat,e.latlng.lng);
@@ -133,9 +127,6 @@ class MapContainer extends Component {
                             </Marker>
                     )}
                     <SearchBar
-                        style={{
-                            clear: 'none',
-                        }}
                     />
                 </Map>
 

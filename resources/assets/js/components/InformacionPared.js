@@ -114,14 +114,24 @@ class InformacionPared extends Component {
         this.vaciosArray = [];
         this.info_material = [];
         this.themes = [];
-        axios.get("https://bioclimapp.host/api/info_materiales")
-            .then(response => this.getJson(response));
+        /*axios.get("https://bioclimapp.host/api/info_materiales")
+            .then(response => this.getJson(response));*/
         this.handleChange = this.handleChange.bind(this);
         this.handleClickAgregar = this.handleClickAgregar.bind(this);
         this.handleClickBorrar = this.handleClickBorrar.bind(this);
         this.handleChangeDimension = this.handleChangeDimension.bind(this);
         this.handleChangeCapa = this.handleChangeCapa.bind(this);
         this.clickCapa = this.clickCapa.bind(this);
+
+
+        var theme = createMuiTheme({
+            palette: {
+                primary: {
+                    main: "#fc0f4f",
+                },
+            },
+        });
+        this.colorSelected = [theme.palette.primary.main,theme.palette.primary.contrastText];
     }
 
     componentDidUpdate(prevProps) {

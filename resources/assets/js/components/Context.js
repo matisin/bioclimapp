@@ -42,8 +42,8 @@ const mapDispatchToProps = dispatch => {
     }
 };
 
-
 class Context extends Component {
+
     constructor(props) {
         super(props);
         this.start = this.start.bind(this);
@@ -57,6 +57,7 @@ class Context extends Component {
         this.handleRotation = this.handleRotation.bind(this);
         this.handleParamChange = this.handleParamChange.bind(this);
         this.resetObstrucciones = this.resetObstrucciones.bind(this);
+
         this.state = {
             height: props.height,
             width: props.width,
@@ -553,10 +554,11 @@ class Context extends Component {
         //let seleccion = state.seleccion;
 
         if(this.hoveredObstruction !== null){
+            console.log(this.hoveredObstruction);
             this.props.thunk_eliminar_obstruccion(this.hoveredObstruction.userData.indice);
         }else{
             if(this.props.seleccion !== null && this.hoveredSelected){
-                this.props.thunk_eliminar_obstruccion(this.seleccion.userData.indice);
+                this.props.thunk_eliminar_obstruccion(this.seleccionado.userData.indice);
             }
         }
         this.hoveredObstruction = null;

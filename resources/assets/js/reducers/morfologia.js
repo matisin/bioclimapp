@@ -5,7 +5,7 @@ import {
     predefinidaDobleState,
     predefinidaSimpleDosPisosState,
     predefinidaDobleDosPisosState,
-} from './casasPredefinidas'
+} from '../constants/casasPredefinidas'
 import {
     AGREGAR_BLOQUE,
     AGREGAR_NIVEL,

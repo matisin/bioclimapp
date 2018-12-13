@@ -54,7 +54,7 @@ class InformacionEstructura extends Component {
                     onDimensionChanged={onDimensionChanged}
                     onCapaChanged={onCapaChanged}
 
-                />
+                />{/*
 
                 <InformacionVentana
                     seleccionado={seleccionado}
@@ -77,7 +77,7 @@ class InformacionEstructura extends Component {
                     onDimensionChanged={onDimensionChanged}
                     seleccionado={seleccionado}
                     onCapaChanged={onCapaChanged}
-                />
+                />*/}
 
             </div>
         );

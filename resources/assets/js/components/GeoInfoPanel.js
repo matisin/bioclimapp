@@ -7,6 +7,7 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import CardHeader from "@material-ui/core/CardHeader/CardHeader";
+import {connect} from "react-redux";
 
 function TabContainer(props) {
     return (
@@ -62,72 +63,27 @@ const styles = theme => ({
 
 const mapStateToProps = state => {
     return {
-        temperaturaConfort: state.app.temperatura,
-        comuna: state.mapa.comuna,
+        temperaturaConfort: state.variables.temperatura,
+        comuna: state.variables.mapa.comuna,
+        temps: state.variables.infoGeo.temperatura,
+        global: state.variables.infoGeo.global,
+        directa: state.variables.infoGeo.directa,
+        difusa: state.variables.infoGeo.difusa,
     }
-}
+};
 class GeoInfoPanel extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {temperaturaConfort: 14};
     }
-
-
-    static getDerivedStateFromProps(nextProps, prevState) {
-        if (nextProps.comuna != null && nextProps.comuna !== prevState.comuna) {
-            return {comuna: nextProps.comuna};
-        }
-        else return null;
-    }
-
-    componentDidUpdate(prevProps, prevState){
-        if(prevProps.comuna !== this.props.comuna){
-            let pointer = this;
-            let props = this.props;
-            axios.all([this.getTemperaturesById(this.props.comuna.id), this.getGlobalRadiationById(this.props.comuna.id),
-                this.getDirectRadiationById(this.props.comuna.id), this.getDifuseRadiationById(this.props.comuna.id)])
-                .then(axios.spread(function (temps, global, direct, difuse) {
-                    pointer.setState({
-                        comuna: props.comuna,
-                        temps: temps.data,
-                        global: global.data,
-                        directa: direct.data,
-                        difusa: difuse.data,
-                        height: props.height,
-                    });
-                    props.onRadiationsChanged(global.data, direct.data, difuse.data);
-                }));
-        }
-        if(this.props.temperatura !== prevProps.temperatura){
-            this.setState({temperaturaConfort: this.props.temperatura});
-        }
-    }
-
-    getTemperaturesById(id) {
-        return axios.get('https://bioclimapp.host/api/temperaturas/' + id);
-    }
-
-    getGlobalRadiationById(id) {
-        return axios.get('https://bioclimapp.host/api/radiaciones/' + id);
-    }
-
-    getDirectRadiationById(id) {
-        return axios.get('https://bioclimapp.host/api/radiaciones_directa/' + id);
-    }
-
-    getDifuseRadiationById(id) {
-        return axios.get('https://bioclimapp.host/api/radiaciones_difusa/' + id);
-    }
-
 
     render() {
         const {classes, theme} = this.props;
         let tempAnual = null;
         let radAnual = null;
-        if (this.state.temps != null) {
-            let tempsCopy = Object.assign([], this.state.temps);
-            let radsCopy = Object.assign([], this.state.global);
+        if (this.props.temps != null) {
+            let tempsCopy = Object.assign([], this.props.temps);
+            let radsCopy = Object.assign([], this.props.global);
             tempAnual = tempsCopy.pop();
             radAnual = radsCopy.pop();
         }
@@ -143,7 +99,7 @@ class GeoInfoPanel extends Component {
                     borderWidth: 1,
                     hoverBackgroundColor: 'rgba(48,63,159,0.8)',
                     hoverBorderColor: 'rgba(48,63,159,1)',
-                    data: this.state.temps ? this.state.temps.map(function (temp) {
+                    data: this.props.temps ? this.props.temps.map(function (temp) {
                         return temp.valor;
                     }) : null
                 },
@@ -151,7 +107,7 @@ class GeoInfoPanel extends Component {
                     label: 'Temperatura de confort',
                     yAxisID: 'temperatura',
                     type: 'line',
-                    data: Array(12).fill(tempAnual ? this.state.temperaturaConfort : null),
+                    data: Array(12).fill(tempAnual ? this.props.temperaturaConfort : null),
                     fill: false,
                     borderColor: '#c51162',
                     backgroundColor: "#c51162",
@@ -167,7 +123,7 @@ class GeoInfoPanel extends Component {
                     borderWidth: 1,
                     hoverBackgroundColor: 'rgba(161, 146, 48, 0.8)',
                     hoverBorderColor: 'rgba(161, 146, 48, 1)',
-                    data: this.state.global ? this.state.global.map(function (rad) {
+                    data: this.props.global ? this.props.global.map(function (rad) {
                         return rad.valor;
                     }) : null
                 },
@@ -212,17 +168,17 @@ class GeoInfoPanel extends Component {
                     },
                 }],
             }
-        }
+        };
 
 
         return (
             <div>
                 <Card className={classes.card}>
                     {
-                        this.state.comuna != null ?
+                        this.props.comuna != null ?
                             <div>
                                 <CardHeader
-                                    title={"Comuna: " + this.state.comuna.nombre}
+                                    title={"Comuna: " + this.props.comuna.nombre}
                                 />
                                 <CardContent>
                                     <Bar
@@ -249,4 +205,4 @@ GeoInfoPanel.propTypes = {
     theme: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles, {withTheme: true})(GeoInfoPanel)
+export default connect(mapStateToProps)(withStyles(styles, {withTheme: true})(GeoInfoPanel));

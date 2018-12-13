@@ -43,6 +43,14 @@ export const materialSeleccionado = new THREE.MeshLambertMaterial({
 
 });
 
+export const materialHoveredMorf = new THREE.MeshLambertMaterial({
+    color: 0x8BC5BF,
+    opacity: 0.7,
+    transparent: true,
+    side : THREE.DoubleSide,
+
+});
+
 export const materialError = new THREE.MeshBasicMaterial({
     color: '#FF0000',
     opacity: 0.4,

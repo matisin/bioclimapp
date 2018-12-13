@@ -13,7 +13,7 @@ const seleccion = (state = initialState , action) =>
                 draft.contexto = action.indice;
                 break;
             case SELECCIONAR_MORFOLOGIA:
-                draft.morfologia = action.indice;
+                draft.morfologia = action.seleccion;
                 break;
         }
     });

@@ -1,32 +1,83 @@
 import {
     CAMBIAR_VARS_INTERNA,
 
-    AGREGAR_BLOQUE, AGREGAR_NIVEL, AGREGAR_PUERTA, AGREGAR_VENTANA, BORRAR_PUERTA,
-    BORRAR_BLOQUE, BORRAR_NIVEL, BORRAR_VENTANA, CASA_PREDEFINIDA_DOBLE,
-    CASA_PREDEFINIDA_DOBLE_DOS_PISOS, CASA_PREDEFINIDA_SIMPLE,
-    CASA_PREDEFINIDA_SIMPLE_DOS_PISOS, MODIFICAR_DIMENSIONES_BLOQUE,
-    MODIFICAR_DIMENSIONES_VENTANA, MODIFICAR_DIMENSIONES_PUERTA,
-    MODIFICAR_MARCO_VENTANA, MODIFICAR_MATERIAL_VENTANA, MODIFICAR_MATERIAL_PUERTA,
+    AGREGAR_BLOQUE,
+    AGREGAR_NIVEL,
+    AGREGAR_PUERTA,
+    AGREGAR_VENTANA,
+    BORRAR_PUERTA,
+    BORRAR_BLOQUE,
+    BORRAR_NIVEL,
+    BORRAR_VENTANA,
+    CASA_PREDEFINIDA_DOBLE,
+    CASA_PREDEFINIDA_DOBLE_DOS_PISOS,
+    CASA_PREDEFINIDA_SIMPLE,
+    CASA_PREDEFINIDA_SIMPLE_DOS_PISOS,
+    MODIFICAR_DIMENSIONES_BLOQUE,
+    MODIFICAR_DIMENSIONES_VENTANA,
+    MODIFICAR_DIMENSIONES_PUERTA,
+    MODIFICAR_MARCO_VENTANA,
+    MODIFICAR_MATERIAL_VENTANA,
+    MODIFICAR_MATERIAL_PUERTA,
 
-    CAMBIO_TIPO_CAMARA, ACTIVAR_ELIMINAR_MORFOLOGIA, VER_SOL, ACTIVAR_ROTAR,
-    ACTIVAR_AGREGAR_BLOQUE, ACTIVAR_AGREGAR_PUERTA, ACTIVAR_AGREGAR_VENTANA,
-    ACTIVAR_MOVER_CAMARA, ACTIVAR_SELECCIONAR_MORFOLOGIA,
+    CAMBIO_TIPO_CAMARA,
+    ACTIVAR_ELIMINAR_MORFOLOGIA,
+    VER_SOL,
+    ACTIVAR_ROTAR,
+    ACTIVAR_AGREGAR_BLOQUE,
+    ACTIVAR_AGREGAR_PUERTA,
+    ACTIVAR_AGREGAR_VENTANA,
+    ACTIVAR_MOVER_CAMARA,
+    ACTIVAR_SELECCIONAR_MORFOLOGIA,
 
-    ACTIVAR_AGREGAR_CONTEXTO, ACTIVAR_ELIMINAR_CONTEXTO, MOSTRAR_OCULTAR_MAPA,
+    ACTIVAR_AGREGAR_CONTEXTO,
+    ACTIVAR_ELIMINAR_CONTEXTO,
+    MOSTRAR_OCULTAR_MAPA,
     ACTIVAR_SELECCIONAR_CONTEXTO,
 
-    AGREGAR_OBSTRUCCION, ELIMINAR_OBSTRUCCION, SELECCIONAR_OBSTRUCCION, SETEAR_COMUNA,
-    MODIFICAR_OBSTRUCCION, CONTEXTO_UNDO, CONTEXTO_REDO, MORFOLOGIA_UNDO, MORFOLOGIA_REDO, SET_STATE_MAPA, SET_CARGANDO,
+    AGREGAR_OBSTRUCCION,
+    ELIMINAR_OBSTRUCCION,
+    SELECCIONAR_OBSTRUCCION,
+    SETEAR_COMUNA,
+    MODIFICAR_OBSTRUCCION,
+    CONTEXTO_UNDO,
+    CONTEXTO_REDO,
+    MORFOLOGIA_UNDO,
+    MORFOLOGIA_REDO,
+    SET_STATE_MAPA,
+    SET_CARGANDO,
+    SET_STATE_INFO_GEO,
+    ROTAR_CASA,
+    CAMBIAR_FECHA,
+    SELECCIONAR_MORFOLOGIA,
+    SET_MATERIALES,
+    SET_MATERIALES_VENTANAS,
+    SET_MATERIALES_MARCOS,
 
 } from "../constants/action-types";
 import store from "../store";
 import axios from "axios";
 import {getSunPath, getSunPosition} from "../Utils/sunMethods";
+import {
+    getComunas,
+    getDifuseRadiationById,
+    getDirectRadiationById,
+    getGlobalRadiationById, getMateriales, getMaterialesMarcos, getMaterialesVentanas,
+    getTemperaturesById
+} from "../Utils/llamadasAxios";
+import {getJsonMarcos, getJsonMateriales, getJsonVentanas} from "../Utils/materialesFormat";
 
 export const setStateMapa = (mapa) => (
     {
         type: SET_STATE_MAPA,
         mapa: mapa,
+    }
+);
+
+export const setStateInfoGeo = (infoGeo) => (
+    {
+        type: SET_STATE_INFO_GEO,
+        infoGeo: infoGeo,
     }
 );
 
@@ -41,18 +92,31 @@ export const thunk_set_state_mapa = (lat,lng) => {
 
     store.dispatch(setCargando(true));
     return function (dispatch, getState) {
-        axios.get("https://bioclimapp.host/api/comuna/" + lat + "/" + lng)
+        const date = getState().barra_herramientas_morfologia.fecha;
+        getComunas(lat,lng)
             .then(response => {
                     if(response.data.length > 0) {
                         let map = {
                             lat: lat,
                             lng: lng,
                             comuna: response.data[0],
-                            sunPosition: getSunPosition(lat, lng),
-                            sunPath: getSunPath(lat, lng)
+                            sunPosition: getSunPosition(lat, lng, date),
+                            sunPath: getSunPath(lat, lng, date)
                         };
-                        dispatch(setCargando(false));
                         dispatch(setStateMapa(map));
+                        axios.all([getTemperaturesById(response.data[0].id), getGlobalRadiationById(response.data[0].id),
+                            getDirectRadiationById(response.data[0].id), getDifuseRadiationById(response.data[0].id)])
+                            .then(axios.spread(function (temps, global, direct, difuse) {
+                                let infoGeo = {
+                                    temperatura: temps.data,
+                                    global: global.data,
+                                    directa: direct.data,
+                                    difusa: difuse.data,
+                                };
+                                dispatch(setCargando(false));
+                                dispatch(setStateInfoGeo(infoGeo));
+                            }));
+
                     }
                     else{
                         dispatch(setCargando(false));
@@ -60,6 +124,7 @@ export const thunk_set_state_mapa = (lat,lng) => {
                     }
                 }
             );
+
 
 
     }
@@ -122,7 +187,7 @@ export const thunk_eliminar_obstruccion = (indice) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
-        let seleccionado = getState().seleccion.contexto;
+        let seleccionado = getState().app.seleccion_contexto;
         if(seleccionado === indice){
             dispatch(seleccionarObstruccion(null));
         }
@@ -142,10 +207,10 @@ export const seleccionarObstruccion = indice => (
     }
 );
 
-export const seleccionarMorfologia = indice => (
+export const seleccionarMorfologia = seleccion => (
     {
         type: SELECCIONAR_MORFOLOGIA,
-        indice: indice,
+        seleccion: seleccion,
     }
 );
 
@@ -376,6 +441,14 @@ export const thunk_borrar_puerta = (puerta, nivel, bloque, pared) => {
     }
 };
 
+export const thunk_rotar_casa = (angulo) => {
+
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(rotarCasa(angulo));
+    }
+};
+
 export const rotarCasa = angulo => (
     {
         type: ROTAR_CASA,
@@ -515,12 +588,75 @@ export const verSol = () => (
     }
 );
 
+export const setMateriales = (materiales) => ({
+        type: SET_MATERIALES,
+        materiales: materiales,
+
+    }
+);
+
+export const setMaterialesVentanas = (materiales_ventanas) => ({
+        type: SET_MATERIALES_VENTANAS,
+        materiales_ventanas: materiales_ventanas,
+
+    }
+);
+
+export const setMaterialesMarcos = (materiales_marcos) => ({
+        type: SET_MATERIALES_MARCOS,
+        materiales_marcos: materiales_marcos,
+
+    }
+);
+
+export const thunk_set_materiales = () => {
+    return function (dispatch,getState) {
+        getMateriales().then(
+            response => {
+                let materiales = getJsonMateriales(response);
+                dispatch(setMateriales(materiales));
+            }
+        );
+        getMaterialesVentanas().then(
+            response => {
+                let materiales_ventana = getJsonVentanas(response);
+                dispatch(setMaterialesVentanas(materiales_ventana));
+            }
+        );
+        getMaterialesMarcos().then(
+            response => {
+                let materiales_ventana = getJsonMarcos(response);
+                dispatch(setMaterialesMarcos(materiales_ventana));
+            }
+        );
+
+    }
+};
+
 export const cambiarFecha = (fecha) => (
     {
         type: CAMBIAR_FECHA,
         fecha: fecha,
     }
 );
+
+export const thunk_cambiar_fecha = (fecha) => {
+    //SET CALC]ULANDO
+    return function (dispatch,getState) {
+        const {lat,lng,comuna} = getState().variables.mapa;
+        dispatch(cambiarFecha(fecha));
+        let map = {
+            lat: lat,
+            lng: lng,
+            comuna: comuna,
+            sunPosition: getSunPosition(lat, lng, fecha),
+            sunPath: getSunPath(lat, lng, fecha)
+        };
+        dispatch(setStateMapa(map));
+
+    }
+
+};
 
 export const activarRotar = () => (
     {

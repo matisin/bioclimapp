@@ -1,6 +1,6 @@
 var SunCalc = require('suncalc');
 
-export function getSunPosition(lat, lng, date = new Date()) {
+export function getSunPosition(lat, lng, date) {
     let sun = SunCalc.getPosition(/*Date*/ date, /*Number*/ lat, /*Number*/ lng);
     let altitude = sun.altitude * 180 / Math.PI;
     let azimuth = sun.azimuth * 180 / Math.PI;
@@ -10,9 +10,8 @@ export function getSunPosition(lat, lng, date = new Date()) {
     }
 }
 
-export function getSunPath(lat, lng){
+export function getSunPath(lat, lng, now){
     let sunPath = [];
-    let now = new Date();
     let start = new Date(now.getFullYear(),0,0);
     let invierno = new Date(now.getFullYear(),5,21);
     let verano = new Date(now.getFullYear(),11,21);

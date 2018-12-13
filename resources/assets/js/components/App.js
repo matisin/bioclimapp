@@ -31,6 +31,20 @@ import DialogTitle from "@material-ui/core/DialogTitle/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent/DialogContent";
 import CircularProgress from "@material-ui/core/CircularProgress/CircularProgress";
 import MorfologiaRedux from "./MorfologiaRedux";
+import {
+    activarAgregarBloque,
+    activarAgregarPuerta,
+    activarAgregarVentana,
+    activarEliminarMorfologia, activarMoverCamara, activarRotar,
+    activarSeleccionarMorfologia,
+    cambioTipoCamara,
+    casaPredefinidaDoble,
+    casaPredefinidaDobleDosPisos,
+    casaPredefinidaSimple,
+    casaPredefinidaSimpleDosPisos,
+    morfologiaRedo,
+    morfologiaUndo, thunk_cambiar_fecha, thunk_set_materiales, verSol
+} from "../actions";
 
 function TabContainer(props) {
     return (
@@ -183,7 +197,14 @@ const mapStateToProps = state => {
     return {
         mostrar_mapa: state.barra_herramientas_contexto.mostrar_mapa,
         cargando: state.app.cargando,
-    };
+        seleccion_morfologia: state.app.seleccion_morfologia,
+    }
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        thunk_set_materiales: () => dispatch(thunk_set_materiales()),
+    }
 };
 
 function AlertDialog(props){
@@ -233,6 +254,7 @@ class App extends Component {
             loaded: false,
             rotated: false,
         };
+        this.props.thunk_set_materiales();
         this.handleChange = this.handleChange.bind(this);
         this.handleChangeIndex = this.handleChangeIndex.bind(this);
         this.onParedesChanged = this.onParedesChanged.bind(this);
@@ -493,7 +515,8 @@ class App extends Component {
 
 
     render() {
-        const {classes, theme, mostrar_mapa, cargando} = this.props;
+        const {classes, theme, mostrar_mapa, cargando, seleccion_morfologia} = this.props;
+        const mostrar_seleccion = seleccion_morfologia != null;
         const {value, click2D, dibujandoMorf, seleccionandoMorf, borrandoMorf, width, height, openMorf, seleccionadoMorf, dimensiones, alturaPiso, paredCapaChange,loaded} = this.state;
         const heightContent = height-heightBarra;
         return (
@@ -581,8 +604,8 @@ class App extends Component {
                 >
                     <div className={classes.frameTabs}>
                         <div className={classNames(classes.contentInside, classes.contentRight, {
-                            [classes.contentShift]: !openMorf,
-                            [classes.contentShiftRight]: !openMorf,
+                            [classes.contentShift]: !mostrar_seleccion,
+                            [classes.contentShiftRight]: !mostrar_seleccion,
                         })}>
                             <TabContainer dir={theme.direction}>
                                 {this.state.width ?
@@ -660,9 +683,9 @@ class App extends Component {
                         <Drawer
                             variant='persistent'
                             anchor='right'
-                            open={openMorf}
+                            open={mostrar_seleccion}
 
-                            style={{visibility: openMorf ? 'visible' : 'hidden'}}
+                            style={{visibility: mostrar_seleccion ? 'visible' : 'hidden'}}
                             classes={{
                                 paper: classes.drawerRightPaper,
                             }}
@@ -758,4 +781,4 @@ App.propTypes = {
     theme: PropTypes.object.isRequired,
 };
 
-export default connect(mapStateToProps)(withStyles(styles, {withTheme: true})(App));
+export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles, {withTheme: true})(App));

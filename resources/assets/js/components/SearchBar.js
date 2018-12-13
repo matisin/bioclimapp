@@ -27,7 +27,7 @@ class SearchBar extends MapControl{
       autoComplete: true,
       autoClose:true,
       autoCompleteDelay: 250,
-      retainZoomLevel: false,
+      retainZoomLevel: true,
       searchLabel: 'Ingrese localidad',
       keepResult: true,
       showMarker: false,
