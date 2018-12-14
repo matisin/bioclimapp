@@ -50,19 +50,9 @@ class InformacionEstructura extends Component {
         return (
             <div>
                 <InformacionPared
-                    seleccionado={seleccionado}
-                    onDimensionChanged={onDimensionChanged}
-                    onCapaChanged={onCapaChanged}
-
-                />{/*
+                />
 
                 <InformacionVentana
-                    seleccionado={seleccionado}
-                    onDimensionChanged={onDimensionChanged}
-                    onAlturaVentanaChanged={onAlturaVentanaChanged}
-                    comuna={this.props.comuna}
-                    onAporteSolarChanged={this.props.onAporteSolarChanged}
-                    onCapaChanged={onCapaChanged}
 
                 />
 
@@ -77,7 +67,7 @@ class InformacionEstructura extends Component {
                     onDimensionChanged={onDimensionChanged}
                     seleccionado={seleccionado}
                     onCapaChanged={onCapaChanged}
-                />*/}
+                />
 
             </div>
         );

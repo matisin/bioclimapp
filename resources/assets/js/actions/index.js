@@ -53,6 +53,20 @@ import {
     SET_MATERIALES,
     SET_MATERIALES_VENTANAS,
     SET_MATERIALES_MARCOS,
+    AGREGAR_CAPA_PARED,
+    BORRAR_CAPA_PARED,
+    BORRAR_CAPA_PISO,
+    BORRAR_CAPA_TECHO,
+    MODIFICAR_CAPA_PARED,
+    MODIFICAR_CAPA_TECHO,
+    MODIFICAR_CAPA_PISO,
+    APLICAR_CAPA_A_PAREDES,
+    APLICAR_CAPA_A_PISOS,
+    APLICAR_CAPA_A_TECHOS,
+    AGREGAR_CAPA_PISO,
+    AGREGAR_CAPA_TECHO,
+    MODIFICAR_POSICION_VENTANA,
+    APLICAR_MATERIAL_A_VENTANAS, APLICAR_MATERIAL_A_PUERTAS, MODIFICAR_POSICION_PUERTA, APLICAR_MARCOS_A_VENTANAS,
 
 } from "../constants/action-types";
 import store from "../store";
@@ -61,7 +75,7 @@ import {getSunPath, getSunPosition} from "../Utils/sunMethods";
 import {
     getComunas,
     getDifuseRadiationById,
-    getDirectRadiationById,
+    getDirectRadiationById, getFilteredRadiationDifusa, getFilteredRadiationDirecta,
     getGlobalRadiationById, getMateriales, getMaterialesMarcos, getMaterialesVentanas,
     getTemperaturesById
 } from "../Utils/llamadasAxios";
@@ -88,14 +102,15 @@ export const setCargando = (cargando) => (
     }
 );
 
-export const thunk_set_state_mapa = (lat,lng) => {
+export const thunk_set_state_mapa = (lat, lng) => {
 
     store.dispatch(setCargando(true));
     return function (dispatch, getState) {
         const date = getState().barra_herramientas_morfologia.fecha;
-        getComunas(lat,lng)
+        getComunas(lat, lng)
             .then(response => {
-                    if(response.data.length > 0) {
+                    if (response.data.length > 0) {
+
                         let map = {
                             lat: lat,
                             lng: lng,
@@ -104,21 +119,29 @@ export const thunk_set_state_mapa = (lat,lng) => {
                             sunPath: getSunPath(lat, lng, date)
                         };
                         dispatch(setStateMapa(map));
-                        axios.all([getTemperaturesById(response.data[0].id), getGlobalRadiationById(response.data[0].id),
-                            getDirectRadiationById(response.data[0].id), getDifuseRadiationById(response.data[0].id)])
-                            .then(axios.spread(function (temps, global, direct, difuse) {
-                                let infoGeo = {
-                                    temperatura: temps.data,
-                                    global: global.data,
-                                    directa: direct.data,
-                                    difusa: difuse.data,
-                                };
-                                dispatch(setCargando(false));
-                                dispatch(setStateInfoGeo(infoGeo));
-                            }));
+                        axios.all([
+                                getTemperaturesById(response.data[0].id),
+                                getGlobalRadiationById(response.data[0].id),
+                                getDirectRadiationById(response.data[0].id),
+                                getDifuseRadiationById(response.data[0].id),
+                                getFilteredRadiationDirecta(response.data[0].id),
+                                getFilteredRadiationDifusa(response.data[0].id),
+                            ],
 
-                    }
-                    else{
+                        ).then(axios.spread(function (temps, global, direct, difuse, filtredDirect, filteredDifuse) {
+                            let infoGeo = {
+                                temperatura: temps.data,
+                                global: global.data,
+                                directa: direct.data,
+                                difusa: difuse.data,
+                                filtredDirect: filtredDirect.data.valor,
+                                filteredDifuse: filteredDifuse.data.valor,
+                            };
+                            dispatch(setCargando(false));
+                            dispatch(setStateInfoGeo(infoGeo));
+                        }));
+
+                    } else {
                         dispatch(setCargando(false));
                         alert("No se encuentra comuna en la base de datos");
                     }
@@ -126,14 +149,11 @@ export const thunk_set_state_mapa = (lat,lng) => {
             );
 
 
-
     }
 };
 
 export const clickMapa = (lat, long) => (
-    {
-
-    }
+    {}
 );
 
 export const activarAgregarContexto = () => (
@@ -188,11 +208,11 @@ export const thunk_eliminar_obstruccion = (indice) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         let seleccionado = getState().app.seleccion_contexto;
-        if(seleccionado === indice){
+        if (seleccionado === indice) {
             dispatch(seleccionarObstruccion(null));
         }
-        if(seleccionado !== null && seleccionado > indice){
-            dispatch(seleccionarObstruccion(seleccionado-1));
+        if (seleccionado !== null && seleccionado > indice) {
+            dispatch(seleccionarObstruccion(seleccionado - 1));
         }
         //HACER CALCULOS
         dispatch(eliminarObstruccion(indice));
@@ -207,14 +227,15 @@ export const seleccionarObstruccion = indice => (
     }
 );
 
-export const seleccionarMorfologia = seleccion => (
+export const seleccionarMorfologia = (seleccion, grupo) => (
     {
         type: SELECCIONAR_MORFOLOGIA,
         seleccion: seleccion,
+        grupo: grupo,
     }
 );
 
-export const modificarObstrucion = (obstruccion,indice) => (
+export const modificarObstrucion = (obstruccion, indice) => (
     {
         type: MODIFICAR_OBSTRUCCION,
         obstruccion: obstruccion,
@@ -222,12 +243,12 @@ export const modificarObstrucion = (obstruccion,indice) => (
     }
 );
 
-export const thunk_modificar_obstruccion = (obstruccion,indice) => {
+export const thunk_modificar_obstruccion = (obstruccion, indice) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         //HACER CALCULOS
-        dispatch(modificarObstrucion(obstruccion,indice));
+        dispatch(modificarObstrucion(obstruccion, indice));
     }
 };
 
@@ -271,10 +292,10 @@ export const agregarNivel = (altura) => (
     }
 );
 
-export const agregarBloque = (bloque, nivel) =>(
+export const agregarBloque = (bloque, nivel) => (
     {
         type: AGREGAR_BLOQUE,
-        nivel : nivel,
+        nivel: nivel,
         bloque: bloque,
 
     }
@@ -287,10 +308,146 @@ export const thunk_agregar_bloque = (bloque, nivel) => {
         //HACER CALCULOS
         const state = getState().morfologia.present;
         dispatch(agregarBloque(bloque, nivel));
-        console.log('niveles',state.niveles);
+        console.log('niveles', state.niveles);
         //AGREGAR NIVEL EN CASAS PREDEFINIDAS
 
 
+    }
+};
+
+export const agregarCapaPared = (nivel, bloque, pared, capa) => (
+    {
+        type: AGREGAR_CAPA_PARED,
+        nivel: nivel,
+        bloque: bloque,
+        pared: pared,
+        capa: capa,
+    }
+);
+
+export const agregarCapaPiso = (nivel, bloque, capa) => (
+    {
+        type: AGREGAR_CAPA_PISO,
+        nivel: nivel,
+        bloque: bloque,
+        capa: capa,
+    }
+);
+
+export const agregarCapaTecho = (nivel, bloque, capa) => (
+    {
+        type: AGREGAR_CAPA_TECHO,
+        nivel: nivel,
+        bloque: bloque,
+        capa: capa,
+    }
+);
+
+export const borrarCapaPared = (nivel, bloque, pared, capa) => (
+    {
+        type: BORRAR_CAPA_PARED,
+        nivel: nivel,
+        bloque: bloque,
+        pared: pared,
+        capa: capa,
+    }
+);
+
+export const borrarCapaPiso = (nivel, bloque, capa) => (
+    {
+        type: BORRAR_CAPA_PISO,
+        nivel: nivel,
+        bloque: bloque,
+        capa: capa,
+    }
+);
+
+export const borrarCapaTecho = (nivel, bloque, pared, capa) => (
+    {
+        type: BORRAR_CAPA_TECHO,
+        nivel: nivel,
+        bloque: bloque,
+        capa: capa,
+    }
+);
+
+export const modificarCapaPared = (nivel, bloque, pared, indice, capa) => (
+    {
+        type: MODIFICAR_CAPA_PARED,
+        nivel: nivel,
+        bloque: bloque,
+        pared: pared,
+        indice: indice,
+        capa: capa,
+    }
+);
+
+export const aplicarCapaAParedes = (nivel, bloque, pared, indices) => (
+    {
+        type: APLICAR_CAPA_A_PAREDES,
+        nivel: nivel,
+        bloque: bloque,
+        pared: pared,
+        indices: indices,
+    }
+);
+
+export const aplicarCapaAPisos = (nivel, bloque, indices) => (
+    {
+        type: APLICAR_CAPA_A_PISOS,
+        nivel: nivel,
+        bloque: bloque,
+        indices: indices,
+    }
+);
+
+export const aplicarCapaATechos = (nivel, bloque, indices) => (
+    {
+        type: APLICAR_CAPA_A_TECHOS,
+        nivel: nivel,
+        bloque: bloque,
+        indices: indices,
+    }
+);
+
+export const modificarCapaPiso = (nivel, bloque, indice, capa) => (
+    {
+        type: MODIFICAR_CAPA_PISO,
+        nivel: nivel,
+        bloque: bloque,
+        indice: indice,
+        capa: capa,
+    }
+);
+
+export const modificarCapaTecho = (nivel, bloque, indice, capa) => (
+    {
+        type: MODIFICAR_CAPA_TECHO,
+        nivel: nivel,
+        bloque: bloque,
+        indice: indice,
+        capa: capa,
+    }
+);
+
+export const thunk_aplicar_capa_paredes = (nivel, bloque, pared, indices) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(aplicarCapaAParedes(nivel, bloque, pared, indices));
+    }
+};
+
+export const thunk_aplicar_capa_pisos = (nivel, bloque, indices) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(aplicarCapaAPisos(nivel, bloque, indices));
+    }
+};
+
+export const thunk_aplicar_capa_techos = (nivel, bloque, indices) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(aplicarCapaATechos(nivel, bloque, indices));
     }
 };
 
@@ -306,6 +463,70 @@ export const thunk_agregar_ventana = (bloque, nivel, pared, ventana) => {
     }
 };
 
+export const thunk_modificar_capa_pared = (nivel, bloque, pared, indice, capa) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(modificarCapaPared(nivel, bloque, pared, indice, capa))
+    }
+};
+export const thunk_modificar_capa_piso = (nivel, bloque, indice, capa) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(modificarCapaPiso(nivel, bloque, indice, capa))
+    }
+};
+export const thunk_modificar_capa_techo = (nivel, bloque, indice, capa) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(modificarCapaTecho(nivel, bloque, indice, capa))
+    }
+};
+
+export const thunk_agregar_capa_pared = (nivel, bloque, pared, capa) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(agregarCapaPared(nivel, bloque, pared, capa))
+    }
+};
+
+export const thunk_agregar_capa_piso = (nivel, bloque, capa) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(agregarCapaPiso(nivel, bloque, capa))
+    }
+};
+
+
+export const thunk_agregar_capa_techo = (nivel, bloque, capa) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(agregarCapaTecho(nivel, bloque, capa))
+    }
+};
+
+export const thunk_borrar_capa_pared = (nivel, bloque, pared, capa) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(borrarCapaPared(nivel, bloque, pared, capa))
+    }
+};
+
+export const thunk_borrar_capa_piso = (nivel, bloque, capa) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(borrarCapaPiso(nivel, bloque, capa))
+    }
+};
+
+
+export const thunk_borrar_capa_techo = (nivel, bloque, capa) => {
+    //SETEAR CALCULANDO
+    return function (dispatch, getState) {
+        dispatch(borrarCapaTecho(nivel, bloque, capa))
+    }
+};
+
+
 export const thunk_agregar_puerta = (bloque, nivel, pared, puerta) => {
 
     //SETEAR CALCULANDO
@@ -318,56 +539,56 @@ export const thunk_agregar_puerta = (bloque, nivel, pared, puerta) => {
     }
 };
 
-export const agregarVentana = (bloque, nivel, pared, ventana) =>(
+export const agregarVentana = (bloque, nivel, pared, ventana) => (
     {
         type: AGREGAR_VENTANA,
-        nivel : nivel,
-        bloque : bloque,
+        nivel: nivel,
+        bloque: bloque,
         pared: pared,
         ventana: ventana,
     }
 );
 
-export const agregarPuerta = (bloque, nivel, pared, puerta) =>(
+export const agregarPuerta = (bloque, nivel, pared, puerta) => (
     {
         type: AGREGAR_PUERTA,
-        nivel : nivel,
-        bloque : bloque,
+        nivel: nivel,
+        bloque: bloque,
         pared: pared,
         puerta: puerta,
     }
 );
 
-export const agregarTecho = (techo, nivel, bloque, pared) =>(
+export const agregarTecho = (techo, nivel, bloque, pared) => (
     {
         type: AGREGAR_TECHO,
-        nivel : nivel,
-        bloque : bloque,
+        nivel: nivel,
+        bloque: bloque,
         techo: techo,
     }
 );
 
 export const casaPredefinidaSimple = () => (
     {
-        type : CASA_PREDEFINIDA_SIMPLE,
+        type: CASA_PREDEFINIDA_SIMPLE,
     }
 );
 
 export const casaPredefinidaDoble = () => (
     {
-        type : CASA_PREDEFINIDA_DOBLE,
+        type: CASA_PREDEFINIDA_DOBLE,
     }
 );
 
 export const casaPredefinidaSimpleDosPisos = () => (
     {
-        type : CASA_PREDEFINIDA_SIMPLE_DOS_PISOS,
+        type: CASA_PREDEFINIDA_SIMPLE_DOS_PISOS,
     }
 );
 
 export const casaPredefinidaDobleDosPisos = () => (
     {
-        type : CASA_PREDEFINIDA_DOBLE_DOS_PISOS,
+        type: CASA_PREDEFINIDA_DOBLE_DOS_PISOS,
     }
 );
 
@@ -456,6 +677,136 @@ export const rotarCasa = angulo => (
     }
 );
 
+export const thunk_modificar_dimensiones_bloque = (bloque, nivel, dimensiones) => {
+    //SETEAR CALCULAMO
+    return function (dispatch, getState) {
+        let morfologia = getState().morfologia.present;
+        let bloqueAntiguo = morfologia.niveles[nivel].bloques[bloque];
+        let bloques = morfologia.niveles[nivel].bloques;
+        if (dimensiones.alto !== bloqueAntiguo.dimensiones.alto) {
+            let index, newDimen;
+            for (let bloqueDeNivel of bloques) {
+                index = bloques.indexOf(bloqueDeNivel);
+                newDimen = {
+                    alto: dimensiones.alto,
+                    ancho: bloqueDeNivel.dimensiones.ancho,
+                    largo: bloqueDeNivel.dimensiones.largo,
+                };
+                dispatch(modificarDimensionesBloque(index, nivel, newDimen));
+            }
+        } else {
+            dispatch(modificarDimensionesBloque(bloque, nivel, dimensiones));
+        }
+    }
+
+};
+
+export const thunk_modificar_material_ventana = (nivel, bloque, pared, ventana, material) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(modificarMaterialVentana(nivel,bloque,pared,ventana,material));
+    }
+};
+
+export const thunk_modificar_material_puerta = (nivel, bloque, pared, puerta, material) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(modificarMaterialPuerta(nivel,bloque,pared,puerta,material));
+    }
+};
+
+export const thunk_modificar_marco_ventana = (nivel, bloque, pared, ventana, marco) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(modificarMarcoVentana(nivel,bloque,pared,ventana,marco))
+    }
+};
+
+export const thunk_modificar_dimensiones_ventana = (nivel, bloque, pared, ventana, dimensiones) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(modificarDimensionesVentana(nivel,bloque,pared,ventana,dimensiones))
+    }
+};
+
+export const thunk_modificar_dimensiones_puerta = (nivel, bloque, pared, puerta, dimensiones) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(modificarDimensionesPuerta(nivel,bloque,pared,puerta,dimensiones))
+    }
+};
+
+export const thunk_modificar_posicion_ventana = (nivel, bloque, pared, ventana, posicion) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(modificarPosicionVentana(nivel,bloque,pared,ventana,posicion))
+    }
+};
+
+export const thunk_modificar_posicion_puerta = (nivel, bloque, pared, puerta, posicion) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(modificarPosicionPuerta(nivel,bloque,pared,puerta,posicion))
+    }
+};
+
+export const thunk_aplicar_material_ventanas = (nivel,bloque,pared,ventana,indices) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(aplicarMaterialAVentanas(nivel,bloque,pared,ventana,indices))
+    }
+};
+
+export const thunk_aplicar_marco_ventanas = (nivel,bloque,pared,ventana,indices) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(aplicarMarcosAVentanas(nivel,bloque,pared,ventana,indices))
+
+    }
+};
+
+export const thunk_aplicar_material_puertas = (nivel,bloque,pared,puertas,indices) => {
+    //SETEAR CALCULANDO
+    return function (dispatch,getState) {
+        dispatch(aplicarMaterialAPuertas(nivel,bloque,pared,puertas,indices))
+
+    }
+};
+
+export const aplicarMaterialAVentanas = (nivel,bloque,pared,ventana,indices) => (
+    {
+        type: APLICAR_MATERIAL_A_VENTANAS,
+        nivel: nivel,
+        bloque: bloque,
+        pared: pared,
+        ventana: ventana,
+        indices: indices,
+    }
+);
+
+export const aplicarMarcosAVentanas = (nivel,bloque,pared,ventana,indices) => (
+    {
+        type: APLICAR_MARCOS_A_VENTANAS,
+        nivel: nivel,
+        bloque: bloque,
+        pared: pared,
+        ventana: ventana,
+        indices: indices,
+    }
+);
+
+export const aplicarMaterialAPuertas = (nivel,bloque,pared,puertas,indices) => (
+    {
+        type: APLICAR_MATERIAL_A_PUERTAS,
+        nivel: nivel,
+        bloque: bloque,
+        pared: pared,
+        puertas: puertas,
+        indices: indices,
+    }
+);
+
+
 export const modificarDimensionesBloque = (bloque, nivel, dimensiones) => (
     {
         type: MODIFICAR_DIMENSIONES_BLOQUE,
@@ -465,7 +816,7 @@ export const modificarDimensionesBloque = (bloque, nivel, dimensiones) => (
     }
 );
 
-export const modificarDimensionesVentana = (ventana, nivel, bloque, pared, dimensiones) => (
+export const modificarDimensionesVentana = (nivel, bloque, pared, ventana, dimensiones) => (
     {
         type: MODIFICAR_DIMENSIONES_VENTANA,
         nivel: nivel,
@@ -473,6 +824,28 @@ export const modificarDimensionesVentana = (ventana, nivel, bloque, pared, dimen
         pared: pared,
         ventana: ventana,
         dimensiones: dimensiones,
+    }
+);
+
+export const modificarPosicionVentana = (nivel, bloque, pared, ventana, posicion) => (
+    {
+        type: MODIFICAR_POSICION_VENTANA,
+        nivel: nivel,
+        bloque: bloque,
+        pared: pared,
+        ventana: ventana,
+        posicion: posicion,
+    }
+);
+
+export const modificarPosicionPuerta = (nivel, bloque, pared, puerta, posicion) => (
+    {
+        type: MODIFICAR_POSICION_PUERTA,
+        nivel: nivel,
+        bloque: bloque,
+        pared: pared,
+        puerta: puerta,
+        posicion: posicion,
     }
 );
 
@@ -487,61 +860,36 @@ export const modificarDimensionesPuerta = (puerta, nivel, bloque, pared, dimensi
     }
 );
 
-export const modificarCapaPared = (nivel, bloque, pared, capas) => (
-    {
-        type: MODIFICAR_CAPA_PARED,
-        nivel: nivel,
-        bloque: bloque,
-        pared: pared,
-        capas: capas
-    }
-);
-
-export const modificarCapaPiso = (nivel, bloque, capas) => (
-    {
-        type: MODIFICAR_CAPA_PISO,
-        nivel: nivel,
-        bloque: bloque,
-        capas: capas,
-    }
-);
-
-export const modificarCapaTecho = (nivel, bloque, capas) => (
-    {
-        type: MODIFICAR_CAPA_TECHO,
-        nivel: nivel,
-        bloque: bloque,
-        capas: capas,
-    }
-);
-
-export const modificarMarcoVentana = (nivel, bloque, pared, ventana) => (
+export const modificarMarcoVentana = (nivel, bloque, pared, ventana,marco) => (
     {
         type: MODIFICAR_MARCO_VENTANA,
         nivel: nivel,
         bloque: bloque,
         pared: pared,
         ventana: ventana,
+        marco: marco,
     }
 );
 
-export const modificarMaterialVentana = (nivel, bloque, pared, ventana) => (
+export const modificarMaterialVentana = (nivel, bloque, pared, ventana,material) => (
     {
         type: MODIFICAR_MATERIAL_VENTANA,
         nivel: nivel,
         bloque: bloque,
         pared: pared,
         ventana: ventana,
+        material: material,
     }
 );
 
-export const modificarMaterialPuerta = (nivel, bloque, pared, puerta) => (
+export const modificarMaterialPuerta = (nivel, bloque, pared, puerta, material) => (
     {
         type: MODIFICAR_MATERIAL_PUERTA,
         nivel: nivel,
         bloque: bloque,
         pared: pared,
         puerta: puerta,
+        material: material,
     }
 );
 
@@ -610,7 +958,7 @@ export const setMaterialesMarcos = (materiales_marcos) => ({
 );
 
 export const thunk_set_materiales = () => {
-    return function (dispatch,getState) {
+    return function (dispatch, getState) {
         getMateriales().then(
             response => {
                 let materiales = getJsonMateriales(response);
@@ -642,8 +990,8 @@ export const cambiarFecha = (fecha) => (
 
 export const thunk_cambiar_fecha = (fecha) => {
     //SET CALC]ULANDO
-    return function (dispatch,getState) {
-        const {lat,lng,comuna} = getState().variables.mapa;
+    return function (dispatch, getState) {
+        const {lat, lng, comuna} = getState().variables.mapa;
         dispatch(cambiarFecha(fecha));
         let map = {
             lat: lat,
@@ -676,7 +1024,7 @@ export const contextoUndo = () => {
     return function (dispatch) {
         //HACER CALCULOS
         dispatch(seleccionarObstruccion(null));
-        dispatch({ type: CONTEXTO_UNDO });
+        dispatch({type: CONTEXTO_UNDO});
 
     }
 };
@@ -687,7 +1035,7 @@ export const contextoRedo = () => {
     return function (dispatch) {
         //HACER CALCULOS
         dispatch(seleccionarObstruccion(null));
-        dispatch({ type: CONTEXTO_REDO });
+        dispatch({type: CONTEXTO_REDO});
 
     }
 };
@@ -697,7 +1045,7 @@ export const morfologiaUndo = () => {
     //SETEAR CALCULANDO
     return function (dispatch) {
         //HACER CALCULOS
-        dispatch({ type: MORFOLOGIA_UNDO });
+        dispatch({type: MORFOLOGIA_UNDO});
 
     }
 };
@@ -707,7 +1055,7 @@ export const morfologiaRedo = () => {
     //SETEAR CALCULANDO
     return function (dispatch) {
         //HACER CALCULOS
-        dispatch({ type: MORFOLOGIA_REDO });
+        dispatch({type: MORFOLOGIA_REDO});
 
     }
 };

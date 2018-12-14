@@ -74,7 +74,7 @@ const mapDispatchToProps = dispatch => {
         thunk_rotar_casa:
             (angulo) =>
                 dispatch(thunk_rotar_casa(angulo)),
-        seleccionarMorfologia: (seleccion) => dispatch(seleccionarMorfologia(seleccion)),
+        seleccionarMorfologia: (seleccion,grupo) => dispatch(seleccionarMorfologia(seleccion,grupo)),
     }
 };
 
@@ -599,7 +599,7 @@ class Morfologia extends Component {
 
         //objetos que se están destacando
         this.objApuntadoMouse = null;
-        this.objSeleccionado = null;
+        this.objSeleccionado = [];
 
         //Hay que cargar escena, camara, y renderer,
 
@@ -846,6 +846,10 @@ class Morfologia extends Component {
         return indicadorPared;
     }
 
+    crearGeometriaIndicadorConstruccionPared(heightWall,radius){
+        return new THREE.CylinderBufferGeometry(radius, radius, heightWall, 32);
+    }
+
     crearIndicardorConstruccionVentana(radius) {
         let indicadorVentana = new THREE.Group();
         const geometriaX = new THREE.CircleBufferGeometry(radius, 32);
@@ -967,13 +971,24 @@ class Morfologia extends Component {
             }
             if (intersects.length > 0) {
                 let intersect = intersects[0].object;
-                if (intersect === this.objSeleccionado) {
+                for(let seleccionado of this.objSeleccionado){
+                    if(intersect === seleccionado){
+                        this.objSeleccionado.material = materiales.materialSeleccionado;
+                        this.apuntaSel = true;
+                        break;
+                    }
+                }
+                if(!this.apuntaSel){
+                    this.objApuntadoMouse = intersect;
+                    this.objApuntadoMouse.material = materiales.materialHoveredMorf;
+                }
+                /*if (intersect === this.objSeleccionado) {
                     this.objSeleccionado.material = materiales.materialSeleccionado;
                     this.apuntaSel = true;
                 } else {
                     this.objApuntadoMouse = intersect;
                     this.objApuntadoMouse.material = materiales.materialHoveredMorf;
-                }
+                }*/
 
             } else {
                 this.objApuntadoMouse = null;
@@ -1017,8 +1032,26 @@ class Morfologia extends Component {
 
                     let worldPosition = intersect.object.localToWorld(new THREE.Vector3(0, 0, 0));
 
+
+
+                    let niveles = this.props.morfologia.present.niveles;
+                    let nivel;
+                    if(intersect.object.userData.tipo === Tipos.TECHO){
+                        nivel = intersect.object.parent.parent.userData.nivel + 1;
+                    }else{
+                        nivel = 0;
+                    }
+                    if(niveles[nivel].bloques.length > 0){
+                        this.heightWall = niveles[nivel].bloques[0].dimensiones.alto;
+                    }else{
+                        this.heightWall = 2.5;
+                    }
+                    this.indicador_dibujado.geometry.dispose();
+                    this.indicador_dibujado.geometry = this.crearGeometriaIndicadorConstruccionPared(this.heightWall,0.05);
+
                     this.indicador_dibujado.position.y = worldPosition.y + this.heightWall / 2;
 
+                    console.log(this.heightWall);
                     if (this.construyendo) {
                         this.indicador_dibujado.position.y = this.worldPosition.y + this.heightWall / 2;
                         var nextPosition = (intersect.point).add(intersect.face.normal).clone();
@@ -1284,6 +1317,10 @@ class Morfologia extends Component {
                 /*fsObjetivo: 0.87,
                 //u: this.info_ventana[0].tipos[0].propiedad.U,
                 uObjetivo: 5.8*/
+            },
+            marco: {
+                material: 0,
+                tipo: 0,
             }
         };
 
@@ -1393,44 +1430,51 @@ class Morfologia extends Component {
         }
 
         if (this.props.acciones.seleccionar) {
-            this.handleSeleccionado();
+            this.handleSeleccionado(event);
 
         }
     }
 
     handleSeleccionadoChange(){
         let seleccionado = this.props.seleccionado;
-        console.log(seleccionado);
 
-        if (this.objSeleccionado !== null) {
-            this.changeColorSeleccion(this.objSeleccionado);
-        }
-        if(seleccionado !== null){
-            switch (seleccionado.tipo) {
-                case Tipos.PARED:
-                    this.objSeleccionado = this.paredes[seleccionado.indice_arreglo];
-                    break;
-                case Tipos.VENTANA:
-                    this.objSeleccionado = this.ventanas[seleccionado.indice_arreglo];
-                    break;
-                case Tipos.PUERTA:
-                    this.objSeleccionado = this.puertas[seleccionado.indice_arreglo];
-                    break;
-                case Tipos.PISO:
-                    this.objSeleccionado = this.pisos[seleccionado.indice_arreglo];
-                    break;
-                case Tipos.TECHO:
-                    this.objSeleccionado = this.techos[seleccionado.indice_arreglo];
-                    break;
+        if (this.objSeleccionado[0] !== null) {
+            for(let select of this.objSeleccionado){
+                this.changeColorSeleccion(select);
             }
-            this.objSeleccionado.material = materiales.materialSeleccionado;
+        }
+        this.objSeleccionado.splice(0,this.objSeleccionado.length);
+        if(seleccionado[0] !== null){
+            for(let select of seleccionado){
+                let obj;
+                switch (select.tipo) {
+                    case Tipos.PARED:
+                        obj = this.paredes[select.indice_arreglo];
+                        break;
+                    case Tipos.VENTANA:
+                        obj= this.ventanas[select.indice_arreglo];
+                        break;
+                    case Tipos.PUERTA:
+                        obj= this.puertas[select.indice_arreglo];
+                        break;
+                    case Tipos.PISO:
+                        obj= this.pisos[select.indice_arreglo];
+                        break;
+                    case Tipos.TECHO:
+                        obj= this.techos[select.indice_arreglo];
+                        break;
+                }
+                this.objSeleccionado.push(obj);
+                obj.material = materiales.materialSeleccionado;
+            }
         }else{
-            this.objSeleccionado = null;
+            this.objSeleccionado = [];
         }
 
     }
 
-    handleSeleccionado() {
+    handleSeleccionado(event) {
+
         if (!this.apuntaSel) {
             /*if (this.objSeleccionado !== null) {
                 this.changeColorSeleccion(this.objSeleccionado);
@@ -1484,11 +1528,18 @@ class Morfologia extends Component {
                     tipo: this.objApuntadoMouse.userData.tipo,
                     indice_arreglo: indice_arreglo,
                 };
-                console.log(elemento);
-                this.props.seleccionarMorfologia(elemento);
+                if(event.ctrlKey){
+                    if(elemento.tipo === this.objSeleccionado[0].userData.tipo){
+                        this.props.seleccionarMorfologia(elemento, true);
+                    }else {
+                        this.props.seleccionarMorfologia(elemento, false);
+                    }
+                }else{
+                    this.props.seleccionarMorfologia(elemento, false);
+                }
                 this.objApuntadoMouse = null;
             } else {
-                this.props.seleccionarMorfologia(null);
+                this.props.seleccionarMorfologia(null, false);
             }
         }
     }

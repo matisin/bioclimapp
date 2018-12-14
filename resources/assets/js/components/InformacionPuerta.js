@@ -7,7 +7,7 @@ import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Morfologia from "./Morfologia";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import axios from 'axios';
+import * as Tipos from '../constants/morofologia-types';
 import Select from '@material-ui/core/Select';
 import Input from '@material-ui/core/Input';
 import TextField from '@material-ui/core/TextField';
@@ -15,11 +15,23 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from '@material-ui/core/FormControl';
 import Grid from "@material-ui/core/Grid";
+import {
+    seleccionarMorfologia,
+    thunk_agregar_capa_pared,
+    thunk_aplicar_capa_paredes, thunk_aplicar_material_puertas, thunk_aplicar_material_ventanas,
+    thunk_borrar_capa_pared,
+    thunk_modificar_capa_pared,
+    thunk_modificar_dimensiones_bloque, thunk_modificar_dimensiones_puerta, thunk_modificar_dimensiones_ventana,
+    thunk_modificar_material_puerta,
+    thunk_modificar_material_ventana, thunk_modificar_posicion_puerta, thunk_modificar_posicion_ventana
+} from "../actions";
+import {connect} from "react-redux";
+
 const ITEM_HEIGHT = 48;
 
 const styles = theme => ({
-    titulo:{
-        margin: theme.spacing.unit*2,
+    titulo: {
+        margin: theme.spacing.unit * 2,
     },
 
     button: {
@@ -39,22 +51,22 @@ const styles = theme => ({
     textRotation: {
         marginLeft: '75%',
         '-mozTransform': 'rotate(90deg)',
-        '-webkitTransform' : 'rotate(90deg)',
-        '-msTransform' : 'rotate(90deg)',
-        '-oTransform:' : 'rotate(90deg)',
-        'transform:' : 'rotate(90deg)',
-        '-msFilter' : 'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)',
+        '-webkitTransform': 'rotate(90deg)',
+        '-msTransform': 'rotate(90deg)',
+        '-oTransform:': 'rotate(90deg)',
+        'transform:': 'rotate(90deg)',
+        '-msFilter': 'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)',
         whiteSpace: 'nowrap',
         left: '50%',
         height: 0,
         width: 0,
-        '-webkitUserSelect' : 'none',
-        '-khtmlUserSelect' : 'none',
-        '-mozUserSelect' : 'none',
-        '-msUserSelect' : 'none',
-        '-userSelect' : 'none',
+        '-webkitUserSelect': 'none',
+        '-khtmlUserSelect': 'none',
+        '-mozUserSelect': 'none',
+        '-msUserSelect': 'none',
+        '-userSelect': 'none',
 
-},
+    },
     form: {
         display: 'flex',
         flexWrap: 'wrap',
@@ -67,16 +79,37 @@ const styles = theme => ({
         flexDirection: 'column',
         textAlign: 'center',
         overflow: 'hidden',
-        elevation:24
+        elevation: 24
     },
     paperAdd: {
         height: 250,
         overflow: 'hidden',
-        elevation:24
+        elevation: 24
     },
 
 });
 
+const mapStateToProps = state => {
+    return {
+        morfologia: state.morfologia,
+        seleccionados: state.app.seleccion_morfologia,
+        info_material: state.app.materiales,
+    }
+};
+
+//Las acciones se mapean a props.
+const mapDispatchToProps = dispatch => {
+    return {
+        thunk_modificar_material_puerta: (nivel, bloque, pared, puerta, material) =>
+            dispatch(thunk_modificar_material_puerta(nivel, bloque, pared, puerta, material)),
+        thunk_modificar_dimensiones_puerta: (nivel, bloque, pared, puerta, dimensiones) =>
+            dispatch(thunk_modificar_dimensiones_puerta(nivel, bloque, pared, puerta, dimensiones)),
+        thunk_modificar_posicion_puerta: (nivel, bloque, pared, puerta, posicion) =>
+            dispatch(thunk_modificar_posicion_puerta(nivel, bloque, pared, puerta, posicion)),
+        thunk_aplicar_material_puertas: (nivel, bloque, pared, puerta, indices) =>
+            dispatch(thunk_aplicar_material_puertas(nivel, bloque, pared, puerta, indices)),
+    }
+};
 
 class InformacionPuerta extends Component {
 
@@ -87,139 +120,165 @@ class InformacionPuerta extends Component {
             capa: {},
 
         };
-        this.info_material = [];
-        axios.get("https://bioclimapp.host/api/info_materiales")
-            .then(response => this.getJson(response));
         this.handleChangeDimension = this.handleChangeDimension.bind(this);
         this.handleChangeMaterial = this.handleChangeMaterial.bind(this);
+        this.handleChangePosicion = this.handleChangePosicion.bind(this);
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.seleccion !== prevProps.seleccion ) {
+    handleChangeMaterial(event) {
+        const indices = this.props.seleccionados[0].indices;
 
-            if (this.props.seleccion !== null && this.props.seleccion.userData.tipo === Morfologia.tipos.PUERTA) {
-                let capa = this.props.seleccion.userData.info_material;
+        let material = this.props.morfologia.present
+            .niveles[indices.nivel]
+            .bloques[indices.bloque]
+            .paredes[indices.pared]
+            .puertas[indices.puerta]
+            .material;
 
-                this.setState({
-                    capa: capa,
-                });
+        let materialNuevo = {
+            material: material.material,
+            propiedad: material.propiedad,
+            tipo: material.tipo,
+            espesor: material.espesor,
+        };
 
-
-            }
-        }
-    }
-
-    getJson(response) {
-
-        this.info_material = response.data.slice();
-        for (let i = 0; i < this.info_material.length; i++) {
-            this.info_material[i].index = i;
-
-
-            if (this.info_material[i].hasOwnProperty('tipos')) {
-                for (let j = 0; j < this.info_material[i].tipos.length; j++) {
-                    this.info_material[i].tipos[j].index = j;
-                    for (let k = 0; k < this.info_material[i].tipos[j].propiedades.length; k++) {
-                        this.info_material[i].tipos[j].propiedades[k].index = k;
-                    }
-                }
-            } else {
-                for (let k = 0; k < this.info_material[i].propiedades.length; k++) {
-                    this.info_material[i].propiedades[k].index = k;
-                }
-            }
-        }
-    }
-
-    handleChangeMaterial(event){
-        let capa = this.state.capa;
-
-        capa[event.target.name] = event.target.value;
+        materialNuevo[event.target.name] = event.target.value;
 
         if(event.target.name === 'material'){
-            if(this.info_material[event.target.value].hasOwnProperty('tipos')){
-                capa.tipo = 0;
-                capa.propiedad = 0;
+            if(this.props.info_material[event.target.value].hasOwnProperty('tipos')){
+                materialNuevo.tipo = 0;
+                materialNuevo.propiedad = 0;
             }else{
-                capa.propiedad = 0;
+                materialNuevo.propiedad = 0;
             }
         }
-
-        if(event.target.name === 'tipo'){
-            capa.tipo = 0;
-            capa.propiedad = 0;
-        }
-
-
-        let conductividad;
-
-        if(this.info_material[capa.material].hasOwnProperty('tipos')){
-           conductividad = this.info_material[capa.material].tipos[capa.tipo].propiedades[capa.propiedad].conductividad;
-        }else{
-            conductividad = this.info_material[capa.material].propiedades[capa.propiedad].conductividad;
-
-        }
-        capa.conductividad = conductividad;
-
-
         if(event.target.name === 'espesor'){
-            capa.espesor =  event.target.value/1000;
+            materialNuevo.espesor = event.target.value/1000;
         }
 
-        this.setState({
-            capa: capa,
-        });
+        console.log(materialNuevo,material);
 
-        //TODO: crear onMaterialChanged
-        this.props.onCapaChanged();
+        this.props.thunk_modificar_material_puerta(
+            indices.nivel,
+            indices.bloque,
+            indices.pared,
+            indices.puerta,
+            materialNuevo
+        );
+    }
+
+    handleChangePosicion(event){
+        const indices = this.props.seleccionados[0].indices;
+
+        let posicion = this.props.morfologia.present
+            .niveles[indices.nivel]
+            .bloques[indices.bloque]
+            .paredes[indices.pared]
+            .puertas[indices.puerta]
+            .posicion;
+
+        let nuevaPosicion = {
+            x: posicion.x,
+            y: posicion.y,
+        };
+        nuevaPosicion[event.target.name] =  parseFloat(event.target.value);
+
+        this.props.thunk_modificar_posicion_puerta(
+            indices.nivel,
+            indices.bloque,
+            indices.pared,
+            indices.puerta,
+            nuevaPosicion
+        );
     }
 
     handleChangeDimension(event) {
-        let puerta = this.props.seleccion;
-        let height = puerta.userData.height, width = puerta.userData.width;
+        const indices = this.props.seleccionados[0].indices;
+
+        let dimensiones = this.props.morfologia.present
+            .niveles[indices.nivel]
+            .bloques[indices.bloque]
+            .paredes[indices.pared]
+            .puertas[indices.puerta]
+            .dimensiones;
+
+        let nuevasDimensiones = {
+            ancho: dimensiones.ancho,
+            alto: dimensiones.alto,
+        };
+
         if (event.target.name === 'altura') {
-            height = parseFloat(event.target.value);
+            nuevasDimensiones.alto = parseFloat(event.target.value);
         } else {
-            width = parseFloat(event.target.value);
+            nuevasDimensiones.ancho = parseFloat(event.target.value);
         }
-        this.props.onDimensionChanged(puerta, width, height);
+
+        this.props.thunk_modificar_dimensiones_puerta(
+            indices.nivel,
+            indices.bloque,
+            indices.pared,
+            indices.puerta,
+            nuevasDimensiones
+        );
+    }
+
+    handleClickAplicar() {
+        const indiceSel = this.props.seleccionados[0].indices;
+        const seleccionados = this.props.seleccionados;
+        let indices = [];
+        for(let seleccionado of seleccionados){
+            indices.push(seleccionado.indices);
+        }
+        this.props.thunk_aplicar_material_puertas(
+            indiceSel.nivel,
+            indiceSel.bloque,
+            indiceSel.pared,
+            indiceSel.puertas,
+            indices)
+        ;
     }
 
     render() {
-        const {classes, seleccionado} = this.props;
-        const {capa} = this.state;
+        const {classes, seleccionados, info_material} = this.props;
 
-        let height, width;
-        if(seleccionado !== null){
-            height = seleccionado.userData.height;
-            width = seleccionado.userData.width;
+        let height, width, posicion,material, tipo, espesor, propiedad, materialPuerta;
+        const esPuerta = seleccionados[0] !== null && seleccionados[0].tipo === Tipos.PUERTA;
+        if (esPuerta) {
+            const indices = this.props.seleccionados[0].indices;
+            const puerta = this.props.morfologia.present
+                .niveles[indices.nivel]
+                .bloques[indices.bloque]
+                .paredes[indices.pared]
+                .puertas[indices.puerta];
+            materialPuerta = puerta.material;
+
+            material = materialPuerta.material;
+            tipo = materialPuerta.tipo;
+            espesor = materialPuerta.espesor;
+            propiedad = materialPuerta.propiedad;
+
+            height = puerta.dimensiones.alto;
+            width = puerta.dimensiones.ancho;
+            posicion = Math.round(puerta.posicion.x * 10) / 10;
+
         }
-        let material, tipo, espesor, propiedad;
-
-        if(Object.keys(capa).length > 0 && seleccionado !== null){
-            material = capa.material;
-            tipo = capa.tipo;
-            espesor = capa.espesor;
-            propiedad = capa.propiedad;
-        }
-
         let hasTipos;
 
-        if (seleccionado !== null && this.info_material.length > 0 && seleccionado.userData.tipo === Morfologia.tipos.PUERTA && Object.keys(capa).length > 0) {
-            hasTipos = this.info_material[material].hasOwnProperty('tipos');
+        if (esPuerta) {
+            hasTipos = info_material[material].hasOwnProperty('tipos');
         } else {
             hasTipos = null;
         }
         return (
             <div>
-                {seleccionado !== null && seleccionado.userData.tipo === Morfologia.tipos.PUERTA && Object.keys(capa).length > 0 ?
+                {esPuerta ?
                     <div className={classes.root}>
                         <Typography
                             variant={"title"}
                             align={"center"}
                             className={classes.titulo}
                         >
-                            {'Configuración '+ Morfologia.tipos_texto[seleccionado.userData.tipo] }
+                            {'Configuración Puerta'}
                         </Typography>
 
                         <ExpansionPanel>
@@ -231,18 +290,20 @@ class InformacionPuerta extends Component {
                                     <Grid container spacing={8}>
                                         {hasTipos ?
                                             <Grid container spacing={0} style={{
-                                                marginBottom : 4,
-                                                marginLeft : 4,
-                                                marginRight : 4,}}>
+                                                marginBottom: 4,
+                                                marginLeft: 4,
+                                                marginRight: 4,
+                                            }}>
                                                 <Grid item xs={6}>
                                                     <FormControl className={classes.formControl}>
-                                                        <InputLabel htmlFor="material-simple">Material puerta</InputLabel>
+                                                        <InputLabel htmlFor="material-simple">Material
+                                                            puerta</InputLabel>
                                                         <Select
                                                             value={material}
                                                             onChange={this.handleChangeMaterial}
                                                             input={<Input name="material" id="material-simple"/>}
                                                         >
-                                                            {this.info_material.map(material => (
+                                                            {info_material.map(material => (
                                                                 <MenuItem value={material.index}>
                                                                     {material.material}
                                                                 </MenuItem>
@@ -258,7 +319,7 @@ class InformacionPuerta extends Component {
                                                             onChange={this.handleChangeMaterial}
                                                             input={<Input name="tipo" id="tipo-simple"/>}
                                                         >
-                                                            {this.info_material[material].tipos.map(tipo => (
+                                                            {info_material[material].tipos.map(tipo => (
                                                                 <MenuItem value={tipo.index}>
                                                                     {tipo.nombre}
                                                                 </MenuItem>
@@ -268,7 +329,7 @@ class InformacionPuerta extends Component {
                                                 </Grid>
                                             </Grid>
                                             : <Grid item xs={12} style={{
-                                                marginTop : 8,
+                                                marginTop: 8,
                                             }}>
                                                 <FormControl className={classes.formControl}>
                                                     <InputLabel htmlFor="material-simple">Material</InputLabel>
@@ -277,7 +338,7 @@ class InformacionPuerta extends Component {
                                                         onChange={this.handleChangeMaterial}
                                                         input={<Input name="material" id="material-simple"/>}
                                                     >
-                                                        {this.info_material.map(material => (
+                                                        {info_material.map(material => (
                                                             <MenuItem value={material.index}>
                                                                 {material.material}
                                                             </MenuItem>
@@ -295,7 +356,7 @@ class InformacionPuerta extends Component {
                                                         onChange={this.handleChangeMaterial}
                                                         input={<Input name="propiedad" id="conductividad-simple"/>}
                                                     >
-                                                        {this.info_material[material].tipos[tipo].propiedades.map(propiedades => (
+                                                        {info_material[material].tipos[tipo].propiedades.map(propiedades => (
                                                             <MenuItem value={propiedades.index}>
                                                                 {propiedades.densidad !== -1 ? propiedades.densidad
                                                                     : "No tiene"}
@@ -303,19 +364,20 @@ class InformacionPuerta extends Component {
                                                         ))}
                                                     </Select>
                                                 </FormControl>
-                                            </Grid>  : <div/>
+                                            </Grid> : <div/>
                                         }
 
                                         {hasTipos ?
                                             <Grid item xs={4}>
                                                 <FormControl className={classes.formControl}>
-                                                    <InputLabel htmlFor="conductividad-simple">Conductividad</InputLabel>
+                                                    <InputLabel
+                                                        htmlFor="conductividad-simple">Conductividad</InputLabel>
                                                     <Select
                                                         value={propiedad}
                                                         onChange={this.handleChangeMaterial}
                                                         input={<Input name="propiedad" id="conductividad-simple"/>}
                                                     >
-                                                        {this.info_material[material].tipos[tipo].propiedades.map(propiedades => (
+                                                        {info_material[material].tipos[tipo].propiedades.map(propiedades => (
                                                             <MenuItem value={propiedades.index}>
                                                                 {propiedades.conductividad}
                                                             </MenuItem>
@@ -324,7 +386,7 @@ class InformacionPuerta extends Component {
                                                 </FormControl>
                                             </Grid> : <div/>
                                         }
-                                        {!hasTipos?
+                                        {!hasTipos ?
                                             <Grid item xs={4}>
                                                 <FormControl className={classes.formControl}>
                                                     <InputLabel htmlFor="conductividad-simple">Densidad</InputLabel>
@@ -333,7 +395,7 @@ class InformacionPuerta extends Component {
                                                         onChange={this.handleChangeMaterial}
                                                         input={<Input name="propiedad" id="conductividad-simple"/>}
                                                     >
-                                                        {this.info_material[material].propiedades.map(propiedades => (
+                                                        {info_material[material].propiedades.map(propiedades => (
                                                             <MenuItem value={propiedades.index}>
                                                                 {propiedades.densidad !== -1 ? propiedades.densidad
                                                                     : "No tiene"}
@@ -341,19 +403,20 @@ class InformacionPuerta extends Component {
                                                         ))}
                                                     </Select>
                                                 </FormControl>
-                                            </Grid>  : <div/>
+                                            </Grid> : <div/>
                                         }
 
                                         {!hasTipos ?
                                             <Grid item xs={4}>
                                                 <FormControl className={classes.formControl}>
-                                                    <InputLabel htmlFor="conductividad-simple">Conductividad</InputLabel>
+                                                    <InputLabel
+                                                        htmlFor="conductividad-simple">Conductividad</InputLabel>
                                                     <Select
                                                         value={propiedad}
                                                         onChange={this.handleChangeMaterial}
                                                         input={<Input name="propiedad" id="conductividad-simple"/>}
                                                     >
-                                                        {this.info_material[material].propiedades.map(propiedades => (
+                                                        {info_material[material].propiedades.map(propiedades => (
                                                             <MenuItem value={propiedades.index}>
                                                                 {propiedades.conductividad}
                                                             </MenuItem>
@@ -367,7 +430,7 @@ class InformacionPuerta extends Component {
                                                 <TextField
                                                     label="Espesor (mm)"
                                                     name="espesor"
-                                                    value={1000*espesor}
+                                                    value={1000 * espesor}
                                                     onChange={this.handleChangeMaterial}
                                                     type="number"
                                                     InputLabelProps={{
@@ -390,7 +453,7 @@ class InformacionPuerta extends Component {
                             <ExpansionPanelDetails>
                                 <Grid container spacing={8}>
 
-                                    <Grid item xs={6}>
+                                    <Grid item xs={4}>
                                         <FormControl className={classes.formControl}>
                                             <TextField
                                                 label="Altura (m)"
@@ -398,7 +461,7 @@ class InformacionPuerta extends Component {
                                                 value={height}
                                                 type="number"
                                                 inputProps={
-                                                    { step: 0.1}
+                                                    {step: 0.1}
                                                 }
                                                 onChange={this.handleChangeDimension}
                                                 InputLabelProps={{
@@ -407,7 +470,7 @@ class InformacionPuerta extends Component {
                                             />
                                         </FormControl>
                                     </Grid>
-                                    <Grid item xs={6}>
+                                    <Grid item xs={4}>
                                         <FormControl className={classes.formControl}>
                                             <TextField
                                                 label="Ancho (m)"
@@ -415,9 +478,26 @@ class InformacionPuerta extends Component {
                                                 value={width}
                                                 type="number"
                                                 inputProps={
-                                                    { step: 0.1}
+                                                    {step: 0.1}
                                                 }
                                                 onChange={this.handleChangeDimension}
+                                                InputLabelProps={{
+                                                    shrink: true,
+                                                }}
+                                            />
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <FormControl className={classes.formControl}>
+                                            <TextField
+                                                label="Posicion en pared (m)"
+                                                value={posicion}
+                                                type="number"
+                                                name="x"
+                                                inputProps={
+                                                    { step: 0.1}
+                                                }
+                                                onChange={this.handleChangePosicion}
                                                 InputLabelProps={{
                                                     shrink: true,
                                                 }}
@@ -443,4 +523,4 @@ InformacionPuerta.propTypes = {
     onDimensionChanged: PropTypes.func,
 }
 
-export default withStyles(styles)(InformacionPuerta);
+export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InformacionPuerta));

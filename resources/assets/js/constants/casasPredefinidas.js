@@ -7,6 +7,10 @@ const ventanaPredefinida = {
         /*fsObjetivo: 0.87,
         //u: this.info_ventana[0].tipos[0].propiedad.U,
         uObjetivo: 5.8*/
+    },
+    marco: {
+        material: 0,
+        tipo: 0,
     }
 };
 

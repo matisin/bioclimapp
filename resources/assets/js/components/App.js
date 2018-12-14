@@ -516,7 +516,7 @@ class App extends Component {
 
     render() {
         const {classes, theme, mostrar_mapa, cargando, seleccion_morfologia} = this.props;
-        const mostrar_seleccion = seleccion_morfologia != null;
+        const mostrar_seleccion = seleccion_morfologia[0] !== null;
         const {value, click2D, dibujandoMorf, seleccionandoMorf, borrandoMorf, width, height, openMorf, seleccionadoMorf, dimensiones, alturaPiso, paredCapaChange,loaded} = this.state;
         const heightContent = height-heightBarra;
         return (

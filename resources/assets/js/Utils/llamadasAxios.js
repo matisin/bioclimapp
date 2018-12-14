@@ -31,3 +31,14 @@ export function getMaterialesVentanas(){
 export function getMaterialesMarcos(){
     return axios.get("https://bioclimapp.host/api/info_marcos");
 }
+
+export function getFilteredRadiationDifusa(id){
+    console.log('difusa',id);
+    let month = new Date().getMonth()+1;
+    return axios.get("https://bioclimapp.host/api/radiaciones/"+id+"/"+"2"+"/"+month);
+}
+
+export function getFilteredRadiationDirecta(id){
+    let month = new Date().getMonth()+1;
+    return axios.get("https://bioclimapp.host/api/radiaciones/"+id+"/"+"3"+"/"+month);
+}

@@ -15,26 +15,32 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from '@material-ui/core/FormControl';
 import Paper from '@material-ui/core/Paper';
-import { createMuiTheme } from '@material-ui/core/styles';
+import {createMuiTheme} from '@material-ui/core/styles';
 
+import * as Tipos from '../constants/morofologia-types';
 import Add from '@material-ui/icons/Add';
 import Clear from '@material-ui/icons/Clear';
-import AddToPhotos from '@material-ui/icons/AddToPhotos'
 import IconButton from '@material-ui/core/IconButton';
 import Grid from "@material-ui/core/Grid";
-import CardContent from "@material-ui/core/CardContent/CardContent";
+import {
+    seleccionarMorfologia,
+    thunk_agregar_capa_piso,
+    thunk_agregar_capa_techo,
+    thunk_aplicar_capa_pisos, thunk_aplicar_capa_techos,
+    thunk_borrar_capa_piso, thunk_borrar_capa_techo,
+    thunk_modificar_capa_piso, thunk_modificar_capa_techo,
+    thunk_modificar_dimensiones_bloque
+} from "../actions";
+import {connect} from "react-redux";
+import Button from "@material-ui/core/es/Button";
 
 const ITEM_HEIGHT = 48;
 
 const styles = theme => ({
-    titulo:{
-        margin: theme.spacing.unit*2,
+    titulo: {
+        margin: theme.spacing.unit * 2,
     },
 
-    button: {
-        margin: theme.spacing.unit,
-        width: 32, height: 32,
-    },
     root: {
         width: '100%',
     },
@@ -48,19 +54,19 @@ const styles = theme => ({
     textRotation: {
         marginLeft: '80%',
         '-mozTransform': 'rotate(90deg)',
-        '-webkitTransform' : 'rotate(90deg)',
-        '-msTransform' : 'rotate(90deg)',
-        '-oTransform:' : 'rotate(90deg)',
-        'transform:' : 'rotate(90deg)',
-        '-msFilter' : 'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)',
+        '-webkitTransform': 'rotate(90deg)',
+        '-msTransform': 'rotate(90deg)',
+        '-oTransform:': 'rotate(90deg)',
+        'transform:': 'rotate(90deg)',
+        '-msFilter': 'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)',
         whiteSpace: 'nowrap',
         height: 0,
         width: 0,
-        '-webkitUserSelect' : 'none',
-        '-khtmlUserSelect' : 'none',
-        '-mozUserSelect' : 'none',
-        '-msUserSelect' : 'none',
-        '-userSelect' : 'none',
+        '-webkitUserSelect': 'none',
+        '-khtmlUserSelect': 'none',
+        '-mozUserSelect': 'none',
+        '-msUserSelect': 'none',
+        '-userSelect': 'none',
 
     },
     form: {
@@ -73,20 +79,54 @@ const styles = theme => ({
     paper: {
         height: 200,
         overflow: 'hidden',
-        elevation:24,
+        elevation: 24,
         width: 0,
         minWidth: '100%',
     },
     paperAdd: {
         height: 200,
         overflow: 'hidden',
-        elevation:24,
+        elevation: 24,
         width: 0,
         minWidth: '100%',
     },
 
 });
 
+const mapStateToProps = state => {
+    return {
+        morfologia: state.morfologia,
+        seleccionados: state.app.seleccion_morfologia,
+        info_material: state.app.materiales,
+    }
+};
+
+//Las acciones se mapean a props.
+const mapDispatchToProps = dispatch => {
+    return {
+        seleccionarMorfologia: (seleccion) => dispatch(seleccionarMorfologia(seleccion)),
+        thunk_agregar_capa_piso: (nivel, bloque, capa) =>
+            dispatch(thunk_agregar_capa_piso(nivel, bloque, capa)),
+        thunk_borrar_capa_piso: (nivel, bloque, capa) =>
+            dispatch(thunk_borrar_capa_piso(nivel, bloque, capa)),
+        thunk_modificar_capa_piso: (nivel, bloque, indice, capa) =>
+            dispatch(thunk_modificar_capa_piso(nivel, bloque, indice, capa)),
+        thunk_aplicar_capa_pisos: (nivel, bloque, indices) =>
+            dispatch(thunk_aplicar_capa_pisos(nivel, bloque, indices)),
+
+        thunk_agregar_capa_techo: (nivel, bloque, capa) =>
+            dispatch(thunk_agregar_capa_techo(nivel, bloque, capa)),
+        thunk_borrar_capa_techo: (nivel, bloque, capa) =>
+            dispatch(thunk_borrar_capa_techo(nivel, bloque, capa)),
+        thunk_modificar_capa_techo: (nivel, bloque, indice, capa) =>
+            dispatch(thunk_modificar_capa_techo(nivel, bloque, indice, capa)),
+        thunk_aplicar_capa_techos: (nivel, bloque, indices) =>
+            dispatch(thunk_aplicar_capa_techos(nivel, bloque, indices)),
+
+        thunk_modificar_dimensiones_bloque: (bloque, nivel, dimensiones) =>
+            dispatch(thunk_modificar_dimensiones_bloque(bloque, nivel, dimensiones)),
+    }
+};
 
 class InformacionPisoTecho extends Component {
 
@@ -96,16 +136,10 @@ class InformacionPisoTecho extends Component {
         this.state = {
             capasPiso: [],
             capasTecho: [],
-            capaSeleccionadaPiso : null,
-            capaSeleccionadaTecho : null,
+            capaSeleccionadaPiso: null,
+            capaSeleccionadaTecho: null,
         };
-        this.vaciosArrayPiso = [];
-        this.vaciosArrayTecho = [];
-        this.info_material = [];
-        this.themes = [];
-        axios.get("https://bioclimapp.host/api/info_materiales")
-            .then(response => this.getJson(response));
-        this.handleChange = this.handleChange.bind(this);
+
         this.handleClickAgregarPiso = this.handleClickAgregarPiso.bind(this);
         this.handleClickAgregarTecho = this.handleClickAgregarTecho.bind(this);
         this.handleClickBorrarPiso = this.handleClickBorrarPiso.bind(this);
@@ -115,10 +149,27 @@ class InformacionPisoTecho extends Component {
         this.handleChangeCapaTecho = this.handleChangeCapaTecho.bind(this);
         this.clickCapaPiso = this.clickCapaPiso.bind(this);
         this.clickCapaTecho = this.clickCapaTecho.bind(this);
+        this.handleClickAplicarPisos = this.handleClickAplicarPisos.bind(this);
+        this.handleClickAplicarTechos = this.handleClickAplicarTechos.bind(this);
+
+        var theme = createMuiTheme({
+            palette: {
+                primary: {
+                    main: "#fc0f4f",
+                },
+            },
+        });
+        this.colorSelected = [theme.palette.primary.main, theme.palette.primary.contrastText];
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.seleccion !== prevProps.seleccion) {
+        if (this.props.seleccionados !== prevProps.seleccionados) {
+            this.setState({
+                capaSeleccionadaPiso: null,
+                capaSeleccionadaTecho: null,
+            });
+        }
+        /*if (this.props.seleccion !== prevProps.seleccion) {
             if (this.props.seleccion !== null && this.props.seleccion.userData.tipo === Morfologia.tipos.PISO) {
                 let seleccionados;
                 if(this.props.seleccion.userData.techo !== undefined){
@@ -151,375 +202,275 @@ class InformacionPisoTecho extends Component {
                     depth: this.props.seleccion.userData.depth,
                 })
             }
-        }
+        }*/
 
     }
-    getJson(response) {
 
-        this.info_material = response.data.slice();
-        for (let i = 0; i < this.info_material.length; i++) {
-            this.info_material[i].index = i;
+    handleChangeCapaPiso(event) {
+        const indices = this.props.seleccionados[0].indices;
 
-            var theme = createMuiTheme({
-                palette: {
-                    primary: {
-                        main: this.info_material[i].color,
-                    },
-                },
-            });
-            this.info_material[i].textColor = theme.palette.primary.contrastText;
+        let capa = this.props.morfologia.present
+            .niveles[indices.nivel]
+            .bloques[indices.bloque]
+            .piso
+            .capas[this.state.capaSeleccionadaPiso];
 
+        let capaNueva = {
+            material: capa.material,
+            propiedad: capa.propiedad,
+            tipo: capa.tipo,
+            espesor: capa.espesor,
+        };
 
-            if (this.info_material[i].hasOwnProperty('tipos')) {
-                for (let j = 0; j < this.info_material[i].tipos.length; j++) {
-                    this.info_material[i].tipos[j].index = j;
-                    for (let k = 0; k < this.info_material[i].tipos[j].propiedades.length; k++) {
-                        this.info_material[i].tipos[j].propiedades[k].index = k;
-                    }
-                }
-            } else {
-                for (let k = 0; k < this.info_material[i].propiedades.length; k++) {
-                    this.info_material[i].propiedades[k].index = k;
-                }
-            }
-        }
-        var theme = createMuiTheme({
-            palette: {
-                primary: {
-                    main: "#fc0f4f",
-                },
-            },
-        });
-        this.colorSelected = [theme.palette.primary.main,theme.palette.primary.contrastText];
-        this.colorSelected = [theme.palette.primary.main,theme.palette.primary.contrastText];
-    }
-
-
-    handleChange(event) {
-        this.setState({
-            [event.target.name]: event.target.value,
-        });
-    }
-
-    handleChangeCapaPiso(event){
-        let capas = this.state.capasPiso;
-        let capa = capas[this.state.capaSeleccionadaPiso];
+        capaNueva[event.target.name] = event.target.value;
 
         if(event.target.name === 'material'){
-            if(this.info_material[event.target.value].hasOwnProperty('tipos')){
-                capa.tipo = 0;
-                capa.propiedad = 0;
+            if(this.props.info_material[event.target.value].hasOwnProperty('tipos')){
+                capaNueva.tipo = 0;
+                capaNueva.propiedad = 0;
             }else{
-                capa.propiedad = 0;
+                capaNueva.propiedad = 0;
             }
         }
-
-        if(event.target.name === 'tipo'){
-            capa.propiedad = 0;
-
-        }
-
-        capa[event.target.name] = event.target.value;
-
-        let conductividad;
-
-        if(this.info_material[capa.material].hasOwnProperty('tipos')){
-            conductividad = this.info_material[capa.material].tipos[capa.tipo].propiedades[capa.propiedad].conductividad;
-        }else{
-            conductividad = this.info_material[capa.material].propiedades[capa.propiedad].conductividad;
-
-        }
-        capa.conductividad = conductividad;
-
         if(event.target.name === 'espesor'){
-            capa.espesor = event.target.value/1000;
+            capaNueva.espesor = event.target.value/1000;
         }
 
-        //TODO: metodos para cambiar la capa
-        //this.props.onCapaChanged();
-
-        this.props.onCapaChanged();
-
-        this.setState({
-            capasPiso: capas,
-        });
-
+        this.props.thunk_modificar_capa_piso(indices.nivel,indices.bloque,this.state.capaSeleccionadaPiso,capaNueva);
 
     }
 
-    handleChangeCapaTecho(event){
-        let capas = this.state.capasTecho;
-        let capa = capas[this.state.capaSeleccionadaTecho];
+    handleChangeCapaTecho(event) {
+        const indices = this.props.seleccionados[0].indices;
+
+        let capa = this.props.morfologia.present
+            .niveles[indices.nivel]
+            .bloques[indices.bloque]
+            .techo
+            .capas[this.state.capaSeleccionadaTecho];
+
+        let capaNueva = {
+            material: capa.material,
+            propiedad: capa.propiedad,
+            tipo: capa.tipo,
+            espesor: capa.espesor,
+        };
+
+        capaNueva[event.target.name] = event.target.value;
 
         if(event.target.name === 'material'){
-            if(this.info_material[event.target.value].hasOwnProperty('tipos')){
-                capa.tipo = 0;
-                capa.propiedad = 0;
+            if(this.props.info_material[event.target.value].hasOwnProperty('tipos')){
+                capaNueva.tipo = 0;
+                capaNueva.propiedad = 0;
             }else{
-                capa.propiedad = 0;
+                capaNueva.propiedad = 0;
             }
         }
-
-        if(event.target.name === 'tipo'){
-            capa.propiedad = 0;
-
-        }
-
-        capa[event.target.name] = event.target.value;
-
-        let conductividad;
-
-        if(this.info_material[capa.material].hasOwnProperty('tipos')){
-            conductividad = this.info_material[capa.material].tipos[capa.tipo].propiedades[capa.propiedad].conductividad;
-        }else{
-            conductividad = this.info_material[capa.material].propiedades[capa.propiedad].conductividad;
-
-        }
-        capa.conductividad = conductividad;
-
         if(event.target.name === 'espesor'){
-            capa.espesor = event.target.value/1000;
+            capaNueva.espesor = event.target.value/1000;
         }
 
-        //TODO: metodos para cambiar la capa
-        //this.props.onCapaChanged();
+        this.props.thunk_modificar_capa_techo(indices.nivel,indices.bloque,this.state.capaSeleccionadaTecho,capaNueva);
+    }
 
-        this.setState({
-            capasTecho: capas,
-        })
+    handleClickAplicarPisos() {
+        const indiceSel = this.props.seleccionados[0].indices;
+        const seleccionados = this.props.seleccionados;
+        let indices = [];
+        for(let seleccionado of seleccionados){
+            indices.push(seleccionado.indices);
+        }
+        console.log(indices,indiceSel);
+        this.props.thunk_aplicar_capa_pisos(indiceSel.nivel,indiceSel.bloque,indices);
+
+    }
+
+    handleClickAplicarTechos() {
+        const indiceSel = this.props.seleccionados[0].indices;
+        const seleccionados = this.props.seleccionados;
+        let indices = [];
+        for(let seleccionado of seleccionados){
+            indices.push(seleccionado.indices);
+        }
+        this.props.thunk_aplicar_capa_techos(indiceSel.nivel,indiceSel.bloque,indices);
+
     }
 
     handleChangeDimension(event) {
-        let piso = this.props.seleccion;
-        let depth = piso.userData.depth, width = piso.userData.width;
-        if (event.target.name === 'profundidad') {
-            if(parseInt(event.target.value) >= depth){
-                depth += 1;
-            }else{
-                depth -= 1;
-            }
-        } else {
-            if(parseInt(event.target.value) >= width){
-                width += 1;
-            }else{
-                width -= 1;
-            }
+        const indices = this.props.seleccionados[0].indices;
+
+        let bloque = this.props.morfologia.present.niveles[indices.nivel].bloques[indices.bloque];
+
+        let ancho = bloque.dimensiones.ancho, largo = bloque.dimensiones.largo;
+        if (event.target.name === 'ancho') {
+            ancho = parseFloat(event.target.value);
+        }else{
+            largo = parseFloat(event.target.value);
         }
-        this.props.onDimensionChanged(piso, width, depth);
+        let dimensiones = {
+            alto: bloque.dimensiones.alto,
+            ancho: ancho,
+            largo: largo,
+        };
+        this.props.thunk_modificar_dimensiones_bloque(indices.bloque,indices.nivel,dimensiones);
     }
 
     handleClickBorrarPiso(event) {
-        let capas = this.state.capasPiso;
-        capas.splice(event.target.value, 1);
+        event.preventDefault();
+        let indiceCapa = parseInt(event.currentTarget.value);
+        const indices = this.props.seleccionados[0].indices;
 
+        this.props.thunk_borrar_capa_piso(indices.nivel,indices.bloque,indiceCapa);
 
-        for (let i = 0; i < capas.length; i++) {
-            capas[i].index = i;
-        }
-
-        let capasVacias = 9 - capas.length - 1;
-        this.vaciosArrayPiso = [];
-        for(let i = 0 ; i < capasVacias ; i++){
-            this.vaciosArrayPiso.push(i);
-        }
-
-        if(this.state.capaSeleccionadaPiso === event.target.value){
+        if(this.state.capaSeleccionadaPiso === indiceCapa){
             this.setState({
                 capaSeleccionadaPiso: null,
             })
+        }else if(this.state.capaSeleccionadaPiso > indiceCapa){
+            this.setState({
+                capaSeleccionadaPiso: this.state.capaSeleccionadaPiso - 1,
+            })
         }
-
-        this.props.onCapaChanged();
-
-        this.setState({
-            capasPiso: capas,
-        })
     }
 
     handleClickBorrarTecho(event) {
-        let capas = this.state.capasTecho;
-        capas.splice(event.target.value, 1);
+        event.preventDefault();
+        let indiceCapa = parseInt(event.currentTarget.value);
+        const indices = this.props.seleccionados[0].indices;
 
+        this.props.thunk_borrar_capa_techo(indices.nivel,indices.bloque,indiceCapa);
 
-        for (let i = 0; i < capas.length; i++) {
-            capas[i].index = i;
-        }
-
-        let capasVacias = 9 - capas.length - 1;
-        this.vaciosArrayTecho = [];
-        for(let i = 0 ; i < capasVacias ; i++){
-            this.vaciosArrayTecho.push(i);
-        }
-
-        if(this.state.capaSeleccionadaTecho === event.target.value){
+        if(this.state.capaSeleccionadaTecho === indiceCapa){
             this.setState({
                 capaSeleccionadaTecho: null,
             })
+        }else if(this.state.capaSeleccionadaTecho > indiceCapa){
+            this.setState({
+                capaSeleccionadaTecho: this.state.capaSeleccionadaTecho - 1,
+            })
         }
-
-        this.props.onCapaChanged();
-
-        this.setState({
-            capasTecho: capas,
-        })
     }
 
     clickCapaPiso(event) {
-        let capaSeleccionadaPiso = parseInt(event.target.attributes.value.value );
-        if(this.state.capasPiso[capaSeleccionadaPiso] !== undefined){
-            this.setState({
-                capaSeleccionadaPiso: capaSeleccionadaPiso,
-            });
+        if(event.target.attributes.value !== undefined){
+            let capaSeleccionadaPiso = parseInt(event.target.attributes.value.value);
+            this.setState({capaSeleccionadaPiso: capaSeleccionadaPiso});
         }else{
-            this.setState({
-                capaSeleccionadaPiso: null,
-            });
+            this.setState({capaSeleccionadaPiso: null});
         }
     }
 
     clickCapaTecho(event) {
-        let capaSeleccionadaTecho = parseInt(event.target.attributes.value.value );
-        if(this.state.capasTecho[capaSeleccionadaTecho] !== undefined){
-            this.setState({
-                capaSeleccionadaTecho: capaSeleccionadaTecho,
-            });
-        }else{
-            this.setState({
-                capaSeleccionadaTecho: null,
-            });
+        if(event.target.attributes.value !== undefined){
+            let capaSeleccionadaTecho = parseInt(event.target.attributes.value.value);
+            this.setState({capaSeleccionadaTecho: capaSeleccionadaTecho});
+        }
+        else{
+            this.setState({capaSeleccionadaTecho: null});
         }
     }
 
     handleClickAgregarPiso() {
-        let capas = this.state.capasPiso;
-        capas.push({
+        const indices = this.props.seleccionados[0].indices;
+        let capa = {
             material: 0,
             tipo: null,
             espesor: 0.01,
             propiedad: 0,
-            conductividad: this.info_material[0].propiedades[0].conductividad,
-        });
+        };
 
-        for (let i = 0; i < capas.length; i++) {
-            capas[i].index = i;
-        }
-
-        let capasVacias = 9 - capas.length - 1;
-        this.vaciosArrayPiso = [];
-        for(let i = 0 ; i < capasVacias ; i++){
-            this.vaciosArrayPiso.push(i);
-        }
-
-        this.setState({
-            capaSeleccionadaPiso: capas.length-1,
-        });
-
-
-        this.setState({
-            capasPiso: capas,
-        });
-
-        this.props.onCapaChanged();
+        this.props.thunk_agregar_capa_piso(indices.nivel,indices.bloque,capa);
 
     }
 
     handleClickAgregarTecho() {
-        let capas = this.state.capasTecho;
-        capas.push({
+        const indices = this.props.seleccionados[0].indices;
+        let capa = {
             material: 0,
             tipo: null,
             espesor: 0.01,
             propiedad: 0,
-            conductividad: this.info_material[0].propiedades[0].conductividad,
-        });
+        };
 
-        for (let i = 0; i < capas.length; i++) {
-            capas[i].index = i;
-        }
-
-        let capasVacias = 9 - capas.length - 1;
-        this.vaciosArrayTecho = [];
-        for(let i = 0 ; i < capasVacias ; i++){
-            this.vaciosArrayTecho.push(i);
-        }
-
-        this.setState({
-            capaSeleccionadaTecho: capas.length-1,
-        });
-
-
-        this.setState({
-            capasTecho: capas,
-        })
-
-        this.props.onCapaChanged();
+        this.props.thunk_agregar_capa_techo(indices.nivel,indices.bloque,capa);
 
     }
 
     render() {
-        
-        const {classes, seleccionado} = this.props;
-        let pisoSeleccionado = seleccionado;
-        let techoSeleccionado;
-        let depth, width;
-        if(pisoSeleccionado !== null && pisoSeleccionado.userData.tipo === Morfologia.tipos.PISO){
-            techoSeleccionado = seleccionado.userData.techo;
-            depth = pisoSeleccionado.userData.depth;
-            width = pisoSeleccionado.userData.width;
-        }else{
-            techoSeleccionado = null;
+        const {capaSeleccionadaPiso, capaSeleccionadaTecho} = this.state;
+
+        const {seleccionados, classes} = this.props;
+
+        let capasTecho, capasPiso, width, depth;
+
+        let materialPiso, tipoPiso, espesorPiso, propiedadPiso;
+        let materialTecho, tipoTecho, espesorTecho, propiedadTecho;
+        let vaciosArrayPiso = [];
+        let vaciosArrayTecho = [];
+        const esTecho = seleccionados[0] !== null && seleccionados[0].tipo === Tipos.TECHO;
+        if (esTecho) {
+            const indices = this.props.seleccionados[0].indices;
+            const bloque = this.props.morfologia.present
+                .niveles[indices.nivel]
+                .bloques[indices.bloque];
+
+            const techo = bloque.techo;
+            const piso = bloque.piso;
+
+            capasTecho = techo.capas;
+            capasPiso = piso.capas;
+
+            if (capaSeleccionadaPiso !== null) {
+                materialPiso = capasPiso[capaSeleccionadaPiso].material;
+                tipoPiso = capasPiso[capaSeleccionadaPiso].tipo;
+                espesorPiso = capasPiso[capaSeleccionadaPiso].espesor;
+                propiedadPiso = capasPiso[capaSeleccionadaPiso].propiedad;
+            }
+
+            if (capaSeleccionadaTecho !== null) {
+                materialTecho = capasTecho[capaSeleccionadaTecho].material;
+                tipoTecho = capasTecho[capaSeleccionadaTecho].tipo;
+                espesorTecho = capasTecho[capaSeleccionadaTecho].espesor;
+                propiedadTecho = capasTecho[capaSeleccionadaTecho].propiedad;
+            }
+            depth = bloque.dimensiones.largo;
+            width = bloque.dimensiones.ancho;
+
+            let capasVaciasPiso = 9 - capasPiso.length - 1;
+            for (let i = 0; i < capasVaciasPiso; i++) {
+                vaciosArrayPiso.push(i);
+            }
+
+            let capasVaciasTecho = 9 - capasTecho.length - 1;
+            for (let i = 0; i < capasVaciasTecho; i++) {
+                vaciosArrayTecho.push(i);
+            }
         }
-        const {capasPiso, capasTecho, capaSeleccionadaPiso, capaSeleccionadaTecho} = this.state;
-
-        let materialPiso ,tipoPiso ,espesorPiso ,propiedadPiso ;
-        let materialTecho ,tipoTecho ,espesorTecho ,propiedadTecho ;
-
-        if(capaSeleccionadaPiso !== null && pisoSeleccionado !== null){
-            materialPiso = capasPiso[capaSeleccionadaPiso].material;
-            tipoPiso = capasPiso[capaSeleccionadaPiso].tipo;
-            espesorPiso = capasPiso[capaSeleccionadaPiso].espesor;
-            propiedadPiso = capasPiso[capaSeleccionadaPiso].propiedad;
-        }
-
-        if(capaSeleccionadaTecho !== null && pisoSeleccionado !== null){
-            materialTecho = capasTecho[capaSeleccionadaTecho].material;
-            tipoTecho = capasTecho[capaSeleccionadaTecho].tipo;
-            espesorTecho = capasTecho[capaSeleccionadaTecho].espesor;
-            propiedadTecho = capasTecho[capaSeleccionadaTecho].propiedad;
-        }
-
         let hasTiposPiso;
         let hasTiposTecho;
 
-        if (pisoSeleccionado !== null && this.info_material.length > 0 && pisoSeleccionado.userData.tipo === Morfologia.tipos.PISO && capaSeleccionadaPiso !== null) {
-            hasTiposPiso = this.info_material[materialPiso].hasOwnProperty('tipos');
+        if (esTecho && capaSeleccionadaPiso !== null) {
+            hasTiposPiso = this.props.info_material[materialPiso].hasOwnProperty('tipos');
         } else {
             hasTiposPiso = null;
         }
 
-        if (techoSeleccionado !== null && this.info_material.length > 0 && capaSeleccionadaTecho !== null) {
-            hasTiposTecho = this.info_material[materialTecho].hasOwnProperty('tipos');
+        if (esTecho && capaSeleccionadaTecho !== null) {
+            hasTiposTecho = this.props.info_material[materialTecho].hasOwnProperty('tipos');
         } else {
             hasTiposTecho = null;
         }
 
         return (
             <div>
-                {pisoSeleccionado !== null && pisoSeleccionado.userData.tipo === Morfologia.tipos.PISO ?
+                {esTecho ?
                     <div className={classes.root}>
                         <Typography
                             variant={"title"}
                             className={classes.titulo}
                             align={"center"}
                         >
-                            {techoSeleccionado !== undefined ?
-                                <div>{'Configuración '+ Morfologia.tipos_texto[pisoSeleccionado.userData.tipo]
-                                +' y '+ Morfologia.tipos_texto[techoSeleccionado.userData.tipo]
-
-                                }</div>
-                                :
-                                <div>{'Configuración '+ Morfologia.tipos_texto[pisoSeleccionado.userData.tipo]}</div>
-                            }
+                            {'Configuración Piso y Techo'}
 
                         </Typography>
 
@@ -533,72 +484,91 @@ class InformacionPisoTecho extends Component {
                                         <Grid container spacing={0}>
                                             {capasPiso.map(capa => (
                                                 <Grid item xs>
-                                                    {capaSeleccionadaPiso === capa.index ?
+                                                    {capaSeleccionadaPiso === capasPiso.indexOf(capa) ?
                                                         <Paper className={classes.paper}
                                                                style={{backgroundColor: this.colorSelected[0]}}
-                                                               value={capa.index}
+                                                               value={capasPiso.indexOf(capa)}
                                                                onClick={this.clickCapaPiso}
                                                                elevation={0}
                                                         >
-                                                            <IconButton  style={{color: this.colorSelected[1],
-                                                                margin: 0,
-                                                                position: 'relative',
-                                                                left: '50%',
-                                                                transform: 'translate(-50%, 0%)',}}
-                                                                        className={classes.button}
-                                                                        value={capa.index}
-                                                                        onClick={this.handleClickBorrarPiso}
-
-                                                            >
-                                                                <Clear/>
-                                                            </IconButton>
-                                                            {this.info_material[capa.material].hasOwnProperty('tipos') ?
-                                                                <div>
-                                                                    <Typography
-                                                                        className={classes.textRotation}
-                                                                        style={{color: this.colorSelected[1]}}
-                                                                        value={capa.index}
-                                                                        onClick={this.clickCapaPiso}>
-                                                                        {this.info_material[capa.material].material + this.info_material[capa.material].tipos[capa.tipo].nombre}
-                                                                    </Typography>
-                                                                </div>
-                                                                :
-                                                                <Typography
-                                                                    className={classes.textRotation}
-                                                                    style={{color: this.colorSelected[1]}}
-                                                                    value={capa.index}
-                                                                    onClick={this.clickCapaPiso}>
-                                                                    {this.info_material[capa.material].material}
-                                                                </Typography>
-                                                            }
-                                                        </Paper> :
-                                                        <Paper className={classes.paper}
-                                                               style={{backgroundColor: this.info_material[capa.material].color}}
-                                                               value={capa.index}
-                                                               onClick={this.clickCapaPiso}
-                                                                elevation={10}
-                                                        >
-                                                            <IconButton style={{color: this.info_material[capa.material].textColor,
+                                                            <IconButton style={{
+                                                                color: this.colorSelected[1],
                                                                 margin: 0,
                                                                 position: 'relative',
                                                                 left: '50%',
                                                                 transform: 'translate(-50%, 0%)',
                                                             }}
                                                                         className={classes.button}
-                                                                        value={capa.index}
+                                                                        value={capasPiso.indexOf(capa)}
                                                                         onClick={this.handleClickBorrarPiso}
 
                                                             >
                                                                 <Clear/>
                                                             </IconButton>
-                                                            {this.info_material[capa.material].hasOwnProperty('tipos') ?
+                                                            {this.props.info_material[capa.material]
+                                                                .hasOwnProperty('tipos') ?
                                                                 <div>
                                                                     <Typography
                                                                         className={classes.textRotation}
-                                                                        style={{color: this.info_material[capa.material].textColor}}
-                                                                        value={capa.index}
+                                                                        style={{color: this.colorSelected[1]}}
+                                                                        value={capasPiso.indexOf(capa)}
                                                                         onClick={this.clickCapaPiso}>
-                                                                        {this.info_material[capa.material].material + this.info_material[capa.material].tipos[capa.tipo].nombre}
+                                                                        {this.props.info_material[capa.material]
+                                                                            .material + this.props
+                                                                            .info_material[capa.material]
+                                                                            .tipos[capa.tipo].nombre}
+                                                                    </Typography>
+                                                                </div>
+                                                                :
+                                                                <Typography
+                                                                    className={classes.textRotation}
+                                                                    style={{color: this.colorSelected[1]}}
+                                                                    value={capasPiso.indexOf(capa)}
+                                                                    onClick={this.clickCapaPiso}>
+                                                                    {this.props.info_material[capa.material].material}
+                                                                </Typography>
+                                                            }
+                                                        </Paper> :
+                                                        <Paper className={classes.paper}
+                                                               style={{
+                                                                   backgroundColor: this.props
+                                                                       .info_material[capa.material].color
+                                                               }}
+                                                               value={capasPiso.indexOf(capa)}
+                                                               onClick={this.clickCapaPiso}
+                                                               elevation={10}
+                                                        >
+                                                            <IconButton style={{
+                                                                color: this.props
+                                                                    .info_material[capa.material].textColor,
+                                                                margin: 0,
+                                                                position: 'relative',
+                                                                left: '50%',
+                                                                transform: 'translate(-50%, 0%)',
+                                                            }}
+                                                                        className={classes.button}
+                                                                        value={capasPiso.indexOf(capa)}
+                                                                        onClick={this.handleClickBorrarPiso}
+
+                                                            >
+                                                                <Clear/>
+                                                            </IconButton>
+                                                            {this.props.info_material[capa.material]
+                                                                .hasOwnProperty('tipos') ?
+                                                                <div>
+                                                                    <Typography
+                                                                        className={classes.textRotation}
+                                                                        style={{
+                                                                            color: this.props
+                                                                                .info_material[capa.material]
+                                                                                .textColor
+                                                                        }}
+                                                                        value={capasPiso.indexOf(capa)}
+                                                                        onClick={this.clickCapaPiso}>
+                                                                        {this.props.info_material[capa.material]
+                                                                            .material
+                                                                        + this.props.info_material[capa.material]
+                                                                            .tipos[capa.tipo].nombre}
                                                                     </Typography>
 
                                                                 </div>
@@ -606,10 +576,15 @@ class InformacionPisoTecho extends Component {
                                                                 <div>
                                                                     <Typography
                                                                         className={classes.textRotation}
-                                                                        style={{color: this.info_material[capa.material].textColor}}
-                                                                        value={capa.index}
+                                                                        style={{
+                                                                            color: this.props
+                                                                                .info_material[capa.material]
+                                                                                .textColor
+                                                                        }}
+                                                                        value={capasPiso.indexOf(capa)}
                                                                         onClick={this.clickCapaPiso}>
-                                                                        {this.info_material[capa.material].material}
+                                                                        {this.props.info_material[capa.material]
+                                                                            .material}
                                                                     </Typography>
                                                                 </div>
                                                             }
@@ -622,20 +597,22 @@ class InformacionPisoTecho extends Component {
                                                 <Grid item xs>
                                                     <Paper className={classes.paperAdd}>
                                                         <IconButton
-                                                            style={{margin: 0,
+                                                            style={{
+                                                                margin: 0,
                                                                 position: 'relative',
                                                                 top: '50%',
                                                                 left: '50%',
-                                                                transform: 'translate(-50%, -50%)',}}
+                                                                transform: 'translate(-50%, -50%)',
+                                                            }}
                                                             className={classes.button}
                                                             onClick={this.handleClickAgregarPiso}>
                                                             <Add/>
                                                         </IconButton>
                                                     </Paper>
-                                                </Grid> : <div></div>
+                                                </Grid> : <div/>
                                             }
 
-                                            {this.vaciosArrayPiso.map(vacio => (
+                                            {vaciosArrayPiso.map(vacio => (
                                                 <Grid item xs>
                                                     <Paper className={classes.paper}>
                                                     </Paper>
@@ -650,19 +627,23 @@ class InformacionPisoTecho extends Component {
                                         <Grid container spacing={8}>
                                             {hasTiposPiso ?
                                                 <Grid container spacing={0} style={{
-                                                    marginTop : 12,
-                                                    marginBottom : 4,
-                                                    marginLeft : 4,
-                                                    marginRight : 4,}}>
+                                                    marginTop: 12,
+                                                    marginBottom: 4,
+                                                    marginLeft: 4,
+                                                    marginRight: 4,
+                                                }}>
                                                     <Grid item xs={6}>
                                                         <FormControl className={classes.formControl}>
-                                                            <InputLabel htmlFor="material-simple">Material</InputLabel>
+                                                            <InputLabel
+                                                                htmlFor="material-simple">
+                                                                Material
+                                                            </InputLabel>
                                                             <Select
                                                                 value={materialPiso}
                                                                 onChange={this.handleChangeCapaPiso}
                                                                 input={<Input name="material" id="material-simple"/>}
                                                             >
-                                                                {this.info_material.map(material => (
+                                                                {this.props.info_material.map(material => (
                                                                     <MenuItem value={material.index}>
                                                                         {material.material}
                                                                     </MenuItem>
@@ -678,17 +659,18 @@ class InformacionPisoTecho extends Component {
                                                                 onChange={this.handleChangeCapaPiso}
                                                                 input={<Input name="tipo" id="tipo-simple"/>}
                                                             >
-                                                                {this.info_material[materialPiso].tipos.map(tipo => (
-                                                                    <MenuItem value={tipo.index}>
-                                                                        {tipo.nombre}
-                                                                    </MenuItem>
-                                                                ))}
+                                                                {this.props.info_material[materialPiso]
+                                                                    .tipos.map(tipo => (
+                                                                        <MenuItem value={tipo.index}>
+                                                                            {tipo.nombre}
+                                                                        </MenuItem>
+                                                                    ))}
                                                             </Select>
                                                         </FormControl>
                                                     </Grid>
                                                 </Grid>
-                                                 : <Grid item xs={12} style={{
-                                                     marginTop : 8,
+                                                : <Grid item xs={12} style={{
+                                                    marginTop: 8,
                                                 }}>
                                                     <FormControl className={classes.formControl}>
                                                         <InputLabel htmlFor="material-simple">Material</InputLabel>
@@ -697,7 +679,7 @@ class InformacionPisoTecho extends Component {
                                                             onChange={this.handleChangeCapaPiso}
                                                             input={<Input name="material" id="material-simple"/>}
                                                         >
-                                                            {this.info_material.map(material => (
+                                                            {this.props.info_material.map(material => (
                                                                 <MenuItem value={material.index}>
                                                                     {material.material}
                                                                 </MenuItem>
@@ -715,27 +697,32 @@ class InformacionPisoTecho extends Component {
                                                             onChange={this.handleChangeCapaPiso}
                                                             input={<Input name="propiedad" id="conductividad-simple"/>}
                                                         >
-                                                            {this.info_material[materialPiso].tipos[tipoPiso].propiedades.map(propiedades => (
+                                                            {this.props.info_material[materialPiso]
+                                                                .tipos[tipoPiso].propiedades.map(propiedades => (
                                                                 <MenuItem value={propiedades.index}>
                                                                     {propiedades.densidad !== -1 ? propiedades.densidad
-                                                                    : "No tiene"}
+                                                                        : "No tiene"}
                                                                 </MenuItem>
                                                             ))}
                                                         </Select>
                                                     </FormControl>
-                                                </Grid>  : <div/>
+                                                </Grid> : <div/>
                                             }
 
                                             {hasTiposPiso ?
                                                 <Grid item xs={4}>
                                                     <FormControl className={classes.formControl}>
-                                                        <InputLabel htmlFor="conductividad-simple">Conductividad</InputLabel>
+                                                        <InputLabel
+                                                            htmlFor="conductividad-simple">
+                                                            Conductividad
+                                                        </InputLabel>
                                                         <Select
                                                             value={propiedadPiso}
                                                             onChange={this.handleChangeCapaPiso}
                                                             input={<Input name="propiedad" id="conductividad-simple"/>}
                                                         >
-                                                            {this.info_material[materialPiso].tipos[tipoPiso].propiedades.map(propiedades => (
+                                                            {this.props.info_material[materialPiso]
+                                                                .tipos[tipoPiso].propiedades.map(propiedades => (
                                                                 <MenuItem value={propiedades.index}>
                                                                     {propiedades.conductividad}
                                                                 </MenuItem>
@@ -744,7 +731,7 @@ class InformacionPisoTecho extends Component {
                                                     </FormControl>
                                                 </Grid> : <div/>
                                             }
-                                            {!hasTiposPiso?
+                                            {!hasTiposPiso ?
                                                 <Grid item xs={4}>
                                                     <FormControl className={classes.formControl}>
                                                         <InputLabel htmlFor="conductividad-simple">Densidad</InputLabel>
@@ -753,31 +740,36 @@ class InformacionPisoTecho extends Component {
                                                             onChange={this.handleChangeCapaPiso}
                                                             input={<Input name="propiedad" id="conductividad-simple"/>}
                                                         >
-                                                            {this.info_material[materialPiso].propiedades.map(propiedades => (
-                                                                <MenuItem value={propiedades.index}>
-                                                                    {propiedades.densidad !== -1 ? propiedades.densidad
-                                                                        : "No tiene"}
-                                                                </MenuItem>
-                                                            ))}
+                                                            {this.props.info_material[materialPiso]
+                                                                .propiedades.map(propiedades => (
+                                                                    <MenuItem value={propiedades.index}>
+                                                                        {propiedades.densidad !== -1 ? propiedades.densidad
+                                                                            : "No tiene"}
+                                                                    </MenuItem>
+                                                                ))}
                                                         </Select>
                                                     </FormControl>
-                                                </Grid>  : <div/>
+                                                </Grid> : <div/>
                                             }
 
                                             {!hasTiposPiso ?
                                                 <Grid item xs={4}>
                                                     <FormControl className={classes.formControl}>
-                                                        <InputLabel htmlFor="conductividad-simple">Conductividad</InputLabel>
+                                                        <InputLabel
+                                                            htmlFor="conductividad-simple">
+                                                            Conductividad
+                                                        </InputLabel>
                                                         <Select
                                                             value={propiedadPiso}
                                                             onChange={this.handleChangeCapaPiso}
                                                             input={<Input name="propiedad" id="conductividad-simple"/>}
                                                         >
-                                                            {this.info_material[materialPiso].propiedades.map(propiedades => (
-                                                                <MenuItem value={propiedades.index}>
-                                                                    {propiedades.conductividad}
-                                                                </MenuItem>
-                                                            ))}
+                                                            {this.props.info_material[materialPiso]
+                                                                .propiedades.map(propiedades => (
+                                                                    <MenuItem value={propiedades.index}>
+                                                                        {propiedades.conductividad}
+                                                                    </MenuItem>
+                                                                ))}
                                                         </Select>
                                                     </FormControl>
                                                 </Grid> : <div/>
@@ -787,7 +779,7 @@ class InformacionPisoTecho extends Component {
                                                     <TextField
                                                         label="Espesor (mm)"
                                                         name="espesor"
-                                                        value={1000*espesorPiso}
+                                                        value={1000 * espesorPiso}
                                                         onChange={this.handleChangeCapaPiso}
                                                         type="number"
                                                         InputLabelProps={{
@@ -798,178 +790,194 @@ class InformacionPisoTecho extends Component {
                                             </Grid>
 
                                         </Grid> : <div/>
-                                    }
+                                    }{seleccionados.length > 1 ?
+                                    <Grid container spacing={8}>
+                                        <Grid container spacing={0} style={{
+                                            marginTop : 12,
+                                            marginBottom : 4,
+                                            marginLeft : 4,
+                                            marginRight : 4,}}>
+                                            <Grid item xs={12}>
+                                                <FormControl className={classes.formControl}>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        className={classes.button}
+                                                        onClick={this.handleClickAplicarPisos}>
+                                                        IGUALAR CAPAS DE PISOS SELECCIONADAS
+                                                    </Button>
+                                                </FormControl>
+                                            </Grid>
+                                        </Grid>
                                     </Grid>
+                                    : <div/>
+                                }
+                                </Grid>
                             </ExpansionPanelDetails>
                         </ExpansionPanel>
 
-                        {techoSeleccionado !== undefined  ?
-                            <ExpansionPanel>
-                                <ExpansionPanelSummary expandIcon={<ExpandMoreIcon/>}>
-                                    <Typography className={classes.heading}>Capas techo</Typography>
-                                </ExpansionPanelSummary>
-                                <ExpansionPanelDetails>
-                                    <Grid container spacing={8}>
-                                        <Grid item xs={12}>
-                                            <Grid container spacing={0}>
-                                                {capasTecho.map(capa => (
-                                                    <Grid item xs>
-                                                        {capaSeleccionadaTecho === capa.index ?
-                                                            <Paper className={classes.paper}
-                                                                   style={{backgroundColor: this.colorSelected[0]}}
-                                                                   value={capa.index}
-                                                                   onClick={this.clickCapaTecho}
-                                                                   elevation={0}
-                                                            >
-                                                                <IconButton style={{color: this.colorSelected[1]}}
-                                                                            className={classes.button}
-                                                                            value={capa.index}
-                                                                            onClick={this.handleClickBorrarTecho}
+                        <ExpansionPanel>
+                            <ExpansionPanelSummary expandIcon={<ExpandMoreIcon/>}>
+                                <Typography className={classes.heading}>Capas techo</Typography>
+                            </ExpansionPanelSummary>
+                            <ExpansionPanelDetails>
+                                <Grid container spacing={8}>
+                                    <Grid item xs={12}>
+                                        <Grid container spacing={0}>
+                                            {capasTecho.map(capa => (
+                                                <Grid item xs>
+                                                    {capaSeleccionadaTecho === capasTecho.indexOf(capa) ?
+                                                        <Paper className={classes.paper}
+                                                               style={{backgroundColor: this.colorSelected[0]}}
+                                                               value={capasTecho.indexOf(capa)}
+                                                               onClick={this.clickCapaTecho}
+                                                               elevation={0}
+                                                        >
+                                                            <IconButton style={{
+                                                                color: this.colorSelected[1],
+                                                            }}
+                                                                        className={classes.button}
+                                                                        value={capasTecho.indexOf(capa)}
+                                                                        onClick={this.handleClickBorrarTecho}
 
-                                                                >
-                                                                    <Clear/>
-                                                                </IconButton>
-                                                                {this.info_material[capa.material].hasOwnProperty('tipos') ?
-                                                                    <div>
-                                                                        <Typography
-                                                                            className={classes.textRotation}
-                                                                            style={{color: this.colorSelected[1]}}
-                                                                            value={capa.index}
-                                                                            onClick={this.clickCapaTecho}>
-                                                                            {this.info_material[capa.material].material + this.info_material[capa.material].tipos[capa.tipo].nombre}
-                                                                        </Typography>
-                                                                    </div>
-                                                                    :
+                                                            >
+                                                                <Clear/>
+                                                            </IconButton>
+                                                            {this.props.info_material[capa.material]
+                                                                .hasOwnProperty('tipos') ?
+                                                                <div>
                                                                     <Typography
                                                                         className={classes.textRotation}
                                                                         style={{color: this.colorSelected[1]}}
-                                                                        value={capa.index}
+                                                                        value={capasTecho.indexOf(capa)}
                                                                         onClick={this.clickCapaTecho}>
-                                                                        {this.info_material[capa.material].material}
+                                                                        {this.props.info_material[capa.material]
+                                                                            .material + this.props
+                                                                            .info_material[capa.material]
+                                                                            .tipos[capa.tipo].nombre}
                                                                     </Typography>
-                                                                }
-                                                            </Paper> :
-                                                            <Paper className={classes.paper}
-                                                                   style={{backgroundColor: this.info_material[capa.material].color}}
-                                                                   value={capa.index}
-                                                                   onClick={this.clickCapaTecho}
-                                                                   elevation={10}
-                                                            >
-                                                                <IconButton style={{color: this.info_material[capa.material].textColor}}
-                                                                            className={classes.button}
-                                                                            value={capa.index}
-                                                                            onClick={this.handleClickBorrarTecho}
-
-                                                                >
-                                                                    <Clear/>
-                                                                </IconButton>
-                                                                {this.info_material[capa.material].hasOwnProperty('tipos') ?
-                                                                    <div>
-                                                                        <Typography
-                                                                            className={classes.textRotation}
-                                                                            style={{color: this.info_material[capa.material].textColor}}
-                                                                            value={capa.index}
-                                                                            onClick={this.clickCapaTecho}>
-                                                                            {this.info_material[capa.material].material + this.info_material[capa.material].tipos[capa.tipo].nombre}
-                                                                        </Typography>
-
-                                                                    </div>
-                                                                    :
-                                                                    <div>
-                                                                        <Typography
-                                                                            className={classes.textRotation}
-                                                                            style={{color: this.info_material[capa.material].textColor}}
-                                                                            value={capa.index}
-                                                                            onClick={this.clickCapaTecho}>
-                                                                            {this.info_material[capa.material].material}
-                                                                        </Typography>
-                                                                    </div>
-                                                                }
-                                                            </Paper>
-                                                        }
-                                                    </Grid>
-                                                ), this)}
-
-                                                {9 - capasTecho.length - 1 >= 0 ?
-                                                    <Grid item xs>
-                                                        <Paper className={classes.paperAdd}>
+                                                                </div>
+                                                                :
+                                                                <Typography
+                                                                    className={classes.textRotation}
+                                                                    style={{color: this.colorSelected[1]}}
+                                                                    value={capasTecho.indexOf(capa)}
+                                                                    onClick={this.clickCapaTecho}>
+                                                                    {this.props.info_material[capa.material].material}
+                                                                </Typography>
+                                                            }
+                                                        </Paper> :
+                                                        <Paper className={classes.paper}
+                                                               style={{backgroundColor: this.props
+                                                                       .info_material[capa.material].color
+                                                               }}
+                                                               value={capasTecho.indexOf(capa)}
+                                                               onClick={this.clickCapaTecho}
+                                                               elevation={10}
+                                                        >
                                                             <IconButton
-                                                                style={{margin: 0,
-                                                                    position: 'relative',
-                                                                    top: '50%',
-                                                                    left: '50%',
-                                                                    transform: 'translate(-50%, -50%)',}}
+                                                                style={{
+                                                                    color: this.props
+                                                                        .info_material[capa.material].textColor
+                                                                }}
                                                                 className={classes.button}
-                                                                onClick={this.handleClickAgregarTecho}>
-                                                                <Add/>
+                                                                value={capasTecho.indexOf(capa)}
+                                                                onClick={this.handleClickBorrarTecho}
+
+                                                            >
+                                                                <Clear/>
                                                             </IconButton>
-                                                        </Paper>
-                                                    </Grid> : <div></div>
-                                                }
+                                                            {this.props.info_material[capa.material]
+                                                                .hasOwnProperty('tipos') ?
+                                                                <div>
+                                                                    <Typography
+                                                                        className={classes.textRotation}
+                                                                        style={{
+                                                                            color: this.props
+                                                                                .info_material[capa.material]
+                                                                                .textColor
+                                                                        }}
+                                                                        value={capasTecho.indexOf(capa)}
+                                                                        onClick={this.clickCapaTecho}>
+                                                                        {this.props.info_material[capa.material]
+                                                                            .material
+                                                                        + this.props.info_material[capa.material]
+                                                                            .tipos[capa.tipo].nombre}
+                                                                    </Typography>
 
-                                                {this.vaciosArrayTecho.map(vacio => (
-                                                    <Grid item xs>
-                                                        <Paper className={classes.paper}>
+                                                                </div>
+                                                                :
+                                                                <div>
+                                                                    <Typography
+                                                                        className={classes.textRotation}
+                                                                        style={{
+                                                                            color: this.props
+                                                                                .info_material[capa.material]
+                                                                                .textColor
+                                                                        }}
+                                                                        value={capasTecho.indexOf(capa)}
+                                                                        onClick={this.clickCapaTecho}>
+                                                                        {this.props.info_material[capa.material]
+                                                                            .material}
+                                                                    </Typography>
+                                                                </div>
+                                                            }
                                                         </Paper>
-                                                    </Grid>
-                                                ), this)}
+                                                    }
+                                                </Grid>
+                                            ), this)}
 
-                                            </Grid>
+                                            {9 - capasTecho.length - 1 >= 0 ?
+                                                <Grid item xs>
+                                                    <Paper className={classes.paperAdd}>
+                                                        <IconButton
+                                                            style={{
+                                                                margin: 0,
+                                                                position: 'relative',
+                                                                top: '50%',
+                                                                left: '50%',
+                                                                transform: 'translate(-50%, -50%)',
+                                                            }}
+                                                            className={classes.button}
+                                                            onClick={this.handleClickAgregarTecho}>
+                                                            <Add/>
+                                                        </IconButton>
+                                                    </Paper>
+                                                </Grid> : <div/>
+                                            }
+
+                                            {vaciosArrayTecho.map(vacio => (
+                                                <Grid item xs>
+                                                    <Paper className={classes.paper}>
+                                                    </Paper>
+                                                </Grid>
+                                            ), this)}
 
                                         </Grid>
 
-                                        {capaSeleccionadaTecho !== null ?
-                                            <Grid container spacing={8}>
-                                                {hasTiposTecho ?
-                                                    <Grid container spacing={0} style={{
-                                                        marginTop : 12,
-                                                        marginBottom : 4,
-                                                        marginLeft : 4,
-                                                        marginRight : 4,}}>
-                                                        <Grid item xs={6}>
-                                                            <FormControl className={classes.formControl}>
-                                                                <InputLabel htmlFor="material-simple">Material</InputLabel>
-                                                                <Select
-                                                                    value={materialTecho}
-                                                                    onChange={this.handleChangeCapaTecho}
-                                                                    input={<Input name="material" id="material-simple"/>}
-                                                                >
-                                                                    {this.info_material.map(material => (
-                                                                        <MenuItem value={material.index}>
-                                                                            {material.material}
-                                                                        </MenuItem>
-                                                                    ))}
-                                                                </Select>
-                                                            </FormControl>
-                                                        </Grid>
-                                                        <Grid item xs={6}>
-                                                            <FormControl className={classes.formControl}>
-                                                                <InputLabel htmlFor="tipo-simple">Tipo</InputLabel>
-                                                                <Select
-                                                                    value={tipoTecho}
-                                                                    onChange={this.handleChangeCapaTecho}
-                                                                    input={<Input name="tipo" id="tipo-simple"/>}
-                                                                >
-                                                                    {this.info_material[materialTecho].tipos.map(tipo => (
-                                                                        <MenuItem value={tipo.index}>
-                                                                            {tipo.nombre}
-                                                                        </MenuItem>
-                                                                    ))}
-                                                                </Select>
-                                                            </FormControl>
-                                                        </Grid>
-                                                    </Grid>
-                                                    : <Grid item xs={12} style={{
-                                                        marginTop : 8,
-                                                    }}>
+                                    </Grid>
+
+                                    {capaSeleccionadaTecho !== null ?
+                                        <Grid container spacing={8}>
+                                            {hasTiposTecho ?
+                                                <Grid container spacing={0} style={{
+                                                    marginTop: 12,
+                                                    marginBottom: 4,
+                                                    marginLeft: 4,
+                                                    marginRight: 4,
+                                                }}>
+                                                    <Grid item xs={6}>
                                                         <FormControl className={classes.formControl}>
-                                                            <InputLabel htmlFor="material-simple">Material</InputLabel>
+                                                            <InputLabel
+                                                                htmlFor="material-simple">
+                                                                Material
+                                                            </InputLabel>
                                                             <Select
                                                                 value={materialTecho}
                                                                 onChange={this.handleChangeCapaTecho}
                                                                 input={<Input name="material" id="material-simple"/>}
                                                             >
-                                                                {this.info_material.map(material => (
+                                                                {this.props.info_material.map(material => (
                                                                     <MenuItem value={material.index}>
                                                                         {material.material}
                                                                     </MenuItem>
@@ -977,107 +985,171 @@ class InformacionPisoTecho extends Component {
                                                             </Select>
                                                         </FormControl>
                                                     </Grid>
-                                                }
-                                                {hasTiposTecho ?
-                                                    <Grid item xs={4}>
+                                                    <Grid item xs={6}>
                                                         <FormControl className={classes.formControl}>
-                                                            <InputLabel htmlFor="conductividad-simple">Densidad</InputLabel>
+                                                            <InputLabel htmlFor="tipo-simple">Tipo</InputLabel>
                                                             <Select
-                                                                value={propiedadTecho}
+                                                                value={tipoTecho}
                                                                 onChange={this.handleChangeCapaTecho}
-                                                                input={<Input name="propiedad" id="conductividad-simple"/>}
+                                                                input={<Input name="tipo" id="tipo-simple"/>}
                                                             >
-                                                                {this.info_material[materialTecho].tipos[tipoTecho].propiedades.map(propiedades => (
-                                                                    <MenuItem value={propiedades.index}>
-                                                                        {propiedades.densidad !== -1 ? propiedades.densidad
-                                                                            : "No tiene"}
+                                                                {this.props.info_material[materialTecho]
+                                                                    .tipos.map(tipo => (
+                                                                    <MenuItem value={tipo.index}>
+                                                                        {tipo.nombre}
                                                                     </MenuItem>
                                                                 ))}
                                                             </Select>
                                                         </FormControl>
-                                                    </Grid>  : <div/>
-                                                }
-
-                                                {hasTiposTecho ?
-                                                    <Grid item xs={4}>
-                                                        <FormControl className={classes.formControl}>
-                                                            <InputLabel htmlFor="conductividad-simple">Conductividad</InputLabel>
-                                                            <Select
-                                                                value={propiedadTecho}
-                                                                onChange={this.handleChangeCapaTecho}
-                                                                input={<Input name="propiedad" id="conductividad-simple"/>}
-                                                            >
-                                                                {this.info_material[materialTecho].tipos[tipoTecho].propiedades.map(propiedades => (
-                                                                    <MenuItem value={propiedades.index}>
-                                                                        {propiedades.conductividad}
-                                                                    </MenuItem>
-                                                                ))}
-                                                            </Select>
-                                                        </FormControl>
-                                                    </Grid> : <div/>
-                                                }
-                                                {!hasTiposTecho?
-                                                    <Grid item xs={4}>
-                                                        <FormControl className={classes.formControl}>
-                                                            <InputLabel htmlFor="conductividad-simple">Densidad</InputLabel>
-                                                            <Select
-                                                                value={propiedadTecho}
-                                                                onChange={this.handleChangeCapaTecho}
-                                                                input={<Input name="propiedad" id="conductividad-simple"/>}
-                                                            >
-                                                                {this.info_material[materialTecho].propiedades.map(propiedades => (
-                                                                    <MenuItem value={propiedades.index}>
-                                                                        {propiedades.densidad !== -1 ? propiedades.densidad
-                                                                            : "No tiene"}
-                                                                    </MenuItem>
-                                                                ))}
-                                                            </Select>
-                                                        </FormControl>
-                                                    </Grid>  : <div/>
-                                                }
-
-                                                {!hasTiposTecho ?
-                                                    <Grid item xs={4}>
-                                                        <FormControl className={classes.formControl}>
-                                                            <InputLabel htmlFor="conductividad-simple">Conductividad</InputLabel>
-                                                            <Select
-                                                                value={propiedadTecho}
-                                                                onChange={this.handleChangeCapaTecho}
-                                                                input={<Input name="propiedad" id="conductividad-simple"/>}
-                                                            >
-                                                                {this.info_material[materialTecho].propiedades.map(propiedades => (
-                                                                    <MenuItem value={propiedades.index}>
-                                                                        {propiedades.conductividad}
-                                                                    </MenuItem>
-                                                                ))}
-                                                            </Select>
-                                                        </FormControl>
-                                                    </Grid> : <div/>
-                                                }
-                                                <Grid item xs={4}>
+                                                    </Grid>
+                                                </Grid>
+                                                : <Grid item xs={12} style={{
+                                                    marginTop: 8,
+                                                }}>
                                                     <FormControl className={classes.formControl}>
-                                                        <TextField
-                                                            label="Espesor (mm)"
-                                                            name="espesor"
-                                                            value={1000*espesorTecho}
+                                                        <InputLabel htmlFor="material-simple">Material</InputLabel>
+                                                        <Select
+                                                            value={materialTecho}
                                                             onChange={this.handleChangeCapaTecho}
-                                                            type="number"
-                                                            InputLabelProps={{
-                                                                shrink: true,
-                                                            }}
-                                                        />
+                                                            input={<Input name="material" id="material-simple"/>}
+                                                        >
+                                                            {this.props.info_material.map(material => (
+                                                                <MenuItem value={material.index}>
+                                                                    {material.material}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
                                                     </FormControl>
                                                 </Grid>
+                                            }
+                                            {hasTiposTecho ?
+                                                <Grid item xs={4}>
+                                                    <FormControl className={classes.formControl}>
+                                                        <InputLabel htmlFor="conductividad-simple">Densidad</InputLabel>
+                                                        <Select
+                                                            value={propiedadTecho}
+                                                            onChange={this.handleChangeCapaTecho}
+                                                            input={<Input name="propiedad" id="conductividad-simple"/>}
+                                                        >
+                                                            {this.props.info_material[materialTecho]
+                                                                .tipos[tipoTecho].propiedades.map(propiedades => (
+                                                                <MenuItem value={propiedades.index}>
+                                                                    {propiedades.densidad !== -1 ? propiedades.densidad
+                                                                        : "No tiene"}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid> : <div/>
+                                            }
 
-                                            </Grid> : <div/>
-                                        }
+                                            {hasTiposTecho ?
+                                                <Grid item xs={4}>
+                                                    <FormControl className={classes.formControl}>
+                                                        <InputLabel
+                                                            htmlFor="conductividad-simple">
+                                                            Conductividad
+                                                        </InputLabel>
+                                                        <Select
+                                                            value={propiedadTecho}
+                                                            onChange={this.handleChangeCapaTecho}
+                                                            input={<Input name="propiedad" id="conductividad-simple"/>}
+                                                        >
+                                                            {this.props.info_material[materialTecho]
+                                                                .tipos[tipoTecho].propiedades.map(propiedades => (
+                                                                <MenuItem value={propiedades.index}>
+                                                                    {propiedades.conductividad}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid> : <div/>
+                                            }
+                                            {!hasTiposTecho ?
+                                                <Grid item xs={4}>
+                                                    <FormControl className={classes.formControl}>
+                                                        <InputLabel htmlFor="conductividad-simple">Densidad</InputLabel>
+                                                        <Select
+                                                            value={propiedadTecho}
+                                                            onChange={this.handleChangeCapaTecho}
+                                                            input={<Input name="propiedad" id="conductividad-simple"/>}
+                                                        >
+                                                            {this.props.info_material[materialTecho]
+                                                                .propiedades.map(propiedades => (
+                                                                    <MenuItem value={propiedades.index}>
+                                                                        {propiedades.densidad !== -1 ? propiedades.densidad
+                                                                            : "No tiene"}
+                                                                    </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid> : <div/>
+                                            }
+
+                                            {!hasTiposTecho ?
+                                                <Grid item xs={4}>
+                                                    <FormControl className={classes.formControl}>
+                                                        <InputLabel
+                                                            htmlFor="conductividad-simple">
+                                                            Conductividad
+                                                        </InputLabel>
+                                                        <Select
+                                                            value={propiedadTecho}
+                                                            onChange={this.handleChangeCapaTecho}
+                                                            input={<Input name="propiedad" id="conductividad-simple"/>}
+                                                        >
+                                                            {this.props.info_material[materialTecho]
+                                                                .propiedades.map(propiedades => (
+                                                                    <MenuItem value={propiedades.index}>
+                                                                        {propiedades.conductividad}
+                                                                    </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid> : <div/>
+                                            }
+                                            <Grid item xs={4}>
+                                                <FormControl className={classes.formControl}>
+                                                    <TextField
+                                                        label="Espesor (mm)"
+                                                        name="espesor"
+                                                        value={1000 * espesorTecho}
+                                                        onChange={this.handleChangeCapaTecho}
+                                                        type="number"
+                                                        InputLabelProps={{
+                                                            shrink: true,
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                            </Grid>
+
+                                        </Grid> : <div/>
+                                    }{seleccionados.length > 1 ?
+                                    <Grid container spacing={8}>
+                                        <Grid container spacing={0} style={{
+                                            marginTop : 12,
+                                            marginBottom : 4,
+                                            marginLeft : 4,
+                                            marginRight : 4,}}>
+                                            <Grid item xs={12}>
+                                                <FormControl className={classes.formControl}>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        className={classes.button}
+                                                        onClick={this.handleClickAplicarTechos}>
+                                                        IGUALAR CAPAS DE TECHOS SELECCIONADAS
+                                                    </Button>
+                                                </FormControl>
+                                            </Grid>
+                                        </Grid>
                                     </Grid>
+                                    : <div/>
+                                }
+                                </Grid>
 
-                                </ExpansionPanelDetails>
-                            </ExpansionPanel>
-                            :
-                            <div/>
-                        }
+                            </ExpansionPanelDetails>
+                        </ExpansionPanel>
 
                         <ExpansionPanel>
                             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon/>}>
@@ -1092,6 +1164,9 @@ class InformacionPisoTecho extends Component {
                                                 name="profundidad"
                                                 value={depth}
                                                 type="number"
+                                                inputProps={
+                                                    { step: 1}
+                                                }
                                                 onChange={this.handleChangeDimension}
                                                 InputLabelProps={{
                                                     shrink: true,
@@ -1106,6 +1181,9 @@ class InformacionPisoTecho extends Component {
                                                 name="ancho"
                                                 value={width}
                                                 type="number"
+                                                inputProps={
+                                                    { step: 1}
+                                                }
                                                 onChange={this.handleChangeDimension}
                                                 InputLabelProps={{
                                                     shrink: true,
@@ -1133,4 +1211,4 @@ InformacionPisoTecho.propTypes = {
     onCapaChanged: PropTypes.func,*/
 };
 
-export default withStyles(styles)(InformacionPisoTecho);
+export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InformacionPisoTecho));

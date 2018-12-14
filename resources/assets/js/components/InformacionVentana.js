@@ -5,9 +5,8 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Morfologia from "./Morfologia";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import Button from "@material-ui/core/Button";
+import * as Tipos from '../constants/morofologia-types';
 import axios from 'axios';
 import Select from '@material-ui/core/Select';
 import Input from '@material-ui/core/Input';
@@ -18,6 +17,15 @@ import Grid from "@material-ui/core/Grid";
 import * as BalanceEnergetico from '../Utils/BalanceEnergetico';
 import TextField from "@material-ui/core/TextField/TextField";
 import CalendarToday from "@material-ui/icons/CalendarToday";
+import {connect} from "react-redux";
+import {
+    thunk_aplicar_marco_ventanas,
+    thunk_aplicar_material_ventanas,
+    thunk_modificar_dimensiones_ventana,
+    thunk_modificar_marco_ventana,
+    thunk_modificar_material_ventana, thunk_modificar_posicion_ventana
+} from "../actions";
+import Button from "@material-ui/core/es/Button";
 
 const ITEM_HEIGHT = 48;
 
@@ -48,14 +56,38 @@ const styles = theme => ({
 
 });
 
+const mapStateToProps = state => {
+    return{
+        morfologia: state.morfologia,
+        seleccionados: state.app.seleccion_morfologia,
+        info_material_ventana: state.app.materiales_ventanas,
+        info_material_marco: state.app.materiales_marcos,
+    }
+};
 
+const mapDispatchToProps = dispatch => {
+    return {
+        thunk_modificar_material_ventana: (nivel, bloque, pared, ventana, material) =>
+            dispatch(thunk_modificar_material_ventana(nivel, bloque, pared, ventana, material)),
+        thunk_modificar_marco_ventana: (nivel, bloque, pared, ventana, marco) =>
+            dispatch(thunk_modificar_marco_ventana(nivel, bloque, pared, ventana, marco)),
+        thunk_modificar_dimensiones_ventana: (nivel,bloque,pared,ventana, dimensiones) =>
+            dispatch(thunk_modificar_dimensiones_ventana(nivel,bloque,pared,ventana,dimensiones)),
+        thunk_modificar_posicion_ventana: (nivel,bloque,pared,ventana, posicion) =>
+            dispatch(thunk_modificar_posicion_ventana(nivel,bloque,pared,ventana,posicion)),
+        thunk_aplicar_material_ventanas: (nivel,bloque,pared,ventana,indices) =>
+            dispatch(thunk_aplicar_material_ventanas(nivel,bloque,pared,ventana,indices)),
+        thunk_aplicar_marco_ventanas: (nivel,bloque,pared,ventana,indices) =>
+            dispatch(thunk_aplicar_marco_ventanas(nivel,bloque,pared,ventana,indices)),
+    }
+};
 class InformacionVentana extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {
+        this.state = {/*
             info_material_ventana: {},
-            info_material_marco: {},
+            info_material_marco: {},*/
             /*material: 0,
             tipo: 0,
             U: 0,
@@ -68,14 +100,8 @@ class InformacionVentana extends Component {
             width: 0,*/
 
         };
-        this.info_material = [];
-        this.info_marco = [];
-        axios.get("https://bioclimapp.host/api/info_ventanas")
-            .then(response => this.getJson(response));
-        axios.get("https://bioclimapp.host/api/info_marcos")
-            .then(response => this.getJsonMarcos(response));
-        this.difusa = this.props.comuna ? this.getFilteredRadiation(this.props.comuna.id,2,new Date().getMonth() + 1) : null;
-        this.directa = this.props.comuna ? this.getFilteredRadiation(this.props.comuna.id,3,new Date().getMonth() + 1) : null;
+        this.handleClickAplicarMaterial = this.handleClickAplicarMaterial.bind(this);
+        this.handleClickAplicarMarco = this.handleClickAplicarMarco.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleChangeDimension = this.handleChangeDimension.bind(this);
         this.handleChangeAlturaPiso = this.handleChangeAlturaPiso.bind(this);
@@ -85,11 +111,7 @@ class InformacionVentana extends Component {
     }
 
     componentDidUpdate(prevProps,prevState,snapShot){
-        if(this.props.comuna !== prevProps.comuna){
-            this.getFilteredRadiation(this.props.comuna.id,2,new Date().getMonth()+1);
-            this.getFilteredRadiation(this.props.comuna.id,3,new Date().getMonth()+1);
-        }
-        if (this.props.seleccion !== prevProps.seleccion) {
+        /*if (this.props.seleccion !== prevProps.seleccion) {
             if (this.props.seleccion !== null  && this.props.seleccion.userData.tipo === Morfologia.tipos.VENTANA) {
 
                 let info_material_ventana = this.props.seleccion.userData.info_material;
@@ -98,25 +120,25 @@ class InformacionVentana extends Component {
                 this.setState({
                     info_material_ventana: info_material_ventana,
                     info_material_marco: info_material_marco,
-                    /*height: this.props.seleccion.userData.height,
-                    width: this.props.seleccion.userData.width,*/
+                    /!*height: this.props.seleccion.userData.height,
+                    width: this.props.seleccion.userData.width,*!/
                 });
 
 
             }
-        }
+        }*/
     }
 
-    getJson(response) {
+    /*getJson(response) {
         this.info_material = response.data.slice();
         for(let i = 0; i < this.info_material.length; i++){
             this.info_material[i].index = i;
             for(let j = 0; j < this.info_material[i].tipos.length ; j++){
                 this.info_material[i].tipos[j].index = j;
                 //PARA cuando las ventanas tengan mas propiedades
-                /*for (let k = 0; k < this.info_material[i].tipos[j].propiedad.length; k++) {
+                /!*for (let k = 0; k < this.info_material[i].tipos[j].propiedad.length; k++) {
                     this.info_material[i].tipos[j].propiedad[k].index = k;
-                }*/
+                }*!/
             }
         }
     }
@@ -128,13 +150,13 @@ class InformacionVentana extends Component {
                 for(let j = 0; j < this.info_marcos[i].tipos.length ; j++){
                     this.info_marcos[i].tipos[j].index = j;
                     //PARA cuando las ventanas tengan mas propiedades
-                    /*for (let k = 0; k < this.info_material[i].tipos[j].propiedad.length; k++) {
+                    /!*for (let k = 0; k < this.info_material[i].tipos[j].propiedad.length; k++) {
                         this.info_material[i].tipos[j].propiedad[k].index = k;
-                    }*/
+                    }*!/
                 }
             }
         }
-    }
+    }*/
 
     getFilteredRadiation(comuna,tipo,mes){
         axios.get("https://bioclimapp.host/api/radiaciones/"+comuna+"/"+tipo+"/"+mes)
@@ -153,51 +175,66 @@ class InformacionVentana extends Component {
     }
 
     handleChangeMaterial(event){
-        let info_material_ventana = this.state.info_material_ventana;
+        const indices = this.props.seleccionados[0].indices;
+
+        let material = this.props.morfologia.present
+            .niveles[indices.nivel]
+            .bloques[indices.bloque]
+            .paredes[indices.pared]
+            .ventanas[indices.ventana]
+            .material;
+
+        let materialNuevo = {
+            material: material.material,
+            tipo: material.tipo,
+        };
+
+        materialNuevo[event.target.name] = event.target.value;
 
         if(event.target.name === 'material'){
-            info_material_ventana.tipo = 0;
+            materialNuevo.tipo = 0;
         }
 
-        info_material_ventana[event.target.name] = event.target.value;
-
-
-        info_material_ventana.fs = this.info_material[info_material_ventana.material].tipos[info_material_ventana.tipo].propiedad.FS;
-        info_material_ventana.u = this.info_material[info_material_ventana.material].tipos[info_material_ventana.tipo].propiedad.U;
-
-        this.setState({
-            info_material_ventana: info_material_ventana,
-        });
-
-        this.props.onCapaChanged();
-
-
+        this.props.thunk_modificar_material_ventana(
+            indices.nivel,
+            indices.bloque,
+            indices.pared,
+            indices.ventana,
+            materialNuevo
+        );
     }
 
     handleChangeMarco(event){
-        let info_material_marco = this.state.info_material_marco;
+        const indices = this.props.seleccionados[0].indices;
+
+        let marco = this.props.morfologia.present
+            .niveles[indices.nivel]
+            .bloques[indices.bloque]
+            .paredes[indices.pared]
+            .ventanas[indices.ventana]
+            .marco;
+
+        let marcoNuevo = {
+            material: marco.material,
+            tipo: marco.tipo,
+        };
+
+        marcoNuevo[event.target.name] = event.target.value;
 
         if(event.target.name === 'material'){
-            info_material_marco.tipo = 0;
+            marcoNuevo.tipo = 0;
         }
 
-        info_material_marco[event.target.name] = event.target.value;
-
-        info_material_marco.fs =  this.info_marcos[info_material_marco.material].hasOwnProperty('tipos') ?
-            this.info_marcos[info_material_marco.material].tipos[info_material_marco.tipo].propiedad.FS :
-            this.info_marcos[info_material_marco.material].propiedades[0].FS;
-
-        info_material_marco.u = this.info_marcos[info_material_marco.material].hasOwnProperty('tipos') ?
-            this.info_marcos[info_material_marco.material].tipos[info_material_marco.tipo].propiedad.U :
-            this.info_marcos[info_material_marco.material].propiedades[0].U;
-
-        this.setState({
-            info_material_marco: info_material_marco,
-        });
-
-        this.props.onCapaChanged();
+        this.props.thunk_modificar_marco_ventana(
+            indices.nivel,
+            indices.bloque,
+            indices.pared,
+            indices.ventana,
+            marcoNuevo
+        );
 
     }
+
     handleClickAgregar() {
         let FM = this.info_marcos[this.state.marco].hasOwnProperty('tipos') ?
             this.info_marcos[this.state.marco].tipos[this.state.tipo_marco].propiedad.FS :
@@ -214,34 +251,139 @@ class InformacionVentana extends Component {
         this.props.onAporteSolarChanged(aporte_solar);
     }
     handleChangeDimension(event) {
-        let ventana = this.props.seleccion;
-        let height = ventana.userData.height, width = ventana.userData.width;
+        const indices = this.props.seleccionados[0].indices;
+
+        let dimensiones = this.props.morfologia.present
+            .niveles[indices.nivel]
+            .bloques[indices.bloque]
+            .paredes[indices.pared]
+            .ventanas[indices.ventana]
+            .dimensiones;
+
+        let nuevasDimensiones = {
+            ancho: dimensiones.ancho,
+            alto: dimensiones.alto,
+        };
 
         if (event.target.name === 'altura') {
-            height = parseFloat(event.target.value);
+            nuevasDimensiones.alto = parseFloat(event.target.value);
         } else {
-            width = parseFloat(event.target.value);
+            nuevasDimensiones.ancho = parseFloat(event.target.value);
         }
-        this.props.onDimensionChanged(ventana, width, height);
+
+        this.props.thunk_modificar_dimensiones_ventana(
+            indices.nivel,
+            indices.bloque,
+            indices.pared,
+            indices.ventana,
+            nuevasDimensiones
+        );
+    }
+
+    handleClickAplicarMaterial() {
+        const indiceSel = this.props.seleccionados[0].indices;
+        const seleccionados = this.props.seleccionados;
+        let indices = [];
+        for(let seleccionado of seleccionados){
+            indices.push(seleccionado.indices);
+        }
+        this.props.thunk_aplicar_material_ventanas(
+            indiceSel.nivel,
+            indiceSel.bloque,
+            indiceSel.pared,
+            indiceSel.ventana,
+            indices)
+        ;
+    }
+
+    handleClickAplicarMarco() {
+        const indiceSel = this.props.seleccionados[0].indices;
+        const seleccionados = this.props.seleccionados;
+        let indices = [];
+        for(let seleccionado of seleccionados){
+            indices.push(seleccionado.indices);
+        }
+        this.props.thunk_aplicar_marco_ventanas(
+            indiceSel.nivel,
+            indiceSel.bloque,
+            indiceSel.pared,
+            indiceSel.ventana,
+            indices)
+        ;
+
     }
 
     handleChangeAlturaPiso(event){
-        let ventana = this.props.seleccion;
-        let altura = parseFloat(event.target.value);
-        this.props.onAlturaVentanaChanged(ventana, altura);
+        const indices = this.props.seleccionados[0].indices;
+
+        let posicion = this.props.morfologia.present
+            .niveles[indices.nivel]
+            .bloques[indices.bloque]
+            .paredes[indices.pared]
+            .ventanas[indices.ventana]
+            .posicion;
+
+        let nuevaPosicion = {
+            x: posicion.x,
+            y: posicion.y,
+        };
+        nuevaPosicion[event.target.name] =  parseFloat(event.target.value);
+
+        this.props.thunk_modificar_posicion_ventana(
+            indices.nivel,
+            indices.bloque,
+            indices.pared,
+            indices.ventana,
+            nuevaPosicion
+        );
     }
 
 
 
     render() {
-        const {classes, seleccionado} = this.props;
+        const {classes, seleccionados,info_material_marco,info_material_ventana} = this.props;
 
-        const {info_material_marco, info_material_ventana} = this.state;
 
-        let height, width, alturaPiso;
+        let height, width, alturaPiso, posicion;
         let marco,tipo_marco,u_marco,fm;
+        let material,tipo,fs,u;
 
-        if(seleccionado !== null && seleccionado.userData.tipo === Morfologia.tipos.VENTANA
+        const esVentana = seleccionados[0] !== null && seleccionados[0].tipo === Tipos.VENTANA;
+
+        if(esVentana){
+            const indices = seleccionados[0].indices;
+            const ventana = this.props.morfologia.present
+                .niveles[indices.nivel]
+                .bloques[indices.bloque]
+                .paredes[indices.pared]
+                .ventanas[indices.ventana];
+
+            height = ventana.dimensiones.alto;
+            width = ventana.dimensiones.ancho;
+            alturaPiso = Math.round(ventana.posicion.y*10)/10;
+            posicion = Math.round(ventana.posicion.x*10)/10;
+
+            material = ventana.material.material;
+            tipo = ventana.material.tipo;
+            fs = info_material_ventana[material].tipos[tipo].propiedad.FS;
+            u = info_material_ventana[material].tipos[tipo].propiedad.U;
+
+
+
+            marco = ventana.marco.material;
+            tipo_marco = ventana.marco.tipo;
+
+            if(!info_material_marco[marco].hasOwnProperty('tipos')){
+                u_marco = info_material_marco[marco].propiedades[0].U;
+                fm = info_material_marco[marco].propiedades[0].FS;
+            }else{
+                u_marco = info_material_marco[marco].tipos[tipo_marco].propiedad.U;
+                fm = info_material_marco[marco].tipos[tipo_marco].propiedad.FS;
+            }
+
+        }
+
+       /* if(seleccionado !== null && seleccionado.userData.tipo === Morfologia.tipos.VENTANA
             && Object.keys(info_material_ventana).length > 0
             && Object.keys(info_material_marco).length){
             height = seleccionado.userData.height;
@@ -254,24 +396,24 @@ class InformacionVentana extends Component {
             tipo_marco = info_material_marco.tipo;
             u_marco = info_material_marco.u;
             fm = info_material_marco.fs;
-        }
+        }*/
 
         //seleccion != null ? console.log("seleccion",seleccion.uuid, seleccion.userData) : seleccion;
 
 
         return (
             <div>
-                {seleccionado !== null && seleccionado.userData.tipo === Morfologia.tipos.VENTANA  && this.info_material.length > 0 && Object.keys(info_material_ventana).length > 0
-                && Object.keys(info_material_marco).length?
+                {esVentana ?
                     <div className={classes.root}>
                         <Typography
                             variant={"title"}
                             align={"center"}
                             className={classes.titulo}
                         >
-                            {'Configuración '+ Morfologia.tipos_texto[seleccionado.userData.tipo] }
+                            {'Configuración Ventana' }
                         </Typography>
 
+                        {/*CUADNO SE ARREGLE AGREGARLO
                         <ExpansionPanel>
                             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon/>}>
                                 <Typography className={classes.heading}>Información Solar</Typography>
@@ -318,7 +460,7 @@ class InformacionVentana extends Component {
                                 </Grid>
 
                             </ExpansionPanelDetails>
-                        </ExpansionPanel>
+                        </ExpansionPanel>*/}
 
                         <ExpansionPanel>
                             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon/>}>
@@ -334,7 +476,7 @@ class InformacionVentana extends Component {
                                                 onChange={this.handleChangeMaterial}
                                                 input={<Input name="material" id="material-ventana"/>}
                                             >
-                                                {this.info_material.map( (material,index) => (
+                                                {info_material_ventana.map( (material,index) => (
                                                     <MenuItem value={material.index} key={index}>
                                                         {material.material}
                                                     </MenuItem>
@@ -350,7 +492,7 @@ class InformacionVentana extends Component {
                                                 onChange={this.handleChangeMaterial}
                                                 input={<Input name="tipo" id="tipo-ventana"/>}
                                             >
-                                                {this.info_material[material].tipos.map((tipo,index) => (
+                                                {info_material_ventana[material].tipos.map((tipo,index) => (
                                                     <MenuItem value={tipo.index} key={index}>
                                                         {tipo.nombre}
                                                     </MenuItem>
@@ -396,6 +538,28 @@ class InformacionVentana extends Component {
                                             </Select>*/}
                                         </FormControl>
                                     </Grid>
+                                    {seleccionados.length > 1 ?
+                                        <Grid container spacing={8}>
+                                            <Grid container spacing={0} style={{
+                                                marginTop : 12,
+                                                marginBottom : 4,
+                                                marginLeft : 4,
+                                                marginRight : 4,}}>
+                                                <Grid item xs={12}>
+                                                    <FormControl className={classes.formControl}>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            className={classes.button}
+                                                            onClick={this.handleClickAplicarMaterial}>
+                                                            IGUALAR MATERIALES DE VENTANAS SELECCIONADAS
+                                                        </Button>
+                                                    </FormControl>
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+                                        : <div/>
+                                    }
                                 </Grid>
 
 
@@ -407,7 +571,7 @@ class InformacionVentana extends Component {
                                 <Typography className={classes.heading}>Material Marco</Typography>
                             </ExpansionPanelSummary>
                             <ExpansionPanelDetails>
-                                {this.info_marcos[marco].hasOwnProperty('tipos') ?
+                                {info_material_marco[marco].hasOwnProperty('tipos') ?
                                     <Grid container spacing={8}>
                                         <Grid item xs={6}>
                                             <FormControl className={classes.formControl}>
@@ -417,7 +581,7 @@ class InformacionVentana extends Component {
                                                     onChange={this.handleChangeMarco}
                                                     input={<Input name="material" id="material-marco"/>}
                                                 >
-                                                    {this.info_marcos.map((marco, index) => (
+                                                    {info_material_marco.map((marco, index) => (
                                                         <MenuItem value={marco.index} key={index}>
                                                             {marco.material}
                                                         </MenuItem>
@@ -433,7 +597,7 @@ class InformacionVentana extends Component {
                                                     onChange={this.handleChangeMarco}
                                                     input={<Input name="tipo" id="tipo-marco"/>}
                                                 >
-                                                    {this.info_marcos[marco].tipos.map((tipo, index) => (
+                                                    {info_material_marco[marco].tipos.map((tipo, index) => (
                                                         <MenuItem value={tipo.index} key={index}>
                                                             {tipo.nombre}
                                                         </MenuItem>
@@ -481,6 +645,28 @@ class InformacionVentana extends Component {
                                                 </Select>*/}
                                             </FormControl>
                                         </Grid>
+                                        {seleccionados.length > 1 ?
+                                            <Grid container spacing={8}>
+                                                <Grid container spacing={0} style={{
+                                                    marginTop : 12,
+                                                    marginBottom : 4,
+                                                    marginLeft : 4,
+                                                    marginRight : 4,}}>
+                                                    <Grid item xs={12}>
+                                                        <FormControl className={classes.formControl}>
+                                                            <Button
+                                                                variant="contained"
+                                                                color="primary"
+                                                                className={classes.button}
+                                                                onClick={this.handleClickAplicarMarco}>
+                                                                IGUALAR MARCOS DE VENTANAS SELECCIONADAS
+                                                            </Button>
+                                                        </FormControl>
+                                                    </Grid>
+                                                </Grid>
+                                            </Grid>
+                                            : <div/>
+                                        }
                                     </Grid>
                                     :
                                     <Grid container spacing={8}>
@@ -492,7 +678,7 @@ class InformacionVentana extends Component {
                                                     onChange={this.handleChangeMarco}
                                                     input={<Input name="material" id="material-marco"/>}
                                                 >
-                                                    {this.info_marcos.map((marco,index) => (
+                                                    {info_material_marco.map((marco,index) => (
                                                         <MenuItem value={marco.index} key={index}>
                                                             {marco.material}
                                                         </MenuItem>
@@ -542,6 +728,28 @@ class InformacionVentana extends Component {
                                                 </Select>*/}
                                             </FormControl>
                                         </Grid>
+                                        {seleccionados.length > 1 ?
+                                            <Grid container spacing={8}>
+                                                <Grid container spacing={0} style={{
+                                                    marginTop : 12,
+                                                    marginBottom : 4,
+                                                    marginLeft : 4,
+                                                    marginRight : 4,}}>
+                                                    <Grid item xs={12}>
+                                                        <FormControl className={classes.formControl}>
+                                                            <Button
+                                                                variant="contained"
+                                                                color="primary"
+                                                                className={classes.button}
+                                                                onClick={this.handleClickAplicarMarco}>
+                                                                IGUALAR MARCOS DE VENTANAS SELECCIONADAS
+                                                            </Button>
+                                                        </FormControl>
+                                                    </Grid>
+                                                </Grid>
+                                            </Grid>
+                                            : <div/>
+                                        }
                                     </Grid>
                                 }
                             </ExpansionPanelDetails>
@@ -555,7 +763,7 @@ class InformacionVentana extends Component {
                             <ExpansionPanelDetails>
                                 <Grid container spacing={8}>
 
-                                    <Grid item xs={4}>
+                                    <Grid item xs={6}>
                                         <FormControl className={classes.formControl}>
                                             <TextField
                                                 label="Altura (m)"
@@ -563,7 +771,7 @@ class InformacionVentana extends Component {
                                                 value={height}
                                                 type="number"
                                                 inputProps={
-                                                    { step: 0.1}
+                                                    { step: 0.01}
                                                 }
                                                 onChange={this.handleChangeDimension}
                                                 InputLabelProps={{
@@ -572,7 +780,7 @@ class InformacionVentana extends Component {
                                             />
                                         </FormControl>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item xs={6}>
                                         <FormControl className={classes.formControl}>
                                             <TextField
                                                 label="Ancho (m)"
@@ -580,7 +788,7 @@ class InformacionVentana extends Component {
                                                 value={width}
                                                 type="number"
                                                 inputProps={
-                                                    { step: 0.1}
+                                                    { step: 0.01}
                                                 }
                                                 onChange={this.handleChangeDimension}
                                                 InputLabelProps={{
@@ -589,11 +797,12 @@ class InformacionVentana extends Component {
                                             />
                                         </FormControl>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item xs={6}>
                                         <FormControl className={classes.formControl}>
                                             <TextField
                                                 label="Altura al Piso (m)"
                                                 value={alturaPiso}
+                                                name="y"
                                                 type="number"
                                                 inputProps={
                                                     { step: 0.1}
@@ -605,6 +814,24 @@ class InformacionVentana extends Component {
                                             />
                                         </FormControl>
                                     </Grid>
+                                    <Grid item xs={6}>
+                                        <FormControl className={classes.formControl}>
+                                            <TextField
+                                                label="Posicion en pared (m)"
+                                                value={posicion}
+                                                type="number"
+                                                name="x"
+                                                inputProps={
+                                                    { step: 0.1}
+                                                }
+                                                onChange={this.handleChangeAlturaPiso}
+                                                InputLabelProps={{
+                                                    shrink: true,
+                                                }}
+                                            />
+                                        </FormControl>
+                                    </Grid>
+
                                 </Grid>
                             </ExpansionPanelDetails>
                         </ExpansionPanel>
@@ -626,4 +853,4 @@ InformacionVentana.propTypes = {
     onDimensionChanged: PropTypes.func,
 };
 
-export default withStyles(styles)(InformacionVentana);
+export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InformacionVentana));

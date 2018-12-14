@@ -12,7 +12,7 @@ import {
 import produce from "immer";
 
 const initialState = {
-    seleccion_morfologia: null,
+    seleccion_morfologia: [null],
     seleccion_contexto: null,
     cargando : true,
     materiales : null,
@@ -27,7 +27,14 @@ const app = (state = initialState , action) =>
                 draft.seleccion_contexto = action.indice;
                 break;
             case SELECCIONAR_MORFOLOGIA:
-                draft.seleccion_morfologia = action.seleccion;
+                console.log('grupo',action.grupo);
+                if(action.grupo){
+                    draft.seleccion_morfologia.push(action.seleccion);
+                }else{
+                    draft.seleccion_morfologia.splice(0,draft.seleccion_morfologia.length);
+                    draft.seleccion_morfologia.push(action.seleccion);
+                }
+                //draft.seleccion_morfologia = action.seleccion;
                 break;
             case SET_CARGANDO:
                 draft.cargando = action.cargando;
