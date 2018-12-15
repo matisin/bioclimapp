@@ -257,6 +257,7 @@ const morfologia = (state = initialState, action) =>
                         .puertas[indice.puerta]
                         .material = material;
                 }
+                console.log("LO HICISMOS");
                 break;
             case APLICAR_MATERIAL_A_VENTANAS:
                 material = draft

@@ -765,10 +765,10 @@ export const thunk_aplicar_marco_ventanas = (nivel,bloque,pared,ventana,indices)
     }
 };
 
-export const thunk_aplicar_material_puertas = (nivel,bloque,pared,puertas,indices) => {
+export const thunk_aplicar_material_puertas = (nivel,bloque,pared,puerta,indices) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
-        dispatch(aplicarMaterialAPuertas(nivel,bloque,pared,puertas,indices))
+        dispatch(aplicarMaterialAPuertas(nivel,bloque,pared,puerta,indices))
 
     }
 };
@@ -795,13 +795,13 @@ export const aplicarMarcosAVentanas = (nivel,bloque,pared,ventana,indices) => (
     }
 );
 
-export const aplicarMaterialAPuertas = (nivel,bloque,pared,puertas,indices) => (
+export const aplicarMaterialAPuertas = (nivel,bloque,pared,puerta,indices) => (
     {
         type: APLICAR_MATERIAL_A_PUERTAS,
         nivel: nivel,
         bloque: bloque,
         pared: pared,
-        puertas: puertas,
+        puerta: puerta,
         indices: indices,
     }
 );

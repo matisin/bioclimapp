@@ -16,27 +16,19 @@ import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from '@material-ui/core/FormControl';
 import Grid from "@material-ui/core/Grid";
 import {
-    seleccionarMorfologia,
-    thunk_agregar_capa_pared,
-    thunk_aplicar_capa_paredes, thunk_aplicar_material_puertas, thunk_aplicar_material_ventanas,
-    thunk_borrar_capa_pared,
-    thunk_modificar_capa_pared,
-    thunk_modificar_dimensiones_bloque, thunk_modificar_dimensiones_puerta, thunk_modificar_dimensiones_ventana,
+    thunk_aplicar_material_puertas ,
+    thunk_modificar_dimensiones_puerta,
     thunk_modificar_material_puerta,
-    thunk_modificar_material_ventana, thunk_modificar_posicion_puerta, thunk_modificar_posicion_ventana
+    thunk_modificar_posicion_puerta,
 } from "../actions";
 import {connect} from "react-redux";
+import Button from "@material-ui/core/es/Button";
 
 const ITEM_HEIGHT = 48;
 
 const styles = theme => ({
     titulo: {
         margin: theme.spacing.unit * 2,
-    },
-
-    button: {
-        margin: theme.spacing.unit,
-        width: 32, height: 32,
     },
     root: {
         width: '100%',
@@ -123,6 +115,7 @@ class InformacionPuerta extends Component {
         this.handleChangeDimension = this.handleChangeDimension.bind(this);
         this.handleChangeMaterial = this.handleChangeMaterial.bind(this);
         this.handleChangePosicion = this.handleChangePosicion.bind(this);
+        this.handleClickAplicar = this.handleClickAplicar.bind(this);
     }
 
     handleChangeMaterial(event) {
@@ -233,7 +226,7 @@ class InformacionPuerta extends Component {
             indiceSel.nivel,
             indiceSel.bloque,
             indiceSel.pared,
-            indiceSel.puertas,
+            indiceSel.puerta,
             indices)
         ;
     }
@@ -329,7 +322,9 @@ class InformacionPuerta extends Component {
                                                 </Grid>
                                             </Grid>
                                             : <Grid item xs={12} style={{
-                                                marginTop: 8,
+                                                marginBottom: 4,
+                                                marginLeft: 4,
+                                                marginRight: 4,
                                             }}>
                                                 <FormControl className={classes.formControl}>
                                                     <InputLabel htmlFor="material-simple">Material</InputLabel>
@@ -441,6 +436,28 @@ class InformacionPuerta extends Component {
                                         </Grid>
 
                                     </Grid>
+                                    {seleccionados.length > 1 ?
+                                        <Grid container spacing={8}>
+                                            <Grid container spacing={0} style={{
+                                                marginTop : 12,
+                                                marginBottom : 4,
+                                                marginLeft : 4,
+                                                marginRight : 4,}}>
+                                                <Grid item xs={12}>
+                                                    <FormControl className={classes.formControl}>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            className={classes.button}
+                                                            onClick={this.handleClickAplicar}>
+                                                            IGUALAR MATERIALES DE PUERTAS SELECCIONADAS
+                                                        </Button>
+                                                    </FormControl>
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+                                        : <div/>
+                                    }
                                 </Grid>
 
                             </ExpansionPanelDetails>
