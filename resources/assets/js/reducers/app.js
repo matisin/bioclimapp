@@ -1,4 +1,6 @@
 import {
+    ACTUALIZAR_OBSTRUCCIONES_APP,
+    AGREGAR_OBSTRUCCION,
     CAMBIAR_VARS_INTERNA,
     SELECCIONAR_MORFOLOGIA,
     SELECCIONAR_OBSTRUCCION,
@@ -18,6 +20,7 @@ const initialState = {
     materiales : null,
     materiales_ventanas : null,
     materiales_marcos : null,
+    obstrucciones : [],
 };
 
 const app = (state = initialState , action) =>
@@ -48,6 +51,8 @@ const app = (state = initialState , action) =>
             case SET_MATERIALES_MARCOS:
                 draft.materiales_marcos = action.materiales_marcos;
                 break;
+            case ACTUALIZAR_OBSTRUCCIONES_APP:
+                draft.obstrucciones = action.obstrucciones;
 
         }
     });

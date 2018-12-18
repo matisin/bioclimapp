@@ -43,6 +43,7 @@ export const materialSeleccionado = new THREE.MeshLambertMaterial({
 
 });
 
+
 export const materialHoveredMorf = new THREE.MeshLambertMaterial({
     color: 0x8BC5BF,
     opacity: 0.7,
@@ -88,6 +89,13 @@ export const materialGrid = new THREE.LineBasicMaterial( {
     linecap: 'round', //ignored by WebGLRenderer
     linejoin:  'round' //ignored by WebGLRenderer
 } );
+export const materialObstruccionMorf = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    opacity: 0.5,
+    transparent: true,
+    side: THREE.DoubleSide,
+});
+
 
 export const materialObstruccion = new THREE.MeshBasicMaterial({color: 0x000000});
 

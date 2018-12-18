@@ -317,6 +317,14 @@ export function crearMeshObstruccion(width,height,rotacion) {
     return obstruccion;
 }
 
+export function crearMeshObstruccionMorf(width,height,rotacion) {
+    let geometria = new THREE.BoxGeometry( width, 1, height );
+
+    let obstruccion = new THREE.Mesh(geometria, materiales.materialObstruccionMorf);
+    obstruccion.rotation.x = -Math.PI / 2;
+    return obstruccion;
+}
+
 function crearTextoObstruccion(obstruccion,altura,longitud) {
     let sprite = new MeshText2D("Altura: " + altura + " m   Longitud: " + longitud+" m  ", {
         align: textAlign.center,
@@ -331,6 +339,7 @@ function crearTextoObstruccion(obstruccion,altura,longitud) {
     sprite.name = "info";
     obstruccion.add(sprite);
 }
+
 
 function crearTextoObstruccionRotacion(obstruccion,rotacion) {
     let degree = rotacion * 180 / Math.PI;

@@ -66,7 +66,11 @@ import {
     AGREGAR_CAPA_PISO,
     AGREGAR_CAPA_TECHO,
     MODIFICAR_POSICION_VENTANA,
-    APLICAR_MATERIAL_A_VENTANAS, APLICAR_MATERIAL_A_PUERTAS, MODIFICAR_POSICION_PUERTA, APLICAR_MARCOS_A_VENTANAS,
+    APLICAR_MATERIAL_A_VENTANAS,
+    APLICAR_MATERIAL_A_PUERTAS,
+    MODIFICAR_POSICION_PUERTA,
+    APLICAR_MARCOS_A_VENTANAS,
+    ACTUALIZAR_OBSTRUCCIONES_APP,
 
 } from "../constants/action-types";
 import store from "../store";
@@ -80,6 +84,7 @@ import {
     getTemperaturesById
 } from "../Utils/llamadasAxios";
 import {getJsonMarcos, getJsonMateriales, getJsonVentanas} from "../Utils/materialesFormat";
+import {calcularFAR} from "../Utils/BalanceEnergetico";
 
 export const setStateMapa = (mapa) => (
     {
@@ -190,9 +195,14 @@ export const agregarObstruccion = obstruccion => (
 export const thunk_agregar_obstruccion = (obstruccion) => {
 
     //SETEAR CALCULANDO
+    store.dispatch(setCargando(true));
     return function (dispatch, getState) {
         //HACER CALCULOS
+        let estadoCasa = getState().morfologia.present.niveles;
+        let obstrucciones = getState().app.obstrucciones;
         dispatch(agregarObstruccion(obstruccion));
+        calcularFAR(obstrucciones,estadoCasa);
+        store.dispatch(setCargando(false));
     }
 };
 
@@ -430,6 +440,13 @@ export const modificarCapaTecho = (nivel, bloque, indice, capa) => (
     }
 );
 
+export const actualizarObstruccionesApp = (obstrucciones) => (
+    {
+        type: ACTUALIZAR_OBSTRUCCIONES_APP,
+        obstrucciones : obstrucciones,
+    }
+);
+
 export const thunk_aplicar_capa_paredes = (nivel, bloque, pared, indices) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
@@ -453,12 +470,15 @@ export const thunk_aplicar_capa_techos = (nivel, bloque, indices) => {
 
 export const thunk_agregar_ventana = (bloque, nivel, pared, ventana) => {
 
-    //SETEAR CALCULANDO
+    store.dispatch(setCargando(true));
     return function (dispatch, getState) {
         //HACER CALCULOS
         const state = getState().morfologia.present;
         console.log(bloque, nivel, pared, ventana);
         dispatch(agregarVentana(bloque, nivel, pared, ventana));
+        dispatch(setCargando(false));
+        //calcularFarVentana(bloque,nivel,pared,ventana,state);
+
 
     }
 };

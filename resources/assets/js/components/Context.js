@@ -12,10 +12,18 @@ import {
     modificarObstrucion,
     seleccionarObstruccion,
     thunk_agregar_obstruccion,
-    thunk_eliminar_obstruccion
+    thunk_eliminar_obstruccion,
+    actualizarObstruccionesApp
 } from "../actions";
-import {clearThree, crearMeshObstruccion} from "../Utils/dibujosMesh";
+import {
+    clearThree, crearGeometriaPared,
+    crearMeshObstruccion,
+    crearMeshPared, crearMeshPiso,
+    crearMeshPuerta, crearMeshTecho,
+    crearMeshVentana
+} from "../Utils/dibujosMesh";
 import {materialHovered, materialObstruccion, materialSeleccionObstruccion} from "../constants/materiales-threejs";
+import * as Tipos from "../constants/morofologia-types";
 
 const styles = theme => ({
     typography: {
@@ -30,6 +38,7 @@ const mapStateToProps = state => {
         obstrucciones: state.contexto.present.obstrucciones,
         acciones: state.barra_herramientas_contexto.acciones,
         seleccionado: state.app.seleccion_contexto,
+        morfologia: state.morfologia,
 
     }
 };
@@ -39,6 +48,7 @@ const mapDispatchToProps = dispatch => {
         thunk_agregar_obstruccion: (obstruccion) => dispatch(thunk_agregar_obstruccion(obstruccion)),
         thunk_eliminar_obstruccion: (indice) => dispatch(thunk_eliminar_obstruccion(indice)),
         seleccionarObstruccion: (indice) => dispatch(seleccionarObstruccion(indice)),
+        actualizarObstruccionesApp : (obstrucciones) => dispatch(actualizarObstruccionesApp(obstrucciones)),
     }
 };
 
@@ -177,6 +187,9 @@ class Context extends Component {
             this.control.enableKeys = true;
             this.renderer.render(this.escena, this.camara);
         }
+        if (this.props.morfologia.present !== null && prevProps.morfologia.present !== this.props.morfologia.present) {
+            this.dibujarEstadoMorf();
+        }
     }
 
     handleSeleccionadoChange(){
@@ -191,6 +204,27 @@ class Context extends Component {
             this.seleccionado.material = materialSeleccionObstruccion;
         }
 
+    }
+
+    dibujarEstadoMorf() {
+
+        let estadoCasa = this.props.morfologia.present.niveles;
+
+        clearThree(this.casa);
+        let nivelGroup;
+        for (let nivel of estadoCasa) {
+            for (let bloque of nivel.bloques) {
+                let pisoMesh = crearMeshPiso(bloque.dimensiones.ancho, bloque.dimensiones.largo);
+                pisoMesh.position.set(
+                    bloque.posicion.x,
+                    0.01,
+                    bloque.posicion.z
+                );
+                this.casa.add(pisoMesh);
+
+            }
+
+        }
     }
 
     dibujarEstado(){
@@ -212,6 +246,7 @@ class Context extends Component {
                     z: obstruccion.posicion.z,
                 },
                 rotacion: obstruccion.rotacion,
+                indice: indice,
             };
             meshObstruccion.userData.indice = indice;
 
@@ -224,6 +259,7 @@ class Context extends Component {
             this.obstrucciones.push(meshObstruccion);
             this.obstruccionesGroup.add(meshObstruccion);
         }
+        this.props.actualizarObstruccionesApp(this.obstrucciones);
     }
 
     componentDidMount() {
@@ -368,6 +404,9 @@ class Context extends Component {
 
         this.obstruccionDibujo = new THREE.Group();
         this.escena.add(this.obstruccionDibujo);
+
+        this.casa = new THREE.Group();
+        this.escena.add(this.casa);
 
         this.selectedObstruction = null;
         this.hoveredObstruction = null;
@@ -580,6 +619,19 @@ class Context extends Component {
             obs.ventanas = [];
         }
     }
+/*
+    calcularFarVentana(ventanaNueva) {
+
+    }
+
+    calcularFarObstrucciones(){
+        for(let ventana of ventanas){
+            let axisY = new THREE.Vector3(0, 1, 0);
+            let raycasterFAR = new THREE.Raycaster();
+            let orientacionVentana = ventana.
+            let angleLeft = ventana.userData.orientacion.clone().applyAxisAngle(axisY, Math.PI / 4);
+        }
+    }*/
 
 
     calcularFAR(ventanas) {
@@ -600,7 +652,6 @@ class Context extends Component {
             ventana.getWorldPosition(pos);
             for (let x = 0; x < 90; x++) {
                 angle = angle.normalize();
-                angle = angle.normalize();
                 raycasterFAR.set(new THREE.Vector3(0,pos.y,0), angle);
                 let intersections = raycasterFAR.intersectObjects(this.obstrucciones);
                 let masAlto = {aDistance: 0};
@@ -609,9 +660,9 @@ class Context extends Component {
                     if (intersections[i].distance > 50) {
                         intersections[i].object.fuera = true
                     }
-                    let aDistance = intersections[i].object.userData.altura - pos.y;
-                    let bDistance = ventana.userData.orientacion.clone().dot(intersections[i].object.position);
-                    let far = Math.pow(0.2996, (aDistance / bDistance));
+                    /*let aDistance = intersections[i].object.userData.altura - pos.y;
+                    let bDistance = ventana.userData.orientacion.clone().dot(intersections[i].object.position);*/
+                    /*let far = Math.pow(0.2996, (aDistance / bDistance));*/
                     let ventanaObstruida = {
                         id: ventana.uuid,
                         orientacion: ventana.userData.orientacion,

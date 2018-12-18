@@ -562,7 +562,7 @@ class Morfologia extends Component {
                     color: 0xfbeb90,
                     linewidth: 5,
                     transparent: true,
-                    opacity: 0.5
+                    opacity: 0.3
                 });
                 let curveObject = new THREE.Line(geometry, material);
                 group.add(curveObject);
@@ -692,7 +692,7 @@ class Morfologia extends Component {
         this.control3D = control3D;
 
         //Plano se agrega a objetos
-        let sizePlano = 30;
+        let sizePlano = 40;
         let planoGeometria = new THREE.PlaneBufferGeometry(sizePlano, sizePlano);
         planoGeometria.rotateX(-Math.PI / 2);
         planoGeometria.computeFaceNormals();
@@ -750,7 +750,7 @@ class Morfologia extends Component {
         //Indicador de puntos cardinales
         let curve = new THREE.EllipseCurve(
             0, 0,            // ax, aY
-            15, 15,           // xRadius, yRadius
+            sizePlano/2, sizePlano/2,           // xRadius, yRadius
             0, 2 * Math.PI,  // aStartAngle, aEndAngle
             false,            // aClockwise
             0                 // aRotation
@@ -782,7 +782,7 @@ class Morfologia extends Component {
         });
         sprite.scale.setX(0.03);
         sprite.scale.setY(0.03);
-        sprite.position.set(0, -15, 0.0);
+        sprite.position.set(0,-sizePlano/2, 0.0);
         cardinalPointsCircle.add(sprite);
 
         sprite = new MeshText2D("N", {
@@ -793,7 +793,7 @@ class Morfologia extends Component {
         });
         sprite.scale.setX(0.03);
         sprite.scale.setY(0.03);
-        sprite.position.set(0, 16, 0.0);
+        sprite.position.set(0, sizePlano/2 + 2, 0.0);
         cardinalPointsCircle.add(sprite);
         sprite = new MeshText2D("E", {
             align: textAlign.center,
@@ -803,7 +803,7 @@ class Morfologia extends Component {
         });
         sprite.scale.setX(0.03);
         sprite.scale.setY(0.03);
-        sprite.position.set(15.5, 0.3, 0);
+        sprite.position.set(sizePlano/2+1, 0.3, 0);
         cardinalPointsCircle.add(sprite);
 
         sprite = new MeshText2D("O", {
@@ -814,7 +814,7 @@ class Morfologia extends Component {
         });
         sprite.scale.setX(0.03);
         sprite.scale.setY(0.03);
-        sprite.position.set(-15.5, 0.3, 0);
+        sprite.position.set(-sizePlano/2-1, 0.3, 0);
         cardinalPointsCircle.add(sprite);
 
         var light = new THREE.AmbientLight(0x404040); // soft white light
@@ -1317,9 +1317,16 @@ class Morfologia extends Component {
     }
 
     datosVentana(ventana) {
+        let pos = new THREE.Vector3();
+        ventana.getWorldPosition(pos);
         return {
             dimensiones: ventana.userData.dimensiones,
             posicion: ventana.userData.posicion,
+            posicionReal : {
+                x : pos.x,
+                y: pos.y,
+                z : pos.z,
+            },
             material: {
                 material: 0,
                 tipo: 0,
