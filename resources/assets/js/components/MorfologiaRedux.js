@@ -28,6 +28,7 @@ import {materialObstruccion} from "../constants/materiales-threejs";
 import {materialSeleccionObstruccion} from "../constants/materiales-threejs";
 import {SELECCIONAR_MORFOLOGIA} from "../constants/action-types";
 import {materialHoveredMorf} from "../constants/materiales-threejs";
+import {createMuiTheme} from "@material-ui/core";
 
 //El estado en redux se mapean como props.
 const mapStateToProps = state => {
@@ -106,6 +107,15 @@ class Morfologia extends Component {
             angleRotated: 0,
 
         };
+
+        var theme = createMuiTheme({
+            palette: {
+                primary: {
+                    main: "#fc0f4f",
+                },
+            },
+        });
+        this.colorSelected = [theme.palette.primary.main,theme.palette.primary.contrastText];
     };
 
     componentDidUpdate(prevProps) {
@@ -1586,9 +1596,25 @@ class Morfologia extends Component {
     }
 
     render() {
+        let text = '';
+        if (this.props.acciones.seleccionar) text = Morfologia.texto_accion.seleccionar;
+        else if (this.props.acciones.rotar) {
+            if (this.state.dragging) {
+                text = 'Angulo rotado: ' + Math.round(this.state.angleRotated) + '° ';
+            } else {
+                text = Morfologia.texto_accion.rotar;
+            }
+
+        } else if (this.props.acciones.eliminar) text = Morfologia.texto_accion.borrar;
+        else if (this.props.acciones.agregar_bloque) text = Morfologia.texto_accion.bloque_paredes;
+        else if (this.props.acciones.agregar_ventana) text = Morfologia.texto_accion.ventanas;
+        else if (this.props.acciones.agregar_puerta) text = Morfologia.texto_accion.puertas;
+        else if (this.props.acciones.mover_camara) text = Morfologia.texto_accion.mover_camara;
         return (
             <div style={{height: this.props.height}}>
-                <div style={{height: 10}}
+                <div style={{height: 5,
+                    backgroundImage: 'linear-gradient(to bottom, rgba(128,128,128,1),rgba(128,128,128,0.9))'
+                }}
                     //tabIndex="0"
                      onMouseDown={this.onMouseDown}
                      onMouseUp={this.onMouseUp}
@@ -1602,13 +1628,15 @@ class Morfologia extends Component {
                     fontSize: 'x-small',
                     zIndex: 0,
                     position: 'relative',
+                    color: this.colorSelected[1],
+                    backgroundImage: 'linear-gradient(to bottom, rgba(128,128,128,0.5),rgba(128,128,128,0.5))',
                 }}
                             align={"center"}
-                            variant={"button"}
-                            color={"textSecondary"}>
+                            variant={"button"}>
                     Rotar camara: Arrastrar click derecho
+                    <br/>{text}
                 </Typography>
-                <TextoAccion
+                {/*<TextoAccion
                     seleccionando={this.props.acciones.seleccionar}
                     rotando={this.props.acciones.rotar}
                     dragging={this.state.dragging}
@@ -1619,7 +1647,7 @@ class Morfologia extends Component {
                     agregar_bloque={this.props.acciones.agregar_bloque}
                     mover_camara={this.props.acciones.mover_camara}
 
-                />
+                />*/}
             </div>
 
         )
@@ -1651,7 +1679,7 @@ function TextoAccion(props) {
         }}
                     align={"center"}
                     variant={"button"}
-                    color={"textSecondary"}>
+                    color={"contrastText"}>
             {text}
         </Typography>
     )
