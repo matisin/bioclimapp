@@ -6,107 +6,108 @@ import {AISLADO, CORRIENTE, MEDIO, PARED, PISO, PUERTA, TECHO, VENTANA,} from ".
 var SunCalc = require('suncalc');
 
 var periodo = [];
-const diasMeses = [31,28,31,30,31,30,31,31,30,31,30,31];
+const diasMeses = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const uso = 1407.12;
 const resistenciasTermicasSuperficie = [
-    [0.17 , 0.24] ,
-    [0.17 , 0.24] ,
-    [0.17 , 0.24] ,
-    [0.14 , 0.10] ,
-    [0.22 , 0.34] ];
-const transmitanciaLineal = [1.4 , 1.2 , 1.0];
-const rangos_transmitancia = [[0.15,0.25],[0.26,0.6]];
-const uObjetivoMuro = [4,3,1.9,1.7,1.6,1.1,0.6];
-const uObjetivoTecho = [0.84,0.6,0.47,0.38,0.33,0.28,0.25];
-const uObjetivoPiso = [3.6,0.87,0.7,0.6,0.5,0.39,0.32];
-const rtObjetivoPiso = [0.28,1.15,1.43,1.67,2,2.56,3.13];
+    [0.17, 0.24],
+    [0.17, 0.24],
+    [0.17, 0.24],
+    [0.14, 0.10],
+    [0.22, 0.34]];
+const transmitanciaLineal = [1.4, 1.2, 1.0];
+const rangos_transmitancia = [[0.15, 0.25], [0.26, 0.6]];
+const uObjetivoMuro = [4, 3, 1.9, 1.7, 1.6, 1.1, 0.6];
+const uObjetivoTecho = [0.84, 0.6, 0.47, 0.38, 0.33, 0.28, 0.25];
+const uObjetivoPiso = [3.6, 0.87, 0.7, 0.6, 0.5, 0.39, 0.32];
+const rtObjetivoPiso = [0.28, 1.15, 1.43, 1.67, 2, 2.56, 3.13];
+
 //se simplifico el calculo del uso ya que es constante el multiplicar el perfilde uso con el coeficiente de usuario
 function aporteInterno(ocupantes, superficie, horasIluminacion, periodo) {
     const ilumuinacion = 1.5 * horasIluminacion * superficie;
     const aporte_usuarios = uso * ocupantes;
     const aportes = ilumuinacion + aporte_usuarios;
     let valor = 0;
-    for(let i = periodo[0]; i <= periodo[1]; i++){
-        valor +=(aportes)*diasMeses[i];
+    for (let i = periodo[0]; i <= periodo[1]; i++) {
+        valor += (aportes) * diasMeses[i];
     }
     return valor;
 }
 
-function gradosDias(temperaturasMes, temperaturaConfort){
+function gradosDias(temperaturasMes, temperaturaConfort) {
     let gd = 0;
     let periodo = [];
-    for(let i = 0 ; i < temperaturasMes.length - 1 ; i++){
-        if((temperaturaConfort - temperaturasMes[i]) > 0){
-            if(periodo.length === 0){
+    for (let i = 0; i < temperaturasMes.length - 1; i++) {
+        if ((temperaturaConfort - temperaturasMes[i]) > 0) {
+            if (periodo.length === 0) {
                 periodo.push(i);
             }
-            gd = gd + (temperaturaConfort - temperaturasMes[i])*diasMeses[i];
-        }else{
-            if(periodo.length === 1){
-                periodo.push(i-1);
+            gd = gd + (temperaturaConfort - temperaturasMes[i]) * diasMeses[i];
+        } else {
+            if (periodo.length === 1) {
+                periodo.push(i - 1);
             }
         }
     }
-    if(periodo.length === 1){
+    if (periodo.length === 1) {
         periodo.push(temperaturasMes.length - 2);
     }
 
-    return [gd,periodo];
+    return [gd, periodo];
 }
 
-function transmitanciaSuperficieRedux(elemento,zona) {
-    let transmitancia = 0,u,res;
+function transmitanciaSuperficieRedux(elemento, zona) {
+    let transmitancia = 0, u, res;
     switch (elemento.tipo) {
         case PARED:
-            for(let capa of elemento.capas){
+            for (let capa of elemento.capas) {
                 transmitancia += capa.espesor / capa.conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
             u = 1 / transmitancia;
             return {
                 transmitancia: u,
-                transmitanciaObjetivo: uObjetivoMuro[zona-1],
-                transSup : u * elemento.superficie,
-                transSupObjetivo: uObjetivoMuro[zona-1] * elemento.superficie,
+                transmitanciaObjetivo: uObjetivoMuro[zona - 1],
+                transSup: u * elemento.superficie,
+                transSupObjetivo: uObjetivoMuro[zona - 1] * elemento.superficie,
             };
         case PISO:
-            for(let capa of elemento.capas){
+            for (let capa of elemento.capas) {
                 transmitancia += capa.espesor / capa.conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
             u = 1 / transmitancia;
 
             res = {
-                transmitancia : u,
-                transmitanciaObjetivo : uObjetivoPiso[zona-1],
-                transSup : u * elemento.superficie,
-                transSupObjetivo : uObjetivoPiso[zona-1] * elemento.superficie,
+                transmitancia: u,
+                transmitanciaObjetivo: uObjetivoPiso[zona - 1],
+                transSup: u * elemento.superficie,
+                transSupObjetivo: uObjetivoPiso[zona - 1] * elemento.superficie,
             };
 
-            if(res.transSup >=0.15 && res.transSup <=0.25){
+            if (res.transSup >= 0.15 && res.transSup <= 0.25) {
                 res.aislacion = CORRIENTE;
-            }else if(res.transSup >=0.26 && res.transSup <=0.60){
+            } else if (res.transSup >= 0.26 && res.transSup <= 0.60) {
                 res.aislacion = MEDIO;
-            }else{
+            } else {
                 res.aislacion = AISLADO;
             }
             return res;
         case TECHO:
-            for(let capa of elemento.capas){
+            for (let capa of elemento.capas) {
                 transmitancia += capa.espesor / capa.conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
             u = 1 / transmitancia;
             return {
-                transmitancia : u,
-                transmitanciaObjetivo : uObjetivoTecho[zona-1],
-                transSup : u * elemento.superficie,
-                transSupObjetivo : uObjetivoTecho[zona-1] * elemento.superficie,
+                transmitancia: u,
+                transmitanciaObjetivo: uObjetivoTecho[zona - 1],
+                transSup: u * elemento.superficie,
+                transSupObjetivo: uObjetivoTecho[zona - 1] * elemento.superficie,
             };
         case VENTANA:
             return {
-                transSupObjetivo : 5.8 * elemento.superficie,
-                transSup : elemento.material.u * elemento.superficie,
+                transSupObjetivo: 5.8 * elemento.superficie,
+                transSup: elemento.material.u * elemento.superficie,
             };
         case PUERTA:
             transmitancia += elemento.material.espesor / elemento.conductividad;
@@ -115,56 +116,54 @@ function transmitanciaSuperficieRedux(elemento,zona) {
             u = 1 / transmitancia;
 
             return {
-                transmitancia : u,
-                transmitanciaObjetivo : uObjetivoMuro[zona-1],
-                transSup : u * elemento.superficie,
-                transSupObjetivo : uObjetivoMuro[zona-1] * elemento.superficie,
+                transmitancia: u,
+                transmitanciaObjetivo: uObjetivoMuro[zona - 1],
+                transSup: u * elemento.superficie,
+                transSupObjetivo: uObjetivoMuro[zona - 1] * elemento.superficie,
             };
     }
 }
 
-function puenteTermicoRedux(piso,zona){
+function puenteTermicoRedux(piso, zona) {
     let aislacionObjetivo = CORRIENTE;
-    if(rtObjetivoPiso[zona-1] > 0.6) aislacionObjetivo = AISLADO;
-    else if(rtObjetivoPiso[zona-1] < 0.6 && rtObjetivoPiso[zona-1] > 0.26) aislacionObjetivo = MEDIO;
+    if (rtObjetivoPiso[zona - 1] > 0.6) aislacionObjetivo = AISLADO;
+    else if (rtObjetivoPiso[zona - 1] < 0.6 && rtObjetivoPiso[zona - 1] > 0.26) aislacionObjetivo = MEDIO;
     return {
-        puenteTermico : piso.perimetro * transmitanciaLineal[piso.aislacion],
-        puenteTermicoObjetivo : piso.perimetro * transmitanciaLineal[aislacionObjetivo],
+        puenteTermico: piso.perimetro * transmitanciaLineal[piso.aislacion],
+        puenteTermicoObjetivo: piso.perimetro * transmitanciaLineal[aislacionObjetivo],
     }
 }
 
 
-
-
-function transmitanciaSuperficie(elemento,zona) {
-    let transmitancia = 0,u;
+function transmitanciaSuperficie(elemento, zona) {
+    let transmitancia = 0, u;
     switch (elemento.userData.tipo) {
         case Morfologia.tipos.PARED:
-            for(let capa of elemento.userData.capas){
+            for (let capa of elemento.userData.capas) {
                 transmitancia += capa.espesor / capa.conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.userData.separacion];
             u = 1 / transmitancia;
             elemento.userData.transmitancia = u;
-            elemento.userData.transmitanciaObjetivo = uObjetivoMuro[zona-1];
+            elemento.userData.transmitanciaObjetivo = uObjetivoMuro[zona - 1];
             elemento.userData.transSup = u * elemento.userData.superficie;
-            elemento.userData.transSupObjetivo = uObjetivoMuro[zona-1] * elemento.userData.superficie;
+            elemento.userData.transSupObjetivo = uObjetivoMuro[zona - 1] * elemento.userData.superficie;
             //console.log("elemento transsupobjetivo", elemento.userData.transSupObjetivo, uObjetivoMuro[zona-1], zona ,elemento.userData.superficie);
             break;
         case Morfologia.tipos.TECHO:
-            for(let capa of elemento.userData.capas){
+            for (let capa of elemento.userData.capas) {
                 transmitancia += capa.espesor / capa.conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.userData.separacion];
             u = 1 / transmitancia;
             elemento.userData.transmitancia = u;
-            elemento.userData.transmitanciaObjetivo = uObjetivoTecho[zona-1];
+            elemento.userData.transmitanciaObjetivo = uObjetivoTecho[zona - 1];
             elemento.userData.transSup = u * elemento.userData.superficie;
-            elemento.userData.transSupObjetivo = uObjetivoTecho[zona-1] * elemento.userData.superficie;
+            elemento.userData.transSupObjetivo = uObjetivoTecho[zona - 1] * elemento.userData.superficie;
             //console.log("techo",elemento);
             break;
         case Morfologia.tipos.PISO:
-            for(let capa of elemento.userData.capas){
+            for (let capa of elemento.userData.capas) {
                 transmitancia += capa.espesor / capa.conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.userData.separacion];
@@ -172,15 +171,15 @@ function transmitanciaSuperficie(elemento,zona) {
 
             //console.log('resistencias',resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.userData.separacion]);
             elemento.userData.transmitancia = u;
-            elemento.userData.transmitanciaObjetivo = uObjetivoPiso[zona-1];
+            elemento.userData.transmitanciaObjetivo = uObjetivoPiso[zona - 1];
             elemento.userData.transSup = u * elemento.userData.superficie;
-            elemento.userData.transSupObjetivo = uObjetivoPiso[zona-1] * elemento.userData.superficie;
+            elemento.userData.transSupObjetivo = uObjetivoPiso[zona - 1] * elemento.userData.superficie;
 
-            if(elemento.userData.transSup >=0.15 && elemento.userData.transSup <=0.25){
+            if (elemento.userData.transSup >= 0.15 && elemento.userData.transSup <= 0.25) {
                 elemento.userData.aislacion = Morfologia.aislacionPiso.CORRIENTE;
-            }else if(elemento.userData.transSup >=0.26 && elemento.userData.transSup <=0.60){
+            } else if (elemento.userData.transSup >= 0.26 && elemento.userData.transSup <= 0.60) {
                 elemento.userData.aislacion = Morfologia.aislacionPiso.MEDIO;
-            }else{
+            } else {
                 elemento.userData.aislacion = Morfologia.aislacionPiso.AISLADO;
             }
             break;
@@ -196,9 +195,9 @@ function transmitanciaSuperficie(elemento,zona) {
             u = 1 / transmitancia;
 
             elemento.userData.transmitancia = u;
-            elemento.userData.transmitanciaObjetivo = uObjetivoMuro[zona-1];
+            elemento.userData.transmitanciaObjetivo = uObjetivoMuro[zona - 1];
             elemento.userData.transSup = u * elemento.userData.superficie;
-            elemento.userData.transSupObjetivo = uObjetivoMuro[zona-1] * elemento.userData.superficie;
+            elemento.userData.transSupObjetivo = uObjetivoMuro[zona - 1] * elemento.userData.superficie;
             break;
     }
 
@@ -210,10 +209,10 @@ function cambioTransmitanciaSuperficie(tramitanciaSuperficie, elementoCambio) {
 
 }
 
-function puenteTermico(piso,zona){
+function puenteTermico(piso, zona) {
     let aislacionObjetivo = Morfologia.aislacionPiso.CORRIENTE;
-    if(rtObjetivoPiso[zona-1] > 0.6) aislacionObjetivo = Morfologia.aislacionPiso.AISLADO;
-    else if(rtObjetivoPiso[zona-1] < 0.6 && rtObjetivoPiso[zona-1] > 0.26) aislacionObjetivo = Morfologia.aislacionPiso.MEDIO;
+    if (rtObjetivoPiso[zona - 1] > 0.6) aislacionObjetivo = Morfologia.aislacionPiso.AISLADO;
+    else if (rtObjetivoPiso[zona - 1] < 0.6 && rtObjetivoPiso[zona - 1] > 0.26) aislacionObjetivo = Morfologia.aislacionPiso.MEDIO;
     piso.userData.puenteTermico = piso.userData.perimetro * transmitanciaLineal[piso.userData.aislacion];
     piso.userData.puenteTermicoObjetivo = piso.userData.perimetro * transmitanciaLineal[aislacionObjetivo];
 }
@@ -222,8 +221,8 @@ function perdidasVentilacion(volumenInterno, volmenAire, gradosDias) {
     return 24 * (0.34 * volmenAire * gradosDias * volumenInterno);
 }
 
-function perdidasConduccion(transmitanciaSuperficies, gradosDias, puenteTermico){
-    return 24 * ((transmitanciaSuperficies + puenteTermico) * gradosDias );
+function perdidasConduccion(transmitanciaSuperficies, gradosDias, puenteTermico) {
+    return 24 * ((transmitanciaSuperficies + puenteTermico) * gradosDias);
 }
 
 function calcularGammaParedes(paredes, cardinalPointsCircle, circlePoints) {
@@ -291,25 +290,32 @@ function sign(x) {
     if (x === 0) return 0;
 }
 
-function calcularFAR(obstrucciones, estadoCasa) {
+function calcularFAR(threejsObs, estadoCasa) {
     console.log("EMPEZANDO");
-    console.log(obstrucciones);
+    console.log(threejsObs);
+    if(threejsObs.length === 0){
+        return;
+        console.log(threejsObs[0]);
+    }
+    let escena = threejsObs[0].parent.parent;
+    console.log(escena);
     let ventanas = [];
     let indexNivel, indexBloque, indexPared, indexVentana;
     for (let nivel of estadoCasa) {
         indexNivel = estadoCasa.indexOf(nivel);
         for (let bloque of nivel.bloques) {
             indexBloque = nivel.bloques.indexOf(bloque);
-            for(let pared of bloque.paredes){
+            for (let pared of bloque.paredes) {
                 indexPared = bloque.paredes.indexOf(pared);
-                for(let ventana of pared.ventanas){
+                for (let ventana of pared.ventanas) {
                     indexVentana = bloque.paredes.indexOf(pared);
-                    let indices =  {
+                    console.log('VENTANA');
+                    /*let indices =  {
                         indexNivel: indexNivel,
                             indexPared: indexPared,
                             indexBloque: indexBloque,
                             indexVentana: indexVentana,
-                    };
+                    };*/
                     /*ventanas.push({
                         /!*ventana : ventana,*!/
                         indices: {
@@ -323,8 +329,8 @@ function calcularFAR(obstrucciones, estadoCasa) {
                         betaIndex : null,
                         orientacion: pared.orientacion,
                     })*/
-                    let betaAngle = null;
-                    let betaIndex = null;
+                    /*let betaAngle = null;
+                    let betaIndex = null;*/
                     let axisY = new THREE.Vector3(0, 1, 0);
                     let raycasterFAR = new THREE.Raycaster();
                     let orientacion = new THREE.Vector3(
@@ -332,107 +338,175 @@ function calcularFAR(obstrucciones, estadoCasa) {
                         pared.orientacion.y,
                         pared.orientacion.z
                     );
-                    let angleLeft = orientacion.clone().applyAxisAngle(axisY, Math.PI / 4);
+                    let angleLeft = orientacion.clone().applyAxisAngle(axisY, -Math.PI / 4);
                     let angle = angleLeft.clone();
-                    let obstruccionesVentana = [];
+                    console.log(angle);
+                    let obstruccionesVentana = {};
                     let currentObstruccion = {};
                     let pos = new THREE.Vector3(
                         ventana.posicionReal.x,
                         ventana.posicionReal.y,
                         ventana.posicionReal.z
                     );
+                    let alturaVentana = pos.y;
                     let infoObstrucciones = {};
+                    let alturaActual = 0;
+                    let obstruccionLejos = false;
+                    let obstrucciones = {};
+                    let obstuccionActual = null;
+                    console.log("posuicion ventana",pos);
+                    console.log("orientacion",orientacion);
                     for (let x = 0; x < 90; x++) {
                         angle = angle.normalize();
-                        raycasterFAR.set(new THREE.Vector3(0,pos.y,0), angle);
-                        let intersections = raycasterFAR.intersectObjects(obstrucciones);
-                        let masAlto = {indice : null, aDistance: 0, startPoint : null};
-                        //para cada obstruccion en el angulo actual se obtiene su aDistance y su bDistance, además se almacena el más alto
-                        for (let i = 0; i < intersections.length; i++) {
-                            if (intersections[i].distance > 50) {
-                                intersections[i].object.fuera = true
-                            }
-                            let aDistance = intersections[i].object.userData.info.altura - pos.y;
-                            let bDistance = orientacion.clone().clone().dot(intersections[i].object.position);
-                            let far = Math.pow(0.2996, (aDistance / bDistance));
-                            let indiceObst = intersections[i].object.userData.info.indice;
-                            infoObstrucciones[indiceObst] = {
-                                aDistance: aDistance,
-                                bDistance: bDistance,
-                                far: far,
-                            };
-                            /*
-                            intersections[i].aDistance = aDistance;
-                            let ventanaAgregada = intersections[i].object.ventanas.find(element => element.id === ventanaObstruida.id);
-                            if (!ventanaAgregada) intersections[i].object.ventanas.push(ventanaObstruida);
-                            else {
-                                intersections[i].object.ventanas[intersections[i].object.ventanas.findIndex(elem => elem === ventanaAgregada)].aDistance = aDistance;
-                                intersections[i].object.ventanas[intersections[i].object.ventanas.findIndex(elem => elem === ventanaAgregada)].bDistance = bDistance;
-                                intersections[i].object.ventanas[intersections[i].object.ventanas.findIndex(elem => elem === ventanaAgregada)].far = far;
-                            }*/
-                            if (aDistance > masAlto.aDistance) {
-                                masAlto = {indice : indiceObst, aDistance: aDistance, point: intersections[i].point };
-                            }
-                            if (intersections[i].distance > 50) {
-                                masAlto.fuera = true;
-                            }
-                        }
-                        //si no hay obstruccion en el angulo actual entonces pasamos al siguiente
-                        if (intersections.length === 0) {
-                            angle.applyAxisAngle(axisY, -Math.PI / 180); //angulo + 1
-                            continue;
-                        }
-                        //si cambiamos de obstruccion mas alta entonces se reinicia el start point
-                        if (masAlto.indice !== currentObstruccion.indice) {
-                            currentObstruccion.startPoint = null;
-                            currentObstruccion = masAlto;
-                            //el beta index indica si hay un nuevo angulo que agregar a la obstruccion
-                            if (betaIndex === null) betaIndex = -1;
-                            betaIndex += 1;
-                        }
-                        //cuando se cambia de obstruccion se reinicia el startpoint,
-                        // entonces si ha sido reiniciado y volvemos a la misma obstruccion lo inicializamos de nuevo
-                        if (currentObstruccion.startPoint === null) {
-                            currentObstruccion.startPoint = masAlto.point;
-                        }
-                        //se inicializa el arreglo de angulos beta
-                        if (betaAngle === null) betaAngle = [];
-                        betaAngle[betaIndex] = currentObstruccion.startPoint.angleTo(masAlto.point) * 180 / Math.PI;
-                        //se agrega la obstruccion actual a las obstrucciones de la ventana si es que no ha sido agregada antes
-                        //además las obstrucciones de una ventana se pintan rojas
-                        /*if (!obstruccionesVentana.includes(currentObstruccion)) {
-                            obstruccionesVentana.push(currentObstruccion);
-                        }*/
-                        infoObstrucciones[currentObstruccion.indice].obstruccion = currentObstruccion;
+                        var dir = new THREE.Vector3( 1, 2, 0 );
 
-                        //pasamos al siguiente angulo
-                        angle.applyAxisAngle(axisY, -Math.PI / 180);
-                    }
-                    console.log('info',infoObstrucciones);
-                    //se calcula el far de la ventana en base a la formula
-                    //ventana.userData.obstrucciones = obstruccionesVentana;
-                    /*let f1 = 1;
-                    let f2 = 0;
-                    for (let obs of obstruccionesVentana) {
-                        // Si la obstrucción está fuera del rango y tiene FAR > 0.95 no se considera
-                        if (obs.ventanas.find(element => element.id === ventana.uuid).far > 0.95 && obs.fuera) {
-                            ventana.userData.obstrucciones.splice(ventana.userData.obstrucciones.indexOf(obs), 1);
-                            obs.startPoint = null;
-                            continue;
+                        //normalize the direction vector (convert to vector of length 1)
+                        dir.normalize();
+
+                        var length = 10;
+                        var hex = 0xffff00;
+
+                        var arrowHelper = new THREE.ArrowHelper( angle, new THREE.Vector3(pos.x, 0, pos.z), length, hex );
+                        escena .add( arrowHelper );
+
+                        raycasterFAR.set(new THREE.Vector3(pos.x, 0, pos.z), angle);
+                        let intersections = raycasterFAR.intersectObjects(threejsObs);
+                        //Se hace un barrido de izqueirda a derecha, buscando los puntos del angulo beta;
+                        let alturaMaxima = 0;
+                        let obstruccion = null;
+                        let infoPunto;
+                        for (let i = 0; i < intersections.length; i++) {
+                            console.log("SISISIS");
+                            let intersected = intersections[i];
+                            let altura = intersected.object.userData.info.altura;
+                            if (altura > alturaMaxima) {
+                                obstruccion = intersected.object;
+                                infoPunto = intersected.point;
+                            }
                         }
-                        obs.startPoint = null; //reseteamos el punto de inicio de la obstruccion para futuros cálculos
-                        obs.material.color.setHex(0xff0000);
-                        obs.currentHex = 0xff0000;
-                        // if(ventana.userData.obstrucciones.length === 1 && obs.betaAngle.length > 1){
-                        //     console.log("beta angle", obs.betaAngle);
-                        //     obs.betaAngle = [obs.betaAngle[0]];
-                        // }
-                        for (let beta of obs.ventanas.find(element => element.id === ventana.uuid).betaAngle) {
-                            f1 -= beta / 90;
-                            f2 += obs.ventanas.find(element => element.id === ventana.uuid).far * beta / 90;
+
+                        if (obstruccion === null) {
+                            //NUNCA EXISTIO O PUDO HABER TERMINADO ALGO
+
+                            if (obstuccionActual !== null) {
+                                obstrucciones[obstuccionActual.indice].end = infoPunto;
+                                obstuccionActual = null;
+                            }
+                        }else {
+                            if (obstruccion !== obstuccionActual) {
+
+                                if (obstuccionActual !== null) {
+                                    obstrucciones[obstuccionActual.indice].end = infoPunto;
+                                }
+                                obstrucciones[obstruccion.indice] = obstruccion;
+                                obstrucciones[obstruccion.indice].start = infoPunto;
+                                console.log('puntos',obstruccion);
+
+                                obstuccionActual = obstruccion;
+
+                            }
+                        }
+                        //console.log(angle);
+                        angle.applyAxisAngle(axisY, +Math.PI / 180);
+
+                    }
+
+                    console.log(obstrucciones);
+                    //HAY OBSTRUCCIOM
+                    //SI ALTURA ACTUAL CAMBIA, SIGNIFICA QUE HAY OTRA OBSTRUCCION MAS ALTA (NUEVA) QUE AFECTA A LA VENTANA
+                    //O QUE NO HAY NINGUNA, DE AMBAS FORMAS SE MARCA LA OBSTRUCCION Y SE CALCULA SU FAR.
+
+
+                    /*if(obs)
+                    // ne su aDistance y su bDistance, además se almacena el más alto
+                    for (let i = 0; i < intersections.length; i++) {
+
+                        //SE BUSCA AL MAS ALTO
+                        if (intersections[i].distance > 50) {
+                            intersections[i].object.fuera = true
+                        }
+                        let aDistance = intersections[i].object.userData.info.altura - pos.y;
+                        console.log(aDistance);
+                        let bDistance = orientacion.clone().dot(intersections[i].point);
+                        let far = Math.pow(0.2996, (aDistance / bDistance));
+                        let indiceObst = intersections[i].object.userData.info.indice;
+                        infoObstrucciones[indiceObst] = {
+                            aDistance: aDistance,
+                            bDistance: bDistance,
+                            far: far,
+                        };
+                        /!*
+                        intersections[i].aDistance = aDistance;
+                        let ventanaAgregada = intersections[i].object.ventanas.find(element => element.id === ventanaObstruida.id);
+                        if (!ventanaAgregada) intersections[i].object.ventanas.push(ventanaObstruida);
+                        else {
+                            intersections[i].object.ventanas[intersections[i].object.ventanas.findIndex(elem => elem === ventanaAgregada)].aDistance = aDistance;
+                            intersections[i].object.ventanas[intersections[i].object.ventanas.findIndex(elem => elem === ventanaAgregada)].bDistance = bDistance;
+                            intersections[i].object.ventanas[intersections[i].object.ventanas.findIndex(elem => elem === ventanaAgregada)].far = far;
+                        }*!/
+                        if (aDistance > masAlto.aDistance) {
+                            masAlto = {indice : indiceObst, aDistance: aDistance, point: intersections[i].point };
+                        }
+                        if (intersections[i].distance > 50) {
+                            masAlto.fuera = true;
                         }
                     }
-                    ventana.userData.far = f1 + f2;*/
+                    //si no hay obstruccion en el angulo actual entonces pasamos al siguiente
+                    if (intersections.length === 0) {
+                        angle.applyAxisAngle(axisY, -Math.PI / 180); //angulo + 1
+                        continue;
+                    }
+                    //si cambiamos de obstruccion mas alta entonces se reinicia el start point
+                    if (masAlto.indice !== currentObstruccion.indice) {
+                        currentObstruccion.startPoint = null;
+                        currentObstruccion = masAlto;
+                        //el beta index indica si hay un nuevo angulo que agregar a la obstruccion
+                        if (betaIndex === null) betaIndex = -1;
+                        betaIndex += 1;
+                    }
+                    //cuando se cambia de obstruccion se reinicia el startpoint,
+                    // entonces si ha sido reiniciado y volvemos a la misma obstruccion lo inicializamos de nuevo
+                    if (currentObstruccion.startPoint === null) {
+                        currentObstruccion.startPoint = masAlto.point;
+                    }
+                    //se inicializa el arreglo de angulos beta
+                    if (betaAngle === null) betaAngle = [];
+                    betaAngle[betaIndex] = currentObstruccion.startPoint.angleTo(masAlto.point) * 180 / Math.PI;
+                    //se agrega la obstruccion actual a las obstrucciones de la ventana si es que no ha sido agregada antes
+                    //además las obstrucciones de una ventana se pintan rojas
+                    /!*if (!obstruccionesVentana.includes(currentObstruccion)) {
+                        obstruccionesVentana.push(currentObstruccion);
+                    }*!/
+                    infoObstrucciones[currentObstruccion.indice].obstruccion = currentObstruccion;
+
+                    //pasamos al siguiente angulo
+                    angle.applyAxisAngle(axisY, -Math.PI / 180);
+                }
+                console.log('info',infoObstrucciones);
+                //se calcula el far de la ventana en base a la formula
+                //ventana.userData.obstrucciones = obstruccionesVentana;
+                let f1 = 1;
+                let f2 = 0;
+                for (let obs of obstruccionesVentana) {
+                    // Si la obstrucción está fuera del rango y tiene FAR > 0.95 no se considera
+                    if (obs.ventanas.find(element => element.id === ventana.uuid).far > 0.95 && obs.fuera) {
+                        ventana.userData.obstrucciones.splice(ventana.userData.obstrucciones.indexOf(obs), 1);
+                        obs.startPoint = null;
+                        continue;
+                    }
+                    obs.startPoint = null; //reseteamos el punto de inicio de la obstruccion para futuros cálculos
+                    obs.material.color.setHex(0xff0000);
+                    obs.currentHex = 0xff0000;
+                    // if(ventana.userData.obstrucciones.length === 1 && obs.betaAngle.length > 1){
+                    //     console.log("beta angle", obs.betaAngle);
+                    //     obs.betaAngle = [obs.betaAngle[0]];
+                    // }
+                    for (let beta of obs.ventanas.find(element => element.id === ventana.uuid).betaAngle) {
+                        f1 -= beta / 90;
+                        f2 += obs.ventanas.find(element => element.id === ventana.uuid).far * beta / 90;
+                    }
+                }
+                ventana.userData.far = f1 + f2;*/
                 }
             }
 
@@ -469,7 +543,7 @@ function calcularFAROBstruccion(obstrucciones) {
         ventana.getWorldPosition(pos);
         for (let x = 0; x < 90; x++) {
             angle = angle.normalize();
-            raycasterFAR.set(new THREE.Vector3(0,pos.y,0), angle);
+            raycasterFAR.set(new THREE.Vector3(0, pos.y, 0), angle);
             let intersections = raycasterFAR.intersectObjects(obstrucciones);
             let masAlto = {aDistance: 0};
             //para cada obstruccion en el angulo actual se obtiene su aDistance y su bDistance, además se almacena el más alto
@@ -563,8 +637,8 @@ function calcularFAROBstruccion(obstrucciones) {
 
 function calcularAngulos(periodo, beta, latitud) {
     let now = new Date().getFullYear();
-    let angulos=[];
-    for(let date = new Date(now,periodo[0],15); date <= new Date(now,periodo[1],15); date.setMonth(date.getMonth()+1)){
+    let angulos = [];
+    for (let date = new Date(now, periodo[0], 15); date <= new Date(now, periodo[1], 15); date.setMonth(date.getMonth() + 1)) {
         //
         let phi = latitud;
         let delta = 23.45 * Math.sin(toRadians(360 * (284 + getDayOfYear(date)) / 365));
@@ -630,7 +704,7 @@ function calcularOmegaPared(date, delta, gamma, latitud, longitud) {
         //               - Math.sin(this.toRadians(delta))) / (Math.sin(this.toRadians(thetaz)) * Math.cos(this.toRadians(phi))))));
         //let sun = SunCalc.getPosition(new Date(solardate),latitud,longitud);
         omega_m += 0.02;
-        let sun = SunCalc.getPosition(hourAngleToDate(date,omega_m,latitud, longitud), latitud, longitud);
+        let sun = SunCalc.getPosition(hourAngleToDate(date, omega_m, latitud, longitud), latitud, longitud);
         gamma_sol = sun.azimuth * 180 / Math.PI;
     }
     return omega_m;
@@ -642,21 +716,18 @@ function calcularHoraIncidencia(gamma, w1, w2, omega_m, omega_t) {
     if ((90 < gamma && gamma <= 180) || (-180 < gamma && gamma <= -90)) {  //primer y segundo cuadrante
         wm = [Math.max(w1, omega_m)];
         wt = [Math.min(w2, omega_t)];
-    }
-    else { // tercer y cuarto cuadrante
+    } else { // tercer y cuarto cuadrante
         if (omega_m > w1) {
             wm[0] = w1;
             wt[0] = omega_m;
-        }
-        else {
+        } else {
             wm[0] = 180;
             wt[0] = 180;
         }
         if (omega_t < w2) {
             wm[1] = omega_t;
             wt[1] = w2;
-        }
-        else {
+        } else {
             wm[1] = 180;
             wt[1] = 180;
         }
@@ -672,7 +743,7 @@ function calcularRB(angulo, gamma, omegas) {
     for (let i = 0; i < omegas.wm.length; i++) {
         let w1 = omegas.wm[i];
         let w2 = omegas.wt[i];
-        a_Rb.push( (Math.sin(toRadians(angulo.delta)) * Math.sin(toRadians(angulo.phi))
+        a_Rb.push((Math.sin(toRadians(angulo.delta)) * Math.sin(toRadians(angulo.phi))
             * Math.cos(toRadians(90)) - Math.sin(toRadians(angulo.delta))
             * Math.cos(toRadians(angulo.phi)) * Math.sin(toRadians(90))
             * Math.cos(toRadians(gamma))) * (w2 - w1) * (Math.PI / 180)
@@ -681,19 +752,18 @@ function calcularRB(angulo, gamma, omegas) {
                 * Math.sin(toRadians(angulo.phi)) * Math.sin(toRadians(90))
                 * Math.cos(toRadians(gamma))) * (Math.sin(toRadians(w2)) - Math.sin(toRadians(w1)))
             - Math.cos(toRadians(angulo.delta)) * Math.sin(toRadians(90))
-            * Math.sin(toRadians(gamma)) * (Math.cos(toRadians(w2)) - Math.cos(toRadians(w1))) );
-        b_Rb.push( Math.cos(toRadians(angulo.phi)) * Math.cos(toRadians(angulo.delta))
+            * Math.sin(toRadians(gamma)) * (Math.cos(toRadians(w2)) - Math.cos(toRadians(w1))));
+        b_Rb.push(Math.cos(toRadians(angulo.phi)) * Math.cos(toRadians(angulo.delta))
             * (Math.sin(toRadians(w2)) - Math.sin(toRadians(w1)))
             + Math.sin(toRadians(angulo.delta)) * Math.sin(toRadians(angulo.phi))
-            * (w2 - w1) * (Math.PI / 180) );
-        R_ave.push( b_Rb[i] !== 0 ? a_Rb[i] / b_Rb[i] : 0 );
+            * (w2 - w1) * (Math.PI / 180));
+        R_ave.push(b_Rb[i] !== 0 ? a_Rb[i] / b_Rb[i] : 0);
     }
-    if (R_ave.length === 2 ) {
-        if(R_ave[0] === 0) return Math.abs(R_ave[1]);
-        if(R_ave[1] === 0) return Math.abs(R_ave[0]);
+    if (R_ave.length === 2) {
+        if (R_ave[0] === 0) return Math.abs(R_ave[1]);
+        if (R_ave[1] === 0) return Math.abs(R_ave[0]);
         return (R_ave[0] + R_ave[1]) / 2;
-    }
-    else {
+    } else {
         return Math.abs(R_ave[0]);
     }
 
@@ -708,14 +778,12 @@ function toDegrees(angle) {
 }
 
 
-
-
 function calcularRbParedes(paredes, latitud, longitud) {
     let periodo = paredes[0].parent.parent.parent.parent.userData.periodo;
     //console.log("periodo en calcularrbparedes", periodo);
-    let angulos = calcularAngulos( periodo, 90,  latitud);
-    for (let [index,pared] of paredes.entries()) {
-        if(pared.userData.separacion === Morfologia.separacion.EXTERIOR) {
+    let angulos = calcularAngulos(periodo, 90, latitud);
+    for (let [index, pared] of paredes.entries()) {
+        if (pared.userData.separacion === Morfologia.separacion.EXTERIOR) {
             let rbPared = [];
             //console.log(pared.userData.gamma);
             let gammas = calcularGammasPared(pared.userData.gamma);
@@ -757,19 +825,19 @@ function calcularRbParedes(paredes, latitud, longitud) {
     return paredes;
 }
 
-function calcularAporteSolar(periodo, ventanas, difusa, directa){
+function calcularAporteSolar(periodo, ventanas, difusa, directa) {
     let aporte_solar = 0;
     let aporte_solar_objetivo = 0;
-    for (let ventana of ventanas){
+    for (let ventana of ventanas) {
         let f = calcularF(ventana);
         let pared = ventana.parent;
         let Igb = 0;
-        for(let i = 0; i < (periodo[1]-periodo[0])+1; i++){
+        for (let i = 0; i < (periodo[1] - periodo[0]) + 1; i++) {
             //console.log("Igb", difusa[i].valor,directa[i].valor, pared.userData.rb[i], pared.userData.rb.length, (periodo[1]-periodo[0])+1);
-            Igb += calcularIgb(difusa[i].valor,directa[i].valor,pared.userData.rb[i]);
+            Igb += calcularIgb(difusa[i].valor, directa[i].valor, pared.userData.rb[i]);
         }
-        let area_ventana = Math.abs( (ventana.geometry.boundingBox.max.x - ventana.geometry.boundingBox.min.x) *
-            (ventana.geometry.boundingBox.max.y - ventana.geometry.boundingBox.min.y) );
+        let area_ventana = Math.abs((ventana.geometry.boundingBox.max.x - ventana.geometry.boundingBox.min.x) *
+            (ventana.geometry.boundingBox.max.y - ventana.geometry.boundingBox.min.y));
         aporte_solar += Igb * area_ventana * f.normal;
         //console.log("aporte_solar", Igb, area_ventana, f.normal);
         aporte_solar_objetivo += Igb * area_ventana * f.objetivo;
@@ -777,7 +845,7 @@ function calcularAporteSolar(periodo, ventanas, difusa, directa){
     return {normal: aporte_solar, objetivo: aporte_solar_objetivo}
 }
 
-function calcularF(ventana){
+function calcularF(ventana) {
     let fm = ventana.userData.info_marco.fs;
     let fmObjetivo = ventana.userData.info_marco.fsObjetivo;
     let fs = ventana.userData.info_material.fs;
@@ -785,15 +853,34 @@ function calcularF(ventana){
     let um = ventana.userData.info_marco.u;
     let umObjetivo = ventana.userData.info_marco.uObjetivo;
     return {
-        normal: ventana.userData.far * ((1-fm) * fs + (fm * 0.04 * um * 0.35)),
-        objetivo: ((1-fmObjetivo) * fsObjetivo + (fmObjetivo * 0.04 * umObjetivo * 0.35)),
+        normal: ventana.userData.far * ((1 - fm) * fs + (fm * 0.04 * um * 0.35)),
+        objetivo: ((1 - fmObjetivo) * fsObjetivo + (fmObjetivo * 0.04 * umObjetivo * 0.35)),
     }
 }
 
-function calcularIgb(difusa, directa, rb){
-    return difusa * ((1+Math.cos(toRadians(90)))/2 ) + directa * rb;
+function calcularIgb(difusa, directa, rb) {
+    return difusa * ((1 + Math.cos(toRadians(90))) / 2) + directa * rb;
 }
 
-export {perdidasConduccion, puenteTermico, cambioTransmitanciaSuperficie, transmitanciaSuperficie , aporteInterno , gradosDias, perdidasVentilacion, calcularF,
-    calcularIgb, calcularAngulos, calcularHoraIncidencia, calcularOmegaPared, calcularRB,
-    calcularGammasPared, hourAngleToDate, getHourAngle, calcularAporteSolar, calcularRbParedes, calcularGammaParedes, calcularFAR};
+export {
+    perdidasConduccion,
+    puenteTermico,
+    cambioTransmitanciaSuperficie,
+    transmitanciaSuperficie,
+    aporteInterno,
+    gradosDias,
+    perdidasVentilacion,
+    calcularF,
+    calcularIgb,
+    calcularAngulos,
+    calcularHoraIncidencia,
+    calcularOmegaPared,
+    calcularRB,
+    calcularGammasPared,
+    hourAngleToDate,
+    getHourAngle,
+    calcularAporteSolar,
+    calcularRbParedes,
+    calcularGammaParedes,
+    calcularFAR
+};
