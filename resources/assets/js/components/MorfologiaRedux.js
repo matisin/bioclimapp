@@ -29,6 +29,7 @@ import {materialSeleccionObstruccion} from "../constants/materiales-threejs";
 import {SELECCIONAR_MORFOLOGIA} from "../constants/action-types";
 import {materialHoveredMorf} from "../constants/materiales-threejs";
 import {createMuiTheme} from "@material-ui/core";
+const uuidv4 = require('uuid/v4');
 
 //El estado en redux se mapean como props.
 const mapStateToProps = state => {
@@ -206,11 +207,11 @@ class Morfologia extends Component {
                     bloqueGroup.add(paredMesh);
                     paredMesh.position.set(pared.posicion.x, pared.posicion.y, pared.posicion.z);
                     if (pared.orientacion.z !== 0) {
-                        if (pared.orientacion.z !== -1) {
+                        if (pared.orientacion.z !== 1) {
                             paredMesh.rotation.y = Math.PI;
                         }
                     } else {
-                        if (pared.orientacion.x !== -1) {
+                        if (pared.orientacion.x !== 1) {
                             paredMesh.rotation.y = -Math.PI / 2;
                         } else {
                             paredMesh.rotation.y = Math.PI / 2;
@@ -234,6 +235,18 @@ class Morfologia extends Component {
                         }
                         holes.push(new THREE.Path(points));
                         this.ventanas.push(ventanaMesh);
+
+                        let pos = new THREE.Vector3();
+                        ventanaMesh.updateMatrixWorld();
+                        ventanaMesh.getWorldPosition(pos);
+                        /*paredMesh.getWorldPosition(pos);
+                        bloqueGroup.getWorldPosition(pos);*/
+                        let posicionReal = {
+                            x : pos.x,
+                                y: pos.y,
+                                z : pos.z,
+                        };
+                        console.log('casaPred',pos);
                     }
                     for (let puerta of pared.puertas) {
                         let puertaMesh = crearMeshPuerta(puerta.dimensiones.ancho, puerta.dimensiones.alto);
@@ -401,7 +414,7 @@ class Morfologia extends Component {
 
         let pared1 = crearMeshPared(widths[0], height, []);
         pared1.position.z = depth / 2;
-        pared1.userData.orientacion = {x: 0, y: 0, z: -1};
+        pared1.userData.orientacion = {x: 0, y: 0, z: 1};
         pared1.userData.superficie = widths[0] * height;
         pared1.userData.dimensiones = {
             ancho: widths[0],
@@ -411,7 +424,7 @@ class Morfologia extends Component {
         let pared2 = crearMeshPared(widths[1], height, []);
         pared2.position.x = width / 2;
         pared2.rotation.y = Math.PI / 2;
-        pared2.userData.orientacion = {x: -1, y: 0, z: 0};
+        pared2.userData.orientacion = {x: 1, y: 0, z: 0};
         pared2.userData.superficie = widths[1] * height;
         pared2.userData.dimensiones = {
             ancho: widths[1],
@@ -422,7 +435,7 @@ class Morfologia extends Component {
         let pared3 = crearMeshPared(widths[2], height, []);
         pared3.position.z = -depth / 2;
         pared3.rotation.y = Math.PI;
-        pared3.userData.orientacion = {x: 0, y: 0, z: 1};
+        pared3.userData.orientacion = {x: 0, y: 0, z: -1};
         pared3.userData.superficie = widths[2] * height;
         pared3.userData.dimensiones = {
             ancho: widths[2],
@@ -432,7 +445,7 @@ class Morfologia extends Component {
         let pared4 = crearMeshPared(widths[3], height, []);
         pared4.position.x = -width / 2;
         pared4.rotation.y = -Math.PI / 2;
-        pared4.userData.orientacion = {x: 1, y: 0, z: 0};
+        pared4.userData.orientacion = {x: -1, y: 0, z: 0};
         pared4.userData.superficie = widths[3] * height;
         pared4.userData.dimensiones = {
             ancho: widths[3],
@@ -1320,6 +1333,7 @@ class Morfologia extends Component {
         let pos = new THREE.Vector3();
         ventana.getWorldPosition(pos);
         return {
+            id: uuidv4(),
             dimensiones: ventana.userData.dimensiones,
             posicion: ventana.userData.posicion,
             posicionReal : {
@@ -1338,13 +1352,15 @@ class Morfologia extends Component {
             marco: {
                 material: 0,
                 tipo: 0,
-            }
+            },
+            orientacion: ventana.parent.userData.orientacion,
         };
 
     }
 
     datosPuerta(puerta) {
         return {
+            id: uuidv4(),
             dimensiones: puerta.userData.dimensiones,
             posicion: puerta.userData.posicion,
             material: {
@@ -1363,6 +1379,7 @@ class Morfologia extends Component {
         for (let pared of paredes.children) {
             let posicion = pared.position;
             let paredInfo = {
+                id: uuidv4(),
                 ventanas: [],
                 puertas: [],
                 separacion: 0,

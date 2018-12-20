@@ -16,7 +16,7 @@ import produce from "immer";
 const initialState = {
     seleccion_morfologia: [null],
     seleccion_contexto: null,
-    cargando : true,
+    cargando : {},
     materiales : null,
     materiales_ventanas : null,
     materiales_marcos : null,
@@ -40,7 +40,14 @@ const app = (state = initialState , action) =>
                 //draft.seleccion_morfologia = action.seleccion;
                 break;
             case SET_CARGANDO:
-                draft.cargando = action.cargando;
+                let cargando = {};
+                Object.assign(cargando,draft.cargando);
+                if(action.cargando){
+                    cargando[action.sender] = action.cargando;
+                }else{
+                    delete cargando[action.sender];
+                }
+                draft.cargando = cargando;
                 break;
             case SET_MATERIALES:
                 draft.materiales = action.materiales;

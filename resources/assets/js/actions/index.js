@@ -70,7 +70,7 @@ import {
     APLICAR_MATERIAL_A_PUERTAS,
     MODIFICAR_POSICION_PUERTA,
     APLICAR_MARCOS_A_VENTANAS,
-    ACTUALIZAR_OBSTRUCCIONES_APP,
+    ACTUALIZAR_OBSTRUCCIONES_APP, SET_PERIODO, SET_FAR_VENTANAS,
 
 } from "../constants/action-types";
 import store from "../store";
@@ -84,7 +84,8 @@ import {
     getTemperaturesById
 } from "../Utils/llamadasAxios";
 import {getJsonMarcos, getJsonMateriales, getJsonVentanas} from "../Utils/materialesFormat";
-import {calcularFAR} from "../Utils/BalanceEnergetico";
+import {calcularAngulos, calcularFAR, gradosDias} from "../Utils/BalanceEnergetico";
+
 
 export const setStateMapa = (mapa) => (
     {
@@ -100,18 +101,24 @@ export const setStateInfoGeo = (infoGeo) => (
     }
 );
 
-export const setCargando = (cargando) => (
+export const setCargando = (cargando,sender) => (
     {
         type: SET_CARGANDO,
         cargando: cargando,
+        sender: sender,
     }
 );
 
+
+
+
 export const thunk_set_state_mapa = (lat, lng) => {
 
-    store.dispatch(setCargando(true));
+    store.dispatch(setCargando(true,'set_state_mapa'));
     return function (dispatch, getState) {
         const date = getState().barra_herramientas_morfologia.fecha;
+        const tempConfort = getState().variables.temperatura;
+        //wait(10000);
         getComunas(lat, lng)
             .then(response => {
                     if (response.data.length > 0) {
@@ -142,12 +149,17 @@ export const thunk_set_state_mapa = (lat, lng) => {
                                 filtredDirect: filtredDirect.data.valor,
                                 filteredDifuse: filteredDifuse.data.valor,
                             };
-                            dispatch(setCargando(false));
+                            let result = gradosDias(temps.data,tempConfort);
+                            let grados = result[0];
+                            let periodo = result[1];
+                            let angulo = calcularAngulos(periodo,90,lat);
+                            dispatch(setPeriodo(periodo, angulo, grados));
+                            dispatch(setCargando(false,'set_state_mapa'));
                             dispatch(setStateInfoGeo(infoGeo));
                         }));
 
                     } else {
-                        dispatch(setCargando(false));
+                        dispatch(setCargando(false,'set_state_mapa'));
                         alert("No se encuentra comuna en la base de datos");
                     }
                 }
@@ -195,14 +207,14 @@ export const agregarObstruccion = obstruccion => (
 export const thunk_agregar_obstruccion = (obstruccion) => {
 
     //SETEAR CALCULANDO
-    store.dispatch(setCargando(true));
+    //store.dispatch(setCargando(true));
     return function (dispatch, getState) {
         //HACER CALCULOS
         let estadoCasa = getState().morfologia.present.niveles;
         let obstrucciones = getState().app.obstrucciones;
         dispatch(agregarObstruccion(obstruccion));
-        calcularFAR(obstrucciones,estadoCasa);
-        store.dispatch(setCargando(false));
+        //calcularFAR(obstrucciones,estadoCasa);
+        //dispatch(setCargando(false));
     }
 };
 
@@ -286,11 +298,30 @@ export const cambiarVarsInterna = variable => (
     }
 );
 
+export const setFarVentanas = farVentanas => (
+    {
+        type: SET_FAR_VENTANAS,
+        farVentanas : farVentanas,
+    }
+);
+
 export const thunk_cambiar_variables_internas = variable => {
     //SETEAR CALCULANDO
-    return function (dispatch) {
+    store.dispatch(setCargando(true,'variables'));
+    return function (dispatch,getState) {
         //HACER CALCULOS NECESARIOS
+        console.log(variable);
+        if(variable.name === "temperatura"){
+            let variables = getState().variables;
+            let result = gradosDias(variables.infoGeo.temperatura,variable.value);
+            let grados = result[0];
+            let periodo = result[1];
+            let lat = variables.mapa.lat;
+            let angulo = calcularAngulos(periodo,90,lat);
+            dispatch(setPeriodo(periodo, angulo, grados));
+        }
         dispatch(cambiarVarsInterna(variable));
+        store.dispatch(setCargando(false,'variables'));
     }
 };
 
@@ -447,6 +478,81 @@ export const actualizarObstruccionesApp = (obstrucciones) => (
     }
 );
 
+function wait(ms){
+    var start = new Date().getTime();
+    var end = start;
+    while(end < start + ms) {
+        end = new Date().getTime();
+    }
+    return true;
+}
+
+function resolveAfter2Seconds() {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve('resolved');
+        }, 20000);
+    });
+}
+
+async function asyncCall(dispatch,getState,obstrucciones) {
+    let estadoCasa = getState().morfologia.present.niveles;
+    let rotacion = getState().morfologia.present.rotacion;
+    var result = await calcularFAR(obstrucciones, estadoCasa,rotacion);
+    dispatch(setFarVentanas(result));
+    dispatch(setCargando(false,'calcFar'));
+    // expected output: 'resolved'
+}
+
+export const setPeriodo = (periodo,angulo,gradosDias) => (
+    {
+        type: SET_PERIODO,
+        periodo: periodo,
+        angulo:angulo,
+        gradosDias: gradosDias,
+    }
+);
+
+
+
+export const thunk_actualizar_obstrucciones_app = (obstrucciones) => {
+
+    //SETEAR CALCULANDO
+    store.dispatch(setCargando(true,'calcFar'));
+    return (dispatch,getState) =>{
+
+            dispatch(actualizarObstruccionesApp(obstrucciones));
+            asyncCall(dispatch,getState,obstrucciones);
+            console.log("asd");
+
+        }
+    };
+    /*return function (dispatch,getState) {
+        //console.log("ESPERANDO 20 segundos]");
+        return hola(dispatch).then(result => {
+            dispatch(setCargando(false,'calcFar'));
+        })
+
+
+            /!*console.log("YOOOO");
+            let estadoCasa = getState().morfologia.present.niveles;
+            let rotacion = getState().morfologia.present.rotacion;
+            dispatch(actualizarObstruccionesApp(obstrucciones));
+            calcularFAR(obstrucciones, estadoCasa,rotacion);
+            dispatch(setCargando(false,'calcFar'));*!/
+
+
+        //HACER CALCULOS
+        //dispatch(setCargando(true,'actualizando obstrucciones'));
+        /!*let estadoCasa = getState().morfologia.present.niveles;
+        let rotacion = getState().morfologia.present.rotacion;
+        dispatch(actualizarObstruccionesApp(obstrucciones));
+        calcularFAR(obstrucciones, estadoCasa,rotacion);*!/
+
+    }*/
+
+
+
 export const thunk_aplicar_capa_paredes = (nivel, bloque, pared, indices) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
@@ -470,13 +576,13 @@ export const thunk_aplicar_capa_techos = (nivel, bloque, indices) => {
 
 export const thunk_agregar_ventana = (bloque, nivel, pared, ventana) => {
 
-    store.dispatch(setCargando(true));
+
     return function (dispatch, getState) {
         //HACER CALCULOS
         const state = getState().morfologia.present;
         console.log(bloque, nivel, pared, ventana);
         dispatch(agregarVentana(bloque, nivel, pared, ventana));
-        dispatch(setCargando(false));
+
         //calcularFarVentana(bloque,nivel,pared,ventana,state);
 
 

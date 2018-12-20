@@ -308,11 +308,14 @@ export function crearMeshPuerta(width, height) {
 }
 
 export function crearMeshObstruccion(width,height,rotacion) {
-    let geometria = crearGeometriaObstruccion(width);
+    let geometria = new THREE.BoxGeometry( width, 1, 1);
+    //let geometria = crearGeometriaObstruccion(width);
 
     let obstruccion = new THREE.Mesh(geometria, materiales.materialObstruccion);
+
     crearTextoObstruccion(obstruccion,height,width);
     obstruccion.rotation.x = -Math.PI / 2;
+    obstruccion.position.y = 1;
     crearTextoObstruccionRotacion(obstruccion,rotacion);
     return obstruccion;
 }

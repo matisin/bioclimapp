@@ -50,7 +50,7 @@ const paredPredefinidaFrontal = {
     puertas: [],
     separacion: 0,
     superficie: 2.5*5,
-    orientacion: {x:0,y:0,z:-1},
+    orientacion: {x:0,y:0,z:1},
     posicion: {x:0,y:0,z:8/2},
     dimensiones: {ancho: 5, alto: 2.5},
     capas: Object.assign([],capasPredefinidas),
@@ -66,7 +66,7 @@ const paredPredefinidaLateral = {
     puertas: [],
     separacion: 0,
     superficie: 2.5*8,
-    orientacion: {x:-1,y:0,z:0},
+    orientacion: {x:1,y:0,z:0},
     posicion: {x:5/2,y:0,z:0},
     dimensiones: {ancho: 8, alto: 2.5},
     capas: Object.assign([],capasPredefinidas),
@@ -98,11 +98,11 @@ const predefinidaSimpleState = {
                     {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                 Object.assign({},paredPredefinidaLateral),
                 Object.assign({},paredPredefinidaFrontal,{
-                    orientacion: {x:0,y:0,z:1},
+                    orientacion: {x:0,y:0,z:-1},
                     posicion: {x:0,y:0,z:-8/2}
                 }),
                 Object.assign({},paredPredefinidaLateral,{
-                    orientacion: {x:1,y:0,z:0},
+                    orientacion: {x:-1,y:0,z:0},
                     posicion: {x:-5/2,y:0,z:0}
                 }),
             ],
@@ -129,11 +129,11 @@ const predefinidaSimpleDosPisosState = {
                     {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                 Object.assign({},paredPredefinidaLateral),
                 Object.assign({},paredPredefinidaFrontal,{
-                    orientacion: {x:0,y:0,z:1},
+                    orientacion: {x:0,y:0,z:-1},
                     posicion: {x:0,y:0,z:-8/2}
                 }),
                 Object.assign({},paredPredefinidaLateral,{
-                    orientacion: {x:1,y:0,z:0},
+                    orientacion: {x:-1,y:0,z:0},
                     posicion: {x:-5/2,y:0,z:0}
                 }),
             ],
@@ -152,11 +152,11 @@ const predefinidaSimpleDosPisosState = {
                 Object.assign({},paredPredefinidaFrontal),
                 Object.assign({},paredPredefinidaLateral),
                 Object.assign({},paredPredefinidaFrontal,{
-                    orientacion: {x:0,y:0,z:1},
+                    orientacion: {x:0,y:0,z:-1},
                     posicion: {x:0,y:0,z:-8/2}
                 }),
                 Object.assign({},paredPredefinidaLateral,{
-                    orientacion: {x:1,y:0,z:0},
+                    orientacion: {x:-1,y:0,z:0},
                     posicion: {x:-5/2,y:0,z:0}
                 }),
             ],
@@ -184,11 +184,11 @@ const predefinidaDobleState = {
                         {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                     Object.assign({},paredPredefinidaLateral,{separacion: 1,ventanas: []}),
                     Object.assign({},paredPredefinidaFrontal,{
-                        orientacion: {x:0,y:0,z:1},
+                        orientacion: {x:0,y:0,z:-1},
                         posicion: {x:0,y:0,z:-8/2}
                     }),
                     Object.assign({},paredPredefinidaLateral,{
-                        orientacion: {x:1,y:0,z:0},
+                        orientacion: {x:-1,y:0,z:0},
                         posicion: {x:-5/2,y:0,z:0}
                     }),
                 ],
@@ -210,7 +210,7 @@ const predefinidaDobleState = {
                         {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                     Object.assign({},paredPredefinidaLateral),
                     Object.assign({},paredPredefinidaFrontal,{
-                        orientacion: {x:0,y:0,z:1},
+                        orientacion: {x:0,y:0,z:-1},
                         posicion: {x:0,y:0,z:-8/2}
                     }),
                 ],
@@ -240,11 +240,11 @@ const predefinidaDobleDosPisosState = {
                         {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                     Object.assign({},paredPredefinidaLateral,{separacion: 1,ventanas: []}),
                     Object.assign({},paredPredefinidaFrontal,{
-                        orientacion: {x:0,y:0,z:1},
+                        orientacion: {x:0,y:0,z:-1},
                         posicion: {x:0,y:0,z:-8/2}
                     }),
                     Object.assign({},paredPredefinidaLateral,{
-                        orientacion: {x:1,y:0,z:0},
+                        orientacion: {x:-1,y:0,z:0},
                         posicion: {x:-5/2,y:0,z:0}
                     }),
                 ],
@@ -265,7 +265,7 @@ const predefinidaDobleDosPisosState = {
                         {puertas: [Object.assign({posicion: {x:0,y:0}},puertaPredefinida)]}),
                     Object.assign({},paredPredefinidaLateral),
                     Object.assign({},paredPredefinidaFrontal,{
-                        orientacion: {x:0,y:0,z:1},
+                        orientacion: {x:0,y:0,z:-1},
                         posicion: {x:0,y:0,z:-8/2}
                     }),
                 ],
@@ -287,11 +287,11 @@ const predefinidaDobleDosPisosState = {
                     Object.assign({},paredPredefinidaFrontal),
                     Object.assign({},paredPredefinidaLateral,{separacion: 1,ventanas: []}),
                     Object.assign({},paredPredefinidaFrontal,{
-                        orientacion: {x:0,y:0,z:1},
+                        orientacion: {x:0,y:0,z:-1},
                         posicion: {x:0,y:0,z:-8/2}
                     }),
                     Object.assign({},paredPredefinidaLateral,{
-                        orientacion: {x:1,y:0,z:0},
+                        orientacion: {x:-1,y:0,z:0},
                         posicion: {x:-5/2,y:0,z:0}
                     }),
                 ],
@@ -310,7 +310,7 @@ const predefinidaDobleDosPisosState = {
                     Object.assign({},paredPredefinidaFrontal),
                     Object.assign({},paredPredefinidaLateral),
                     Object.assign({},paredPredefinidaFrontal,{
-                        orientacion: {x:0,y:0,z:1},
+                        orientacion: {x:0,y:0,z:-1},
                         posicion: {x:0,y:0,z:-8/2}
                     }),
                 ],

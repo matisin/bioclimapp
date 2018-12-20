@@ -13,7 +13,7 @@ import {
     seleccionarObstruccion,
     thunk_agregar_obstruccion,
     thunk_eliminar_obstruccion,
-    actualizarObstruccionesApp
+    actualizarObstruccionesApp, thunk_actualizar_obstrucciones_app
 } from "../actions";
 import {
     clearThree, crearGeometriaPared,
@@ -48,7 +48,7 @@ const mapDispatchToProps = dispatch => {
         thunk_agregar_obstruccion: (obstruccion) => dispatch(thunk_agregar_obstruccion(obstruccion)),
         thunk_eliminar_obstruccion: (indice) => dispatch(thunk_eliminar_obstruccion(indice)),
         seleccionarObstruccion: (indice) => dispatch(seleccionarObstruccion(indice)),
-        actualizarObstruccionesApp : (obstrucciones) => dispatch(actualizarObstruccionesApp(obstrucciones)),
+        thunk_actualizar_obstrucciones_app : (obstrucciones) => dispatch(thunk_actualizar_obstrucciones_app(obstrucciones)),
     }
 };
 
@@ -209,6 +209,7 @@ class Context extends Component {
     dibujarEstadoMorf() {
 
         let estadoCasa = this.props.morfologia.present.niveles;
+        let rotacion = this.props.morfologia.present.rotacion;
 
         clearThree(this.casa);
         let nivelGroup;
@@ -225,6 +226,7 @@ class Context extends Component {
             }
 
         }
+        this.casa.rotation.y = (Math.PI / 180) * rotacion   ;
     }
 
     dibujarEstado(){
@@ -255,11 +257,12 @@ class Context extends Component {
                 meshObstruccion.material = materialSeleccionObstruccion;
                 //POPER ACA.
             }
+            meshObstruccion.updateMatrixWorld();
 
             this.obstrucciones.push(meshObstruccion);
             this.obstruccionesGroup.add(meshObstruccion);
         }
-        this.props.actualizarObstruccionesApp(this.obstrucciones);
+        this.props.thunk_actualizar_obstrucciones_app(this.obstrucciones);
     }
 
     componentDidMount() {
@@ -404,6 +407,10 @@ class Context extends Component {
 
         this.obstruccionDibujo = new THREE.Group();
         this.escena.add(this.obstruccionDibujo);
+
+        let arrows = new THREE.Group();
+        arrows.name = 'flechas';
+        this.escena.add(arrows);
 
         this.casa = new THREE.Group();
         this.escena.add(this.casa);

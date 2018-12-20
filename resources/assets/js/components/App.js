@@ -516,6 +516,9 @@ class App extends Component {
 
     render() {
         const {classes, theme, mostrar_mapa, cargando, seleccion_morfologia} = this.props;
+        let showAlert;
+        showAlert = Object.keys(cargando).length > 0;
+        console.log("CARGANDO",cargando);
         const mostrar_seleccion = seleccion_morfologia[0] !== null;
         const {value, click2D, dibujandoMorf, seleccionandoMorf, borrandoMorf, width, height, openMorf, seleccionadoMorf, dimensiones, alturaPiso, paredCapaChange,loaded} = this.state;
         const heightContent = height-heightBarra;
@@ -530,7 +533,7 @@ class App extends Component {
                     loop={true}
                 />
                 <AlertDialog
-                            open={cargando}
+                            open={showAlert}
                             classes={{
                                  paper: classes.paper,
                                  progress : classes.progress,

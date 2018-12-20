@@ -1,6 +1,6 @@
 import {
     CAMBIAR_VARS_INTERNA, SET_STATE_INFO_GEO,
-    SET_STATE_MAPA
+    SET_STATE_MAPA,SET_PERIODO
 } from "../constants/action-types";
 import produce from "immer";
 
@@ -23,6 +23,11 @@ const initialState = {
         directa: null,
         difusa: null,
     },
+    periodo: {
+
+    },
+    angulo: null,
+    gradosDias: null,
 };
 
 const variables = (state = initialState , action) =>
@@ -37,6 +42,10 @@ const variables = (state = initialState , action) =>
             case SET_STATE_INFO_GEO:
                 draft.infoGeo = action.infoGeo;
                 break;
+            case SET_PERIODO:
+                draft.periodo = action.periodo;
+                draft.angulo = action.angulo;
+                draft.gradosDias = action.gradosDias;
         }
     });
 
