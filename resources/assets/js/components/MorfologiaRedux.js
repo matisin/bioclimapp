@@ -1288,6 +1288,9 @@ class Morfologia extends Component {
             dimensiones: bloque.userData.dimensiones,
             paredes: this.datosPared(bloque.getObjectByName('paredes')),
             piso: {
+                tipo: Tipos.PISO,
+                superficie: bloque.userData.dimensiones.ancho * bloque.userData.dimensiones.largo,
+                id: uuidv4(),
                 capas: [
                     {
                         material: 10,
@@ -1307,6 +1310,9 @@ class Morfologia extends Component {
                 separacion: 0,
             },
             techo: {
+                tipo: Tipos.TECHO,
+                superficie: bloque.userData.dimensiones.ancho * bloque.userData.dimensiones.largo,
+                id: uuidv4(),
                 capas: [
                     {
                         material: 10,
@@ -1334,6 +1340,7 @@ class Morfologia extends Component {
         ventana.getWorldPosition(pos);
         return {
             id: uuidv4(),
+            tipo: Tipos.VENTANA,
             dimensiones: ventana.userData.dimensiones,
             superficie: ventana.userData.dimensiones.ancho*ventana.userData.dimensiones.alto,
             posicion: ventana.userData.posicion,
@@ -1362,9 +1369,11 @@ class Morfologia extends Component {
     datosPuerta(puerta) {
         return {
             id: uuidv4(),
+            tipo: Tipos.PUERTA,
             dimensiones: puerta.userData.dimensiones,
             superficie: puerta.userData.dimensiones.ancho*puerta.userData.dimensiones.alto,
             posicion: puerta.userData.posicion,
+            separacion: 0,
             material: {
                 material: 15,
                 tipo: 4,
@@ -1373,7 +1382,6 @@ class Morfologia extends Component {
                 espesor: 0.1,
             }
         };
-
     }
 
     datosPared(paredes) {
@@ -1382,6 +1390,7 @@ class Morfologia extends Component {
             let posicion = pared.position;
             let paredInfo = {
                 id: uuidv4(),
+                tipo: Tipos.PARED,
                 ventanas: [],
                 puertas: [],
                 separacion: 0,

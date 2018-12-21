@@ -1,6 +1,13 @@
 import {
-    SET_APORTE_INTERNO, BORRAR_FAR_VENTANA, SET_FAR_VENTANA,
-    SET_FAR_VENTANAS, SET_APORTE_SOLAR,
+    SET_APORTE_INTERNO,
+    BORRAR_FAR_VENTANA,
+    SET_FAR_VENTANA,
+    SET_FAR_VENTANAS,
+    SET_APORTE_SOLAR,
+    SET_PERDIDA_VENTILACION,
+    SET_TRANSMITANCIAS,
+    SET_TRANSMITANCIA_ELEMENTO,
+    SET_ELIMINAR_TRANSMITANCIA,
 } from "../constants/action-types";
 import produce from "immer";
 
@@ -10,6 +17,18 @@ const initialState = {
     },
     aporteInterno : null,
     aporteSolar : null,
+    perdidaVentilacion : null,
+    transmitancias: {
+        total: 0,
+        totalObjetivo: 0,
+        transmitanciasElementos: {},
+    },
+    puenteTermico: {
+
+    },
+    perdidaConduccion:{
+
+    }
 
 };
 
@@ -21,10 +40,6 @@ const balance = (state = initialState , action) =>
                 break;
             case SET_FAR_VENTANA:
                 draft.farVentanas[action.id] = action.farVentana;
-                if(draft.farVentanas.indices === undefined){
-                    draft.farVentanas.indices = [];
-                }
-                draft.farVentanas.indices.push(action.indices);
                 break;
             case BORRAR_FAR_VENTANA:
                 delete draft.farVentanas[action.id];
@@ -35,6 +50,27 @@ const balance = (state = initialState , action) =>
             case SET_APORTE_SOLAR:
                 draft.aporteSolar = action.aporteSolar;
                 break;
+            case SET_PERDIDA_VENTILACION:
+                draft.perdidaVentilacion = action.perdida;
+                break;
+            case SET_TRANSMITANCIAS:
+                draft.transmitancias = action.transmitancias;
+                break;
+            case SET_TRANSMITANCIA_ELEMENTO:
+                if(draft.transmitancias.transmitanciasElementos[action.id] !== undefined){
+                    let perdidas = draft.transmitancias.transmitanciasElementos[action.id];
+                    draft.total-=perdidas.normal;
+                    draft.totalObjetivo-=perdidas.objetivo;
+                }
+                draft.transmitancias.transmitanciasElementos[action.id] = action.perdida;
+                draft.total+=action.perdida.normal;
+                draft.totalObjetivo+=action.perdida.objetivo;
+                break;
+            case SET_ELIMINAR_TRANSMITANCIA:
+                let perdidas = draft.transmitancias[action.id];
+                draft.total-=perdidas.normal;
+                draft.totalObjetivo-=perdidas.objetivo;
+                delete draft.transmitancias[action.id];
 
         }
     });

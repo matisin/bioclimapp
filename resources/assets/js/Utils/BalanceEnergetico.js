@@ -56,31 +56,30 @@ function gradosDias(temperaturasMes, temperaturaConfort) {
 
 }
 
-function transmitanciaSuperficieRedux(elemento, zona) {
-    let transmitancia = 0, u, res;
+function transmitanciaSuperficieRedux(elemento, zona, info_materiales, info_ventanas) {
+    let transmitancia = 0, u, res,conductividad;
+    console.log("ELEMENTO",elemento);
     switch (elemento.tipo) {
         case PARED:
             for (let capa of elemento.capas) {
-                transmitancia += capa.espesor / capa.conductividad;
+                conductividad = getConductividadCapa(capa,info_materiales);
+                transmitancia += capa.espesor / conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
             u = 1 / transmitancia;
             return {
-                transmitancia: u,
-                transmitanciaObjetivo: uObjetivoMuro[zona - 1],
                 transSup: u * elemento.superficie,
                 transSupObjetivo: uObjetivoMuro[zona - 1] * elemento.superficie,
             };
         case PISO:
             for (let capa of elemento.capas) {
-                transmitancia += capa.espesor / capa.conductividad;
+                conductividad = getConductividadCapa(capa,info_materiales);
+                transmitancia += capa.espesor / conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
             u = 1 / transmitancia;
 
             res = {
-                transmitancia: u,
-                transmitanciaObjetivo: uObjetivoPiso[zona - 1],
                 transSup: u * elemento.superficie,
                 transSupObjetivo: uObjetivoPiso[zona - 1] * elemento.superficie,
             };
@@ -95,52 +94,82 @@ function transmitanciaSuperficieRedux(elemento, zona) {
             return res;
         case TECHO:
             for (let capa of elemento.capas) {
-                transmitancia += capa.espesor / capa.conductividad;
+                conductividad = getConductividadCapa(capa,info_materiales);
+                transmitancia += capa.espesor / conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
             u = 1 / transmitancia;
             return {
-                transmitancia: u,
-                transmitanciaObjetivo: uObjetivoTecho[zona - 1],
                 transSup: u * elemento.superficie,
                 transSupObjetivo: uObjetivoTecho[zona - 1] * elemento.superficie,
             };
         case VENTANA:
+            u = info_ventanas[elemento.material.material].tipos[elemento.material.tipo].propiedad.U;
             return {
                 transSupObjetivo: 5.8 * elemento.superficie,
-                transSup: elemento.material.u * elemento.superficie,
+                transSup: u * elemento.superficie,
             };
         case PUERTA:
-            transmitancia += elemento.material.espesor / elemento.conductividad;
+
+            conductividad = getConductividadCapa(elemento.material,info_materiales);
+            console.log(conductividad);
+            transmitancia += elemento.material.espesor / conductividad;
             transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
 
             u = 1 / transmitancia;
 
             return {
-                transmitancia: u,
-                transmitanciaObjetivo: uObjetivoMuro[zona - 1],
                 transSup: u * elemento.superficie,
                 transSupObjetivo: uObjetivoMuro[zona - 1] * elemento.superficie,
             };
     }
 }
 
-function puenteTermicoRedux(piso, zona) {
+export function puenteTermicoRedux(piso, zona) {
     let aislacionObjetivo = CORRIENTE;
     if (rtObjetivoPiso[zona - 1] > 0.6) aislacionObjetivo = AISLADO;
     else if (rtObjetivoPiso[zona - 1] < 0.6 && rtObjetivoPiso[zona - 1] > 0.26) aislacionObjetivo = MEDIO;
     return {
-        puenteTermico: piso.perimetro * transmitanciaLineal[piso.aislacion],
-        puenteTermicoObjetivo: piso.perimetro * transmitanciaLineal[aislacionObjetivo],
+        puenteTermico: piso.superficie * transmitanciaLineal[piso.aislacion],
+        puenteTermicoObjetivo: piso.superficie * transmitanciaLineal[aislacionObjetivo],
     }
 }
 
+export function transmitanciaSuperficies(elementos,zona,info_materiales, info_ventanas){
+    let total = 0;
+    let totalObjetivo = 0;
+    let transElemento;
+    let transmitanciasElementos = {};
+    for(let elemento of Object.values(elementos)){
+        transElemento = transmitanciaSuperficieRedux(elemento, zona, info_materiales, info_ventanas);
+        total+= transElemento.transSup;
+        totalObjetivo+= transElemento.transSupObjetivo;
+        transmitanciasElementos[elemento.id] = transElemento;
+    }
+    return{
+        total: total,
+        totalObjetivo: totalObjetivo,
+        transmitanciasElementos: transmitanciasElementos,
+    }
+}
 
-function transmitanciaSuperficie(elemento, zona) {
-    let transmitancia = 0, u;
+function getConductividadCapa(capa,info_materiales) {
+    let conductividad;
+    if(info_materiales[capa.material].hasOwnProperty('tipos')){
+        conductividad = info_materiales[capa.material].tipos[capa.tipo].propiedades[capa.propiedad].conductividad;
+
+    }else{
+        conductividad = info_materiales[capa.material].propiedades[capa.propiedad].conductividad;
+    }
+    return conductividad;
+}
+
+function transmitanciaSuperficie(elemento, zona, info_materiales, info_ventana) {
+    let transmitancia = 0, u,conductividad;
     switch (elemento.userData.tipo) {
         case Morfologia.tipos.PARED:
             for (let capa of elemento.userData.capas) {
+                getConductividadCapa(capa,info_materiales);
                 transmitancia += capa.espesor / capa.conductividad;
             }
             transmitancia += resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.userData.separacion];
@@ -219,7 +248,10 @@ function puenteTermico(piso, zona) {
 }
 
 function perdidasVentilacion(volumenInterno, volmenAire, gradosDias) {
-    return 24 * (0.34 * volmenAire * gradosDias * volumenInterno);
+    return {
+        normal: 24 * (0.34 * volmenAire * gradosDias * volumenInterno),
+        objetivo:  24 * (0.34 * 7 * gradosDias * volumenInterno),
+    };
 }
 
 function perdidasConduccion(transmitanciaSuperficies, gradosDias, puenteTermico) {
@@ -296,29 +328,19 @@ function calcularFAR(threejsObs, estadoCasa, rotacion) {
         return {};
     }
     let farVentanas = {};
-    let indices = [];
+    let indices = {};
     for (let nivel of estadoCasa) {
-        let indexNivel = estadoCasa.indexOf(nivel);
         for (let bloque of nivel.bloques) {
-            let indexBloque = nivel.bloques.indexOf(bloque);
             for (let pared of bloque.paredes) {
-                let indexPared = bloque.paredes.indexOf(pared);
                 for (let ventana of pared.ventanas) {
-                    let indexVentana = pared.ventanas.indexOf(ventana);
                     if (threejsObs.length === 0) {
                         farVentanas[ventana.id] = {
                             far: 1,
                             obstrucciones: [],
 
                         };
-                        indices.push({
-                            indexNivel: indexNivel,
-                            indexBloque: indexBloque,
-                            indexPared: indexPared,
-                            indexVentana: indexVentana,
-                        });
                         continue;
-                    };
+                    }
                     let axisY = new THREE.Vector3(0, 1, 0);
                     let raycasterFAR = new THREE.Raycaster();
                     let orientacion = new THREE.Vector3(
@@ -419,17 +441,10 @@ function calcularFAR(threejsObs, estadoCasa, rotacion) {
                         obstrucciones: obstrucciones,
 
                     };
-                    indices.push({
-                        indexNivel: indexNivel,
-                        indexBloque: indexBloque,
-                        indexPared: indexPared,
-                        indexVentana: indexVentana,
-                    });
                 }
             }
         }
     }
-    farVentanas.indices = indices;
     return farVentanas;
 
 }
@@ -783,17 +798,12 @@ function calcularRbParedes(latitud, longitud, periodo, anguloRotado) {
     return rbParedes;
 }
 
-function calcularAporteSolar(periodo, farVentanas, niveles, difusa, directa,info_material,marco,rb) {
+function calcularAporteSolar(periodo, farVentanas, ventanas, difusa, directa,info_material,marco,rb) {
     let aporte_solar = 0;
     let aporte_solar_objetivo = 0;
     let index;
-    let indicesVentana = farVentanas.indices;
-    console.log("INDI",indicesVentana);
-    for (let indices of indicesVentana) {
-        let ventana = niveles[indices.indexNivel]
-            .bloques[indices.indexBloque]
-            .paredes[indices.indexPared]
-            .ventanas[indices.indexVentana];
+    for (let id of Object.keys(farVentanas)) {
+        let ventana = ventanas[id];
 
         let f = calcularF(ventana,info_material,marco,farVentanas);
         index = ventana.orientacion.z !== 0 ? ventana.orientacion.z === 1 ? 1 : 3 : ventana.orientacion.x === 1 ? 0 : 2;
