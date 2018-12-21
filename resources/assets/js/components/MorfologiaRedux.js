@@ -1335,6 +1335,7 @@ class Morfologia extends Component {
         return {
             id: uuidv4(),
             dimensiones: ventana.userData.dimensiones,
+            superficie: ventana.userData.dimensiones.ancho*ventana.userData.dimensiones.alto,
             posicion: ventana.userData.posicion,
             posicionReal : {
                 x : pos.x,
@@ -1353,7 +1354,7 @@ class Morfologia extends Component {
                 material: 0,
                 tipo: 0,
             },
-            orientacion: ventana.parent.userData.orientacion,
+
         };
 
     }
@@ -1362,6 +1363,7 @@ class Morfologia extends Component {
         return {
             id: uuidv4(),
             dimensiones: puerta.userData.dimensiones,
+            superficie: puerta.userData.dimensiones.ancho*puerta.userData.dimensiones.alto,
             posicion: puerta.userData.posicion,
             material: {
                 material: 15,

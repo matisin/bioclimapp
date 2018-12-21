@@ -13,7 +13,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from '@material-ui/core/FormControl';
 import Paper from '@material-ui/core/Paper';
-import { createMuiTheme } from '@material-ui/core/styles';
+import {createMuiTheme} from '@material-ui/core/styles';
 
 import * as Tipos from '../constants/morofologia-types';
 
@@ -35,8 +35,8 @@ import Button from "@material-ui/core/es/Button/Button";
 const ITEM_HEIGHT = 48;
 
 const styles = theme => ({
-    titulo:{
-        margin: theme.spacing.unit*2,
+    titulo: {
+        margin: theme.spacing.unit * 2,
     },
 
 
@@ -53,21 +53,21 @@ const styles = theme => ({
     textRotation: {
         marginLeft: '80%',
         '-mozTransform': 'rotate(90deg)',
-        '-webkitTransform' : 'rotate(90deg)',
-        '-msTransform' : 'rotate(90deg)',
-        '-oTransform:' : 'rotate(90deg)',
-        'transform:' : 'rotate(90deg)',
-        '-msFilter' : 'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)',
+        '-webkitTransform': 'rotate(90deg)',
+        '-msTransform': 'rotate(90deg)',
+        '-oTransform:': 'rotate(90deg)',
+        'transform:': 'rotate(90deg)',
+        '-msFilter': 'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)',
         whiteSpace: 'nowrap',
         height: 0,
         width: 0,
-        '-webkitUserSelect' : 'none',
-        '-khtmlUserSelect' : 'none',
-        '-mozUserSelect' : 'none',
-        '-msUserSelect' : 'none',
-        '-userSelect' : 'none',
+        '-webkitUserSelect': 'none',
+        '-khtmlUserSelect': 'none',
+        '-mozUserSelect': 'none',
+        '-msUserSelect': 'none',
+        '-userSelect': 'none',
 
-},
+    },
     form: {
         display: 'flex',
         flexWrap: 'wrap',
@@ -78,14 +78,14 @@ const styles = theme => ({
     paper: {
         height: 200,
         overflow: 'hidden',
-        elevation:24,
+        elevation: 24,
         width: 0,
         minWidth: '100%',
     },
     paperAdd: {
         height: 200,
         overflow: 'hidden',
-        elevation:24,
+        elevation: 24,
         width: 0,
         minWidth: '100%',
     },
@@ -99,7 +99,7 @@ function SunPathIcon() {
              0 0-4 0v14.2a15.9 15.9 0 0 0-7.8 3.2l-10-10a2 2 0 1 0-2.8 2.8l10 10a15.9 15.9 0 0 0-3.2 7.8H2a2 2 0 1 0 0
              4subheading4.2a15.9 15.9 0 0 0 3.2 7.8l-10 10a2 2 0 1 0 2.8 2.8l10-10a15.9 15.9 0 0 0 7.8 3.3V62a2 2 0 0 0
               4 0V47.9a15.9 15.9 0 0 0 7.8-3.2l10 10a2 2 0 1 0 2.8-2.8l-10-10a15.9 15.9 0 0 0 3.3-7.9H62a2 2 0 1 0 0-4z"
-    fill="#757575"/>
+                  fill="#757575"/>
         </SvgIcon>
     );
 }
@@ -109,22 +109,25 @@ const mapStateToProps = state => {
         morfologia: state.morfologia,
         seleccionados: state.app.seleccion_morfologia,
         info_material: state.app.materiales,
+        rbParedes: state.variables.rbParedes,
+        fecha: state.barra_herramientas_morfologia.fecha,
+        periodo: state.variables.periodo,
     }
 };
 
 //Las acciones se mapean a props.
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_agregar_capa_pared: (nivel,bloque,pared,capa) =>
-            dispatch(thunk_agregar_capa_pared(nivel,bloque,pared,capa)),
-        thunk_borrar_capa_pared: (nivel,bloque,pared,capa) =>
-            dispatch(thunk_borrar_capa_pared(nivel,bloque,pared,capa)),
-        thunk_modificar_capa_pared: (nivel,bloque,pared,indice,capa) =>
-            dispatch(thunk_modificar_capa_pared(nivel,bloque,pared,indice,capa)),
-        thunk_aplicar_capa_paredes: (nivel,bloque,pared,indices) =>
-            dispatch(thunk_aplicar_capa_paredes(nivel,bloque,pared,indices)),
-        thunk_modificar_dimensiones_bloque: (bloque,nivel,dimensiones) =>
-            dispatch(thunk_modificar_dimensiones_bloque(bloque,nivel,dimensiones)),
+        thunk_agregar_capa_pared: (nivel, bloque, pared, capa) =>
+            dispatch(thunk_agregar_capa_pared(nivel, bloque, pared, capa)),
+        thunk_borrar_capa_pared: (nivel, bloque, pared, capa) =>
+            dispatch(thunk_borrar_capa_pared(nivel, bloque, pared, capa)),
+        thunk_modificar_capa_pared: (nivel, bloque, pared, indice, capa) =>
+            dispatch(thunk_modificar_capa_pared(nivel, bloque, pared, indice, capa)),
+        thunk_aplicar_capa_paredes: (nivel, bloque, pared, indices) =>
+            dispatch(thunk_aplicar_capa_paredes(nivel, bloque, pared, indices)),
+        thunk_modificar_dimensiones_bloque: (bloque, nivel, dimensiones) =>
+            dispatch(thunk_modificar_dimensiones_bloque(bloque, nivel, dimensiones)),
     }
 };
 
@@ -136,7 +139,7 @@ class InformacionPared extends Component {
         this.state = {
             capas: [],
             single: null,
-            capaS : null,
+            capaS: null,
 
         };
 
@@ -155,11 +158,11 @@ class InformacionPared extends Component {
                 },
             },
         });
-        this.colorSelected = [theme.palette.primary.main,theme.palette.primary.contrastText];
+        this.colorSelected = [theme.palette.primary.main, theme.palette.primary.contrastText];
     }
 
     componentDidUpdate(prevProps) {
-        if(this.props.seleccionados !== prevProps.seleccionados){
+        if (this.props.seleccionados !== prevProps.seleccionados) {
             this.setState({
                 capaS: null
             });
@@ -275,7 +278,7 @@ class InformacionPared extends Component {
         }*/
     }
 
-    handleChangeCapa(event){
+    handleChangeCapa(event) {
         const indices = this.props.seleccionados[0].indices;
 
         let capa = this.props.morfologia.present
@@ -293,19 +296,19 @@ class InformacionPared extends Component {
 
         capaNueva[event.target.name] = event.target.value;
 
-        if(event.target.name === 'material'){
-            if(this.props.info_material[event.target.value].hasOwnProperty('tipos')){
+        if (event.target.name === 'material') {
+            if (this.props.info_material[event.target.value].hasOwnProperty('tipos')) {
                 capaNueva.tipo = 0;
                 capaNueva.propiedad = 0;
-            }else{
+            } else {
                 capaNueva.propiedad = 0;
             }
         }
-        if(event.target.name === 'espesor'){
-            capaNueva.espesor = event.target.value/1000;
+        if (event.target.name === 'espesor') {
+            capaNueva.espesor = event.target.value / 1000;
         }
 
-        this.props.thunk_modificar_capa_pared(indices.nivel,indices.bloque,indices.pared,this.state.capaS,capaNueva);
+        this.props.thunk_modificar_capa_pared(indices.nivel, indices.bloque, indices.pared, this.state.capaS, capaNueva);
 
     }
 
@@ -318,28 +321,27 @@ class InformacionPared extends Component {
         let pared = bloque.paredes[indices.pared];
 
 
-
         let alto = pared.dimensiones.alto, ancho = pared.dimensiones.ancho;
         if (event.target.name === 'altura') {
             alto = parseFloat(event.target.value);
-        }else{
+        } else {
             ancho = parseFloat(event.target.value);
         }
         let dimensiones;
-        if(pared.orientacion.z !== 0){
+        if (pared.orientacion.z !== 0) {
             dimensiones = {
                 alto: alto,
                 ancho: ancho,
                 largo: bloque.dimensiones.largo,
             }
-        }else{
+        } else {
             dimensiones = {
                 alto: alto,
                 ancho: bloque.dimensiones.ancho,
                 largo: ancho,
             }
         }
-        this.props.thunk_modificar_dimensiones_bloque(indices.bloque,indices.nivel,dimensiones);
+        this.props.thunk_modificar_dimensiones_bloque(indices.bloque, indices.nivel, dimensiones);
 
     }
 
@@ -348,13 +350,13 @@ class InformacionPared extends Component {
         let indiceCapa = parseInt(event.currentTarget.value);
         const indices = this.props.seleccionados[0].indices;
 
-        this.props.thunk_borrar_capa_pared(indices.nivel,indices.bloque,indices.pared,indiceCapa);
+        this.props.thunk_borrar_capa_pared(indices.nivel, indices.bloque, indices.pared, indiceCapa);
 
-        if(this.state.capaS === indiceCapa){
+        if (this.state.capaS === indiceCapa) {
             this.setState({
                 capaS: null,
             })
-        }else if(this.state.capaS > indiceCapa){
+        } else if (this.state.capaS > indiceCapa) {
             this.setState({
                 capaS: this.state.capaS - 1,
             })
@@ -362,7 +364,7 @@ class InformacionPared extends Component {
     }
 
     clickCapa(event) {
-        if(event.target.attributes.value !== undefined){
+        if (event.target.attributes.value !== undefined) {
             let capaS = parseInt(event.target.attributes.value.value);
             this.setState({capaS: capaS});
         }
@@ -372,10 +374,10 @@ class InformacionPared extends Component {
         const indiceSel = this.props.seleccionados[0].indices;
         const seleccionados = this.props.seleccionados;
         let indices = [];
-        for(let seleccionado of seleccionados){
+        for (let seleccionado of seleccionados) {
             indices.push(seleccionado.indices);
         }
-        this.props.thunk_aplicar_capa_paredes(indiceSel.nivel,indiceSel.bloque,indiceSel.pared,indices);
+        this.props.thunk_aplicar_capa_paredes(indiceSel.nivel, indiceSel.bloque, indiceSel.pared, indices);
 
 
     }
@@ -390,27 +392,28 @@ class InformacionPared extends Component {
             propiedad: 0,
         };
 
-        this.props.thunk_agregar_capa_pared(indices.nivel,indices.bloque,indices.pared,capa);
+        this.props.thunk_agregar_capa_pared(indices.nivel, indices.bloque, indices.pared, capa);
 
     }
 
     render() {
         const {capaS} = this.state;
 
-        const {seleccionados,classes} = this.props;
+        const {seleccionados, classes, rbParedes, fecha, periodo} = this.props;
 
-        let material ,tipo ,espesor ,propiedad,height,width,capas;
+        let material, tipo, espesor, propiedad, height, width, capas;
         let vaciosArray = [];
         const esPared = seleccionados[0] !== null && seleccionados[0].tipo === Tipos.PARED;
-        if(esPared){
+        let pared;
+        if (esPared) {
             const indices = this.props.seleccionados[0].indices;
-            const pared = this.props.morfologia.present
+            pared = this.props.morfologia.present
                 .niveles[indices.nivel]
                 .bloques[indices.bloque]
                 .paredes[indices.pared];
             capas = pared.capas;
 
-            if(capaS !== null){
+            if (capaS !== null) {
                 material = capas[capaS].material;
                 tipo = capas[capaS].tipo;
                 espesor = capas[capaS].espesor;
@@ -420,17 +423,130 @@ class InformacionPared extends Component {
             width = pared.dimensiones.ancho;
 
             let capasVacias = 9 - capas.length - 1;
-            for(let i = 0 ; i < capasVacias ; i++){
+            for (let i = 0; i < capasVacias; i++) {
                 vaciosArray.push(i);
             }
         }
         let hasTipos;
 
-        if (esPared && capaS !== null){
+        if (esPared && capaS !== null) {
             hasTipos = this.props.info_material[material].hasOwnProperty('tipos');
-        }else{
+        } else {
             hasTipos = null;
         }
+        let info_rb = null;
+
+        if (esPared && pared.separacion === Tipos.EXTERIOR &&  seleccionados.length === 1) {
+            let index;
+            index = pared.orientacion.z !== 0 ? pared.orientacion.z === 1 ? 1 : 3 : pared.orientacion.x === 1 ? 0 : 2;
+            let rb = rbParedes[index];
+            let omega = null;
+            for (let omegas of rb) {
+                if (omegas.date.getMonth() === fecha.getMonth()) {
+                    omega = omegas.omegasDate;
+                    break;
+                }
+            }
+            let fechaString = 'En ' + Tipos.TEXTOMESES[fecha.getMonth()];
+            let periodoString = Tipos.TEXTOMESES[periodo[0]] + ' y ' + Tipos.TEXTOMESES[periodo[1]];
+            if (omega !== null) {
+                if (omega.wm.desde === null && omega.wm.hasta === null
+                    && omega.wt.desde === null && omega.wt.hasta === null) {
+                    info_rb = <Grid container spacing={8} justify="center" alignItems="center">
+                        <Grid item xs={12} style={{textAlign: 'center'}}><Typography variant="subheading">Información
+                            Solar, periodo entre {periodoString} </Typography></Grid>
+                        <Grid item xs={12} style={{textAlign: 'center'}}><Typography variant="body2">
+                            {fechaString} el muro no recibe sol </Typography></Grid>
+                    </Grid>;
+                } else {
+                    info_rb =
+                        <Grid container spacing={8} justify="center" alignItems="center">
+                            <Grid item xs={12} style={{textAlign: 'center'}}><Typography variant="subheading">Información
+                                Solar, periodo entre {periodoString} </Typography></Grid>
+
+                            <Grid item xs={12} style={{textAlign: 'center'}}><Typography variant="body2">
+                                {fechaString} el muro recibe sol </Typography></Grid>
+
+                            <Grid item xs={6} container spacing={0}>
+                                <Grid item xs={6}>
+                                    <Typography variant="body1">
+                                        Desde:
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Typography variant="body1">
+                                        Hasta:
+                                    </Typography>
+                                </Grid>
+                                {omega.wm.desde !== null ?
+                                    <Grid item xs={6}>
+                                        <Typography variant="body1">
+                                            {omega.wm.desde.toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </Typography>
+                                    </Grid>
+                                    :
+                                    <div/>
+                                }
+                                {omega.wm.hasta !== null ?
+                                    <Grid item xs={6}>
+                                        <Typography variant="body1">
+                                            {omega.wm.hasta.toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </Typography>
+
+                                    </Grid>
+                                    :
+                                    <div/>
+                                }
+                                {omega.wt.desde !== null ?
+                                    <Grid item xs={6}>
+                                        <Typography variant="body1">
+                                            {omega.wt.desde.toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </Typography>
+                                    </Grid>
+                                    :
+                                    <div/>
+                                }
+                                {omega.wt.hasta !== null ?
+                                    <Grid item xs={6}>
+                                        <Typography variant="body1">
+                                            {omega.wt.hasta.toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </Typography>
+                                    </Grid>
+                                    :
+                                    <div/>
+                                }
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Typography variant="body1">
+                                    RB: {omega.rb}
+                                </Typography>
+
+                            </Grid>
+                        </Grid>;
+                }
+
+            } else {
+                info_rb = <Grid container spacing={8} justify="center" alignItems="center">
+                    <Grid item xs={12} style={{textAlign: 'center'}}><Typography variant="subheading">Información
+                        Solar, periodo entre {periodoString} </Typography></Grid>
+                    <Grid item xs={12} style={{textAlign: 'center'}}><Typography variant="body2">
+                        {fechaString} se está fuera del periodo de calefacción </Typography></Grid>
+                </Grid>;
+            }
+        }
+
         return (
             <div>
 
@@ -443,11 +559,7 @@ class InformacionPared extends Component {
                         >
                             {'Configuración Pared'}
                         </Typography>
-                        {/*ARREGLAR CCUANDO SE TENGA LA INFO RB*/}
-                        {/*{seleccionado.userData.separacion === Morfologia.separacion.EXTERIOR &&
-                        <Paper style={{padding:20, margin:0}}>{this.info_rb}</Paper>
-                        }*/}
-
+                        {info_rb !== null ?<Paper style={{padding: 20, margin: 0}}>{info_rb}</Paper> : <div/>}
                         <ExpansionPanel>
                             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon/>}>
                                 <Typography className={classes.heading}>Capas</Typography>
@@ -461,15 +573,17 @@ class InformacionPared extends Component {
                                                     {capaS === capas.indexOf(capa) ?
                                                         <Paper className={classes.paper}
                                                                style={{backgroundColor: this.colorSelected[0]}}
-                                                               value={capas.indexOf(capa) }
+                                                               value={capas.indexOf(capa)}
                                                                onClick={this.clickCapa}
                                                                elevation={0}
                                                         >
-                                                            <IconButton style={{color: this.colorSelected[1],
-                                                                    margin: 0,
-                                                                    position: 'relative',
-                                                                    left: '50%',
-                                                                    transform: 'translate(-50%, 0%)',}}
+                                                            <IconButton style={{
+                                                                color: this.colorSelected[1],
+                                                                margin: 0,
+                                                                position: 'relative',
+                                                                left: '50%',
+                                                                transform: 'translate(-50%, 0%)',
+                                                            }}
                                                                         className={classes.button}
                                                                         value={capas.indexOf(capa)}
                                                                         onClick={this.handleClickBorrar}
@@ -483,7 +597,7 @@ class InformacionPared extends Component {
                                                                     <Typography
                                                                         className={classes.textRotation}
                                                                         style={{color: this.colorSelected[1]}}
-                                                                        value={capas.indexOf(capa) }
+                                                                        value={capas.indexOf(capa)}
                                                                         onClick={this.clickCapa}>
                                                                         {this.props.info_material[capa.material]
                                                                             .material
@@ -495,45 +609,49 @@ class InformacionPared extends Component {
                                                                 <Typography
                                                                     className={classes.textRotation}
                                                                     style={{color: this.colorSelected[1]}}
-                                                                    value={capas.indexOf(capa) }
+                                                                    value={capas.indexOf(capa)}
                                                                     onClick={this.clickCapa}>
                                                                     {this.props.info_material[capa.material].material}
                                                                 </Typography>
                                                             }
                                                         </Paper> :
                                                         <Paper className={classes.paper}
-                                                               style={{backgroundColor: this.props
+                                                               style={{
+                                                                   backgroundColor: this.props
                                                                        .info_material[capa.material]
                                                                        .color
                                                                }}
-                                                               value={capas.indexOf(capa) }
+                                                               value={capas.indexOf(capa)}
                                                                onClick={this.clickCapa}
-                                                                elevation={10}
+                                                               elevation={10}
                                                         >
                                                             <IconButton
-                                                                style={{color: this.props.info_material[capa.material]
+                                                                style={{
+                                                                    color: this.props.info_material[capa.material]
                                                                         .textColor,
                                                                     margin: 0,
                                                                     position: 'relative',
                                                                     left: '50%',
                                                                     transform: 'translate(-50%, 0%)',
-                                                                   }}
-                                                                        className={classes.button}
-                                                                        value={capas.indexOf(capa) }
-                                                                        onClick={this.handleClickBorrar}
+                                                                }}
+                                                                className={classes.button}
+                                                                value={capas.indexOf(capa)}
+                                                                onClick={this.handleClickBorrar}
 
                                                             >
                                                                 <Clear/>
                                                             </IconButton>
                                                             {this.props.info_material[capa.material]
                                                                 .hasOwnProperty('tipos') ?
-                                                                <div >
+                                                                <div>
                                                                     <Typography
                                                                         className={classes.textRotation}
-                                                                        style={{color: this.props
+                                                                        style={{
+                                                                            color: this.props
                                                                                 .info_material[capa.material]
-                                                                                .textColor}}
-                                                                        value={capas.indexOf(capa) }
+                                                                                .textColor
+                                                                        }}
+                                                                        value={capas.indexOf(capa)}
                                                                         onClick={this.clickCapa}>
                                                                         {this.props.info_material[capa.material]
                                                                             .material
@@ -543,13 +661,15 @@ class InformacionPared extends Component {
 
                                                                 </div>
                                                                 :
-                                                                <div >
+                                                                <div>
                                                                     <Typography
                                                                         className={classes.textRotation}
-                                                                        style={{color: this.props
+                                                                        style={{
+                                                                            color: this.props
                                                                                 .info_material[capa.material]
-                                                                                .textColor}}
-                                                                        value={capas.indexOf(capa) }
+                                                                                .textColor
+                                                                        }}
+                                                                        value={capas.indexOf(capa)}
                                                                         onClick={this.clickCapa}>
                                                                         {this.props.info_material[capa.material]
                                                                             .material}
@@ -565,11 +685,13 @@ class InformacionPared extends Component {
                                                 <Grid item xs>
                                                     <Paper className={classes.paperAdd}>
                                                         <IconButton
-                                                            style={{margin: 0,
+                                                            style={{
+                                                                margin: 0,
                                                                 position: 'relative',
                                                                 top: '50%',
                                                                 left: '50%',
-                                                                transform: 'translate(-50%, -50%)',}}
+                                                                transform: 'translate(-50%, -50%)',
+                                                            }}
                                                             className={classes.button}
                                                             onClick={this.handleClickAgregar}>
                                                             <Add/>
@@ -593,10 +715,11 @@ class InformacionPared extends Component {
                                         <Grid container spacing={8}>
                                             {hasTipos ?
                                                 <Grid container spacing={0} style={{
-                                                    marginTop : 12,
-                                                    marginBottom : 4,
-                                                    marginLeft : 4,
-                                                    marginRight : 4,}}>
+                                                    marginTop: 12,
+                                                    marginBottom: 4,
+                                                    marginLeft: 4,
+                                                    marginRight: 4,
+                                                }}>
                                                     <Grid item xs={6}>
                                                         <FormControl className={classes.formControl}>
                                                             <InputLabel
@@ -633,8 +756,8 @@ class InformacionPared extends Component {
                                                         </FormControl>
                                                     </Grid>
                                                 </Grid>
-                                                 : <Grid item xs={12} style={{
-                                                     marginTop : 8,
+                                                : <Grid item xs={12} style={{
+                                                    marginTop: 8,
                                                 }}>
                                                     <FormControl className={classes.formControl}>
                                                         <InputLabel
@@ -668,12 +791,12 @@ class InformacionPared extends Component {
                                                                 .tipos[tipo].propiedades.map(propiedades => (
                                                                 <MenuItem value={propiedades.index}>
                                                                     {propiedades.densidad !== -1 ? propiedades.densidad
-                                                                    : "No tiene"}
+                                                                        : "No tiene"}
                                                                 </MenuItem>
                                                             ))}
                                                         </Select>
                                                     </FormControl>
-                                                </Grid>  : <div/>
+                                                </Grid> : <div/>
                                             }
 
                                             {hasTipos ?
@@ -698,7 +821,7 @@ class InformacionPared extends Component {
                                                     </FormControl>
                                                 </Grid> : <div/>
                                             }
-                                            {!hasTipos?
+                                            {!hasTipos ?
                                                 <Grid item xs={4}>
                                                     <FormControl className={classes.formControl}>
                                                         <InputLabel htmlFor="conductividad-simple">Densidad</InputLabel>
@@ -709,14 +832,14 @@ class InformacionPared extends Component {
                                                         >
                                                             {this.props.info_material[material]
                                                                 .propiedades.map(propiedades => (
-                                                                <MenuItem value={propiedades.index}>
-                                                                    {propiedades.densidad !== -1 ? propiedades.densidad
-                                                                        : "No tiene"}
-                                                                </MenuItem>
-                                                            ))}
+                                                                    <MenuItem value={propiedades.index}>
+                                                                        {propiedades.densidad !== -1 ? propiedades.densidad
+                                                                            : "No tiene"}
+                                                                    </MenuItem>
+                                                                ))}
                                                         </Select>
                                                     </FormControl>
-                                                </Grid>  : <div/>
+                                                </Grid> : <div/>
                                             }
 
                                             {!hasTipos ?
@@ -733,10 +856,10 @@ class InformacionPared extends Component {
                                                         >
                                                             {this.props.info_material[material]
                                                                 .propiedades.map(propiedades => (
-                                                                <MenuItem value={propiedades.index}>
-                                                                    {propiedades.conductividad}
-                                                                </MenuItem>
-                                                            ))}
+                                                                    <MenuItem value={propiedades.index}>
+                                                                        {propiedades.conductividad}
+                                                                    </MenuItem>
+                                                                ))}
                                                         </Select>
                                                     </FormControl>
                                                 </Grid> : <div/>
@@ -746,7 +869,7 @@ class InformacionPared extends Component {
                                                     <TextField
                                                         label="Espesor (mm)"
                                                         name="espesor"
-                                                        value={1000*espesor}
+                                                        value={1000 * espesor}
                                                         onChange={this.handleChangeCapa}
                                                         type="number"
                                                         InputLabelProps={{
@@ -760,10 +883,11 @@ class InformacionPared extends Component {
                                     }{seleccionados.length > 1 ?
                                     <Grid container spacing={8}>
                                         <Grid container spacing={0} style={{
-                                            marginTop : 12,
-                                            marginBottom : 4,
-                                            marginLeft : 4,
-                                            marginRight : 4,}}>
+                                            marginTop: 12,
+                                            marginBottom: 4,
+                                            marginLeft: 4,
+                                            marginRight: 4,
+                                        }}>
                                             <Grid item xs={12}>
                                                 <FormControl className={classes.formControl}>
                                                     <Button
@@ -778,9 +902,9 @@ class InformacionPared extends Component {
                                         </Grid>
                                     </Grid>
                                     : <div/>
-                                    }
+                                }
 
-                                    </Grid>
+                                </Grid>
                             </ExpansionPanelDetails>
                         </ExpansionPanel>
 
@@ -799,7 +923,7 @@ class InformacionPared extends Component {
                                                 value={height}
                                                 type="number"
                                                 inputProps={
-                                                    { step: 0.1}
+                                                    {step: 0.1}
                                                 }
                                                 onChange={this.handleChangeDimension}
                                                 InputLabelProps={{
@@ -816,7 +940,7 @@ class InformacionPared extends Component {
                                                 value={width}
                                                 type="number"
                                                 inputProps={
-                                                    { step: 1}
+                                                    {step: 1}
                                                 }
                                                 onChange={this.handleChangeDimension}
                                                 InputLabelProps={{
@@ -845,4 +969,4 @@ InformacionPared.propTypes = {
     onCapaChanged: PropTypes.func,
 };
 
-export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InformacionPared));
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(InformacionPared));

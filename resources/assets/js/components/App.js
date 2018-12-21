@@ -197,6 +197,7 @@ const mapStateToProps = state => {
     return {
         mostrar_mapa: state.barra_herramientas_contexto.mostrar_mapa,
         cargando: state.app.cargando,
+        calculando: state.app.calculando,
         seleccion_morfologia: state.app.seleccion_morfologia,
     }
 };
@@ -208,7 +209,8 @@ const mapDispatchToProps = dispatch => {
 };
 
 function AlertDialog(props){
-    const {classes, open} = props;
+    const {classes, open, text} = props;
+
     return (
         <Dialog
             disableBackdropClick
@@ -217,7 +219,7 @@ function AlertDialog(props){
             aria-labelledby="confirmation-dialog-title"
             open={open}
         >
-            <DialogTitle id="confirmation-dialog-title">Cargando</DialogTitle>
+            <DialogTitle id="confirmation-dialog-title">{text}</DialogTitle>
             <DialogContent>
                 <CircularProgress className={classes.progress} size={50} />
             </DialogContent>
@@ -515,9 +517,12 @@ class App extends Component {
 
 
     render() {
-        const {classes, theme, mostrar_mapa, cargando, seleccion_morfologia} = this.props;
+        const {classes, theme, mostrar_mapa, cargando, calculando ,seleccion_morfologia} = this.props;
         let showAlert;
+        let showCalculando;
         showAlert = Object.keys(cargando).length > 0;
+        showCalculando = Object.keys(calculando).length > 0;
+        console.log("CALCULANDO",calculando);
         console.log("CARGANDO",cargando);
         const mostrar_seleccion = seleccion_morfologia[0] !== null;
         const {value, click2D, dibujandoMorf, seleccionandoMorf, borrandoMorf, width, height, openMorf, seleccionadoMorf, dimensiones, alturaPiso, paredCapaChange,loaded} = this.state;
@@ -537,7 +542,17 @@ class App extends Component {
                             classes={{
                                  paper: classes.paper,
                                  progress : classes.progress,
-                             }}/>
+                             }}
+                            text={"Cargando"}
+                />
+                <AlertDialog
+                    open={showCalculando}
+                    classes={{
+                        paper: classes.paper,
+                        progress : classes.progress,
+                    }}
+                    text={"Calculando"}
+                />
                 <AppBar  className={classNames(classes.appBar, {
                     [classes.appBarShift]: this.state.openDashboard ,
                     [classes.appBarShiftLeft]: this.state.openDashboard,

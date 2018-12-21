@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import Morfologia from "../components/Morfologia";
-import {AISLADO, CORRIENTE, MEDIO, PARED, PISO, PUERTA, TECHO, VENTANA,EXTERIOR,INTERIOR} from "../constants/morofologia-types";
-import {clearThree} from "./dibujosMesh";
+import {AISLADO, CORRIENTE, MEDIO, PARED, PISO, PUERTA, TECHO, VENTANA} from "../constants/morofologia-types";
 
 
 var SunCalc = require('suncalc');
@@ -35,25 +34,25 @@ function aporteInterno(ocupantes, superficie, horasIluminacion, periodo) {
 }
 
 function gradosDias(temperaturasMes, temperaturaConfort) {
-        let gd = 0;
-        let periodo = [];
-        for (let i = 0; i < temperaturasMes.length - 1; i++) {
-            if ((temperaturaConfort - temperaturasMes[i].valor) > 0) {
-                if (periodo.length === 0) {
-                    periodo.push(i);
-                }
-                gd = gd + (temperaturaConfort - temperaturasMes[i].valor) * diasMeses[i];
-            } else {
-                if (periodo.length === 1) {
-                    periodo.push(i - 1);
-                }
+    let gd = 0;
+    let periodo = [];
+    for (let i = 0; i < temperaturasMes.length - 1; i++) {
+        if ((temperaturaConfort - temperaturasMes[i].valor) > 0) {
+            if (periodo.length === 0) {
+                periodo.push(i);
+            }
+            gd = gd + (temperaturaConfort - temperaturasMes[i].valor) * diasMeses[i];
+        } else {
+            if (periodo.length === 1) {
+                periodo.push(i - 1);
             }
         }
-        if (periodo.length === 1) {
-            periodo.push(temperaturasMes.length - 2);
-        }
+    }
+    if (periodo.length === 1) {
+        periodo.push(temperaturasMes.length - 2);
+    }
 
-        return [gd, periodo];
+    return [gd, periodo];
 
 }
 
@@ -292,208 +291,257 @@ function sign(x) {
     if (x === 0) return 0;
 }
 
-function calcularFAR(threejsObs, estadoCasa,rotacion) {
-    return new Promise(resolve => {
-        if(threejsObs.length === 0){
-            resolve(0);
-            return;
-        }
-        let farVentanas ={};
-        for (let nivel of estadoCasa) {
-            for (let bloque of nivel.bloques) {
-                for (let pared of bloque.paredes) {
-                    for (let ventana of pared.ventanas) {
-                        let axisY = new THREE.Vector3(0, 1, 0);
-                        let raycasterFAR = new THREE.Raycaster();
-                        let orientacion = new THREE.Vector3(
-                            pared.orientacion.x,
-                            pared.orientacion.y,
-                            pared.orientacion.z
-                        );
-                        let angleLeft = orientacion.clone().applyAxisAngle(axisY, -Math.PI / 4 + (Math.PI / 180) * rotacion);
-                        let angle = angleLeft.clone();
-                        let posVentana = new THREE.Vector3(
-                            ventana.posicionReal.x,
-                            ventana.posicionReal.y,
-                            ventana.posicionReal.z
-                        );
-                        let pos = posVentana.clone();
-                        pos.applyAxisAngle(axisY,(Math.PI / 180) * rotacion);
-                        var origin = new THREE.Vector3(pos.x, 0, pos.z);
-                        let obstrucciones = {};
-                        let obstuccionActual = null;
-                        let infoPunto = null;
-                        for (let x = 0; x < 90; x++) {
-                            angle = angle.normalize();
-                            raycasterFAR.set(origin, angle);
-                            raycasterFAR.far = 100;
-                            let intersections = raycasterFAR.intersectObjects(threejsObs);
-                            //Se hace un barrido de izqueirda a derecha, buscando los puntos del angulo beta;
-                            let razonMaxima = 0;
-                            let obstruccion = null;
-                            for (let i = 0; i < intersections.length; i++) {
-                                let intersected = intersections[i];
-                                let altura = intersected.object.userData.info.altura;
-                                let razon = altura / intersected.distance;
-                                if (razon > razonMaxima) {
-                                    obstruccion = intersected.object;
-                                    infoPunto = intersected.point;
-                                    razonMaxima = razon;
-                                }
-                            }
-                            if (obstruccion === null) {
-                                //NUNCA EXISTIO O PUDO HABER TERMINADO ALGO
-                                if (obstuccionActual !== null) {
-                                    obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
-                                    obstuccionActual = null;
-                                }
-                            }else {
-                                if (obstruccion !== obstuccionActual) {
-                                    obstrucciones[obstruccion.userData.info.indice] = {};
-                                    obstrucciones[obstruccion.userData.info.indice].start = infoPunto;
-                                    obstuccionActual = obstruccion;
-                                }else{
-                                    obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
-                                }
-                            }
-                            angle.applyAxisAngle(axisY, Math.PI / 180);
-                        }
-                        if(obstuccionActual !==  null){
-                            obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
-                        }
-                        let f1 = 1;
-                        let f2 = 0;
-                        for(let indice of Object.keys(obstrucciones)){
-                            let bOrientacion = orientacion.clone()
-                                .applyAxisAngle(axisY, -Math.PI  + (Math.PI / 180) * rotacion);
-                            let obstruccion = obstrucciones[indice];
-                            let middlePoint = new THREE.Vector3(
-                                (obstruccion.start.x + obstruccion.end.x)/2,
-                                2,
-                                (obstruccion.start.z + obstruccion.end.z)/2);
-                            obstruccion.bDistance =
-                                (Math.abs(bOrientacion.x* middlePoint.x + bOrientacion.z * middlePoint.z)
-                                /
-                                Math.sqrt(bOrientacion.x*bOrientacion.x + bOrientacion.z*bOrientacion.z)) -
-                                origin.length();
-                            obstruccion.aDistance = threejsObs[indice].userData.info.altura - pos.y;
-                            let a = new THREE.Vector2(origin.x-obstruccion.start.x, origin.z-obstruccion.start.z);
-                            let b = new THREE.Vector2(origin.x - obstruccion.end.x, origin.z - obstruccion.end.z);
-                            let beta = Math.acos(a.dot(b)/(a.length()*b.length()))*180/Math.PI;
-                            obstruccion.far = Math.pow(0.2996, (obstruccion.aDistance / obstruccion.bDistance));
-                            obstruccion.beta = beta;
-                            f1 -= beta / 90;
-                            f2 += obstruccion.far * beta / 90;
-                        }
-                        let farVentana = f1 + f2;
+function calcularFAR(threejsObs, estadoCasa, rotacion) {
+    if (threejsObs.length === 0) {
+        return {};
+    }
+    let farVentanas = {};
+    let indices = [];
+    for (let nivel of estadoCasa) {
+        let indexNivel = estadoCasa.indexOf(nivel);
+        for (let bloque of nivel.bloques) {
+            let indexBloque = nivel.bloques.indexOf(bloque);
+            for (let pared of bloque.paredes) {
+                let indexPared = bloque.paredes.indexOf(pared);
+                for (let ventana of pared.ventanas) {
+                    let indexVentana = pared.ventanas.indexOf(ventana);
+                    if (threejsObs.length === 0) {
                         farVentanas[ventana.id] = {
-                            far: farVentana,
-                            obstrucciones: obstrucciones,
+                            far: 1,
+                            obstrucciones: [],
+
+                        };
+                        indices.push({
+                            indexNivel: indexNivel,
+                            indexBloque: indexBloque,
+                            indexPared: indexPared,
+                            indexVentana: indexVentana,
+                        });
+                        continue;
+                    };
+                    let axisY = new THREE.Vector3(0, 1, 0);
+                    let raycasterFAR = new THREE.Raycaster();
+                    let orientacion = new THREE.Vector3(
+                        pared.orientacion.x,
+                        pared.orientacion.y,
+                        pared.orientacion.z
+                    );
+                    let angleLeft = orientacion.clone().applyAxisAngle(axisY, -Math.PI / 4 + (Math.PI / 180) * rotacion);
+                    let angle = angleLeft.clone();
+                    let posVentana = new THREE.Vector3(
+                        ventana.posicionReal.x,
+                        ventana.posicionReal.y,
+                        ventana.posicionReal.z
+                    );
+                    let pos = posVentana.clone();
+                    pos.applyAxisAngle(axisY, (Math.PI / 180) * rotacion);
+                    var origin = new THREE.Vector3(pos.x, 0, pos.z);
+                    let obstrucciones = {};
+                    let obstuccionActual = null;
+                    let infoPunto = null;
+                    for (let x = 0; x < 90; x++) {
+                        angle = angle.normalize();
+                        raycasterFAR.set(origin, angle);
+                        raycasterFAR.far = 100;
+                        let intersections = raycasterFAR.intersectObjects(threejsObs);
+                        //Se hace un barrido de izqueirda a derecha, buscando los puntos del angulo beta;
+                        let razonMaxima = 0;
+                        let obstruccion = null;
+                        for (let i = 0; i < intersections.length; i++) {
+                            let intersected = intersections[i];
+                            let altura = intersected.object.userData.info.altura;
+                            let razon = altura / intersected.distance;
+                            if (razon > razonMaxima) {
+                                obstruccion = intersected.object;
+                                infoPunto = intersected.point;
+                                razonMaxima = razon;
+                            }
+                        }
+                        if (obstruccion === null) {
+                            //NUNCA EXISTIO O PUDO HABER TERMINADO ALGO
+                            if (obstuccionActual !== null) {
+                                obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
+                                obstuccionActual = null;
+                            }
+                        } else {
+                            if (obstruccion !== obstuccionActual) {
+                                obstrucciones[obstruccion.userData.info.indice] = {};
+                                obstrucciones[obstruccion.userData.info.indice].start = infoPunto;
+                                obstuccionActual = obstruccion;
+                            } else {
+                                obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
+                            }
+                        }
+                        angle.applyAxisAngle(axisY, Math.PI / 180);
+                    }
+                    if (obstuccionActual !== null) {
+                        if(obstrucciones[obstuccionActual.userData.info.indice].end === undefined){
+                            delete obstrucciones[obstuccionActual.userData.info.indice];
                         }
                     }
+                    let f1 = 1;
+                    let f2 = 0;
+                    let indicesBorrar = [];
+                    for (let indice of Object.keys(obstrucciones)) {
+                        let bOrientacion = orientacion.clone()
+                            .applyAxisAngle(axisY, -Math.PI + (Math.PI / 180) * rotacion);
+                        let obstruccion = obstrucciones[indice];
+                        if(obstruccion.end === undefined){
+                            console.log("BUG");
+                            console.log(obstruccion.start,obstruccion.end);
+                            indicesBorrar.push(indicesBorrar);
+                            continue;
+                        }
+                        let middlePoint = new THREE.Vector3(
+                            (obstruccion.start.x + obstruccion.end.x) / 2,
+                            2,
+                            (obstruccion.start.z + obstruccion.end.z) / 2);
+                        obstruccion.bDistance =
+                            (Math.abs(bOrientacion.x * middlePoint.x + bOrientacion.z * middlePoint.z)
+                                /
+                                Math.sqrt(bOrientacion.x * bOrientacion.x + bOrientacion.z * bOrientacion.z)) -
+                            origin.length();
+                        obstruccion.aDistance = threejsObs[indice].userData.info.altura - pos.y;
+                        let a = new THREE.Vector2(origin.x - obstruccion.start.x, origin.z - obstruccion.start.z);
+                        let b = new THREE.Vector2(origin.x - obstruccion.end.x, origin.z - obstruccion.end.z);
+                        let beta = Math.acos(a.dot(b) / (a.length() * b.length())) * 180 / Math.PI;
+                        obstruccion.far = Math.pow(0.2996, (obstruccion.aDistance / obstruccion.bDistance));
+                        obstruccion.beta = beta;
+                        f1 -= beta / 90;
+                        f2 += obstruccion.far * beta / 90;
+                    }
+                    for(let indice of indicesBorrar){
+                        delete obstrucciones[indice];
+                    }
+                    let farVentana = f1 + f2;
+                    farVentanas[ventana.id] = {
+                        far: farVentana,
+                        obstrucciones: obstrucciones,
+
+                    };
+                    indices.push({
+                        indexNivel: indexNivel,
+                        indexBloque: indexBloque,
+                        indexPared: indexPared,
+                        indexVentana: indexVentana,
+                    });
                 }
             }
         }
-        resolve(farVentanas);
-    });
+    }
+    farVentanas.indices = indices;
+    return farVentanas;
+
 }
 
-function calcularFARVentana(threejsObs,estadoCasa,rotacion, ventana) {
-    return new Promise(resolve => {
-        if(threejsObs.length === 0){
-            resolve(0);
-            return;
-        }
-
-        let axisY = new THREE.Vector3(0, 1, 0);
-        let raycasterFAR = new THREE.Raycaster();
-        let orientacion = new THREE.Vector3(
-            ventana.orientacion.x,
-            ventana.orientacion.y,
-            ventana.orientacion.z
-        );
-        let angleLeft = orientacion.clone().applyAxisAngle(axisY, -Math.PI / 4 + (Math.PI / 180) * rotacion);
-        let angle = angleLeft.clone();
-        let posVentana = new THREE.Vector3(
-            ventana.posicionReal.x,
-            ventana.posicionReal.y,
-            ventana.posicionReal.z
-        );
-        let pos = posVentana.clone();
-        pos.applyAxisAngle(axisY,(Math.PI / 180) * rotacion);
-        var origin = new THREE.Vector3(pos.x, 0, pos.z);
-        let obstrucciones = {};
-        let obstuccionActual = null;
-        let infoPunto = null;
-        for (let x = 0; x < 90; x++) {
-            angle = angle.normalize();
-            raycasterFAR.set(origin, angle);
-            raycasterFAR.far = 100;
-            let intersections = raycasterFAR.intersectObjects(threejsObs);
-            //Se hace un barrido de izqueirda a derecha, buscando los puntos del angulo beta;
-            let razonMaxima = 0;
-            let obstruccion = null;
-            for (let i = 0; i < intersections.length; i++) {
-                let intersected = intersections[i];
-                let altura = intersected.object.userData.info.altura;
-                let razon = altura / intersected.distance;
-                if (razon > razonMaxima) {
-                    obstruccion = intersected.object;
-                    infoPunto = intersected.point;
-                    razonMaxima = razon;
-                }
-            }
-            if (obstruccion === null) {
-                //NUNCA EXISTIO O PUDO HABER TERMINADO ALGO
-                if (obstuccionActual !== null) {
-                    obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
-                    obstuccionActual = null;
-                }
-            }else {
-                if (obstruccion !== obstuccionActual) {
-                    obstrucciones[obstruccion.userData.info.indice] = {};
-                    obstrucciones[obstruccion.userData.info.indice].start = infoPunto;
-                    obstuccionActual = obstruccion;
-                }else{
-                    obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
-                }
-            }
-            angle.applyAxisAngle(axisY, Math.PI / 180);
-        }
-        if(obstuccionActual !==  null){
-            obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
-        }
-        let f1 = 1;
-        let f2 = 0;
-        for(let indice of Object.keys(obstrucciones)){
-            let bOrientacion = orientacion.clone()
-                .applyAxisAngle(axisY, -Math.PI  + (Mathx.PI / 180) * rotacion);
-            let obstruccion = obstrucciones[indice];
-            let middlePoint = new THREE.Vector3(
-                (obstruccion.start.x + obstruccion.end.x)/2,
-                2,
-                (obstruccion.start.z + obstruccion.end.z)/2);
-            obstruccion.bDistance =
-                (Math.abs(bOrientacion.x* middlePoint.x + bOrientacion.z * middlePoint.z)
-                    /
-                    Math.sqrt(bOrientacion.x*bOrientacion.x + bOrientacion.z*bOrientacion.z)) -
-                origin.length();
-            obstruccion.aDistance = threejsObs[indice].userData.info.altura - pos.y;
-            let a = new THREE.Vector2(origin.x-obstruccion.start.x, origin.z-obstruccion.start.z);
-            let b = new THREE.Vector2(origin.x - obstruccion.end.x, origin.z - obstruccion.end.z);
-            let beta = Math.acos(a.dot(b)/(a.length()*b.length()))*180/Math.PI;
-            obstruccion.far = Math.pow(0.2996, (obstruccion.aDistance / obstruccion.bDistance));
-            obstruccion.beta = beta;
-            f1 -= beta / 90;
-            f2 += obstruccion.far * beta / 90;
-        }
-        let far = f1 + f2;
-        let farVentana = {
-            far: far,
-            obstrucciones: obstrucciones,
+export function calcularFARVentana(threejsObs, rotacion, ventana) {
+    if (threejsObs.length === 0) {
+        return {
+            far: 1,
+            obstrucciones: [],
         };
-        resolve(farVentana);
-    });
+    }
+
+    let axisY = new THREE.Vector3(0, 1, 0);
+    let raycasterFAR = new THREE.Raycaster();
+    let orientacion = new THREE.Vector3(
+        ventana.orientacion.x,
+        ventana.orientacion.y,
+        ventana.orientacion.z
+    );
+    let angleLeft = orientacion.clone().applyAxisAngle(axisY, -Math.PI / 4 + (Math.PI / 180) * rotacion);
+    let angle = angleLeft.clone();
+    let posVentana = new THREE.Vector3(
+        ventana.posicionReal.x,
+        ventana.posicionReal.y,
+        ventana.posicionReal.z
+    );
+    let pos = posVentana.clone();
+    pos.applyAxisAngle(axisY, (Math.PI / 180) * rotacion);
+    var origin = new THREE.Vector3(pos.x, 0, pos.z);
+    let obstrucciones = {};
+    let obstuccionActual = null;
+    let infoPunto = null;
+    for (let x = 0; x < 90; x++) {
+        angle = angle.normalize();
+        raycasterFAR.set(origin, angle);
+        raycasterFAR.far = 100;
+        let intersections = raycasterFAR.intersectObjects(threejsObs);
+        //Se hace un barrido de izqueirda a derecha, buscando los puntos del angulo beta;
+        let razonMaxima = 0;
+        let obstruccion = null;
+        for (let i = 0; i < intersections.length; i++) {
+            let intersected = intersections[i];
+            let altura = intersected.object.userData.info.altura;
+            let razon = altura / intersected.distance;
+            if (razon > razonMaxima) {
+                obstruccion = intersected.object;
+                infoPunto = intersected.point;
+                razonMaxima = razon;
+            }
+        }
+        if (obstruccion === null) {
+            //NUNCA EXISTIO O PUDO HABER TERMINADO ALGO
+            if (obstuccionActual !== null) {
+                obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
+                obstuccionActual = null;
+            }
+        } else {
+            if (obstruccion !== obstuccionActual) {
+                obstrucciones[obstruccion.userData.info.indice] = {};
+                obstrucciones[obstruccion.userData.info.indice].start = infoPunto;
+                obstuccionActual = obstruccion;
+            } else {
+                obstrucciones[obstuccionActual.userData.info.indice].end = infoPunto;
+            }
+        }
+        angle.applyAxisAngle(axisY, Math.PI / 180);
+    }
+    if (obstuccionActual !== null) {
+        if(obstrucciones[obstuccionActual.userData.info.indice].end === undefined){
+            delete obstrucciones[obstuccionActual.userData.info.indice];
+        }
+    }
+    let f1 = 1;
+    let f2 = 0;
+    let indicesBorrar = [];
+    for (let indice of Object.keys(obstrucciones)) {
+        let bOrientacion = orientacion.clone()
+            .applyAxisAngle(axisY, -Math.PI + (Math.PI / 180) * rotacion);
+        let obstruccion = obstrucciones[indice];
+        if(obstruccion.end === undefined){
+            console.log("BUG");
+            console.log(obstruccion.start,obstruccion.end);
+            indicesBorrar.push(indicesBorrar);
+            continue;
+        }
+        let middlePoint = new THREE.Vector3(
+            (obstruccion.start.x + obstruccion.end.x) / 2,
+            2,
+            (obstruccion.start.z + obstruccion.end.z) / 2);
+        obstruccion.bDistance =
+            (Math.abs(bOrientacion.x * middlePoint.x + bOrientacion.z * middlePoint.z)
+                /
+                Math.sqrt(bOrientacion.x * bOrientacion.x + bOrientacion.z * bOrientacion.z)) -
+            origin.length();
+        obstruccion.aDistance = threejsObs[indice].userData.info.altura - pos.y;
+        let a = new THREE.Vector2(origin.x - obstruccion.start.x, origin.z - obstruccion.start.z);
+        let b = new THREE.Vector2(origin.x - obstruccion.end.x, origin.z - obstruccion.end.z);
+        let beta = Math.acos(a.dot(b) / (a.length() * b.length())) * 180 / Math.PI;
+        obstruccion.far = Math.pow(0.2996, (obstruccion.aDistance / obstruccion.bDistance));
+        obstruccion.beta = beta;
+        f1 -= beta / 90;
+        f2 += obstruccion.far * beta / 90;
+    }
+    for(let indice of indicesBorrar){
+        delete obstrucciones[indice];
+    }
+    let farVentana = f1 + f2;
+    return {
+        far: farVentana,
+        obstrucciones: obstrucciones,
+    };
+
 }
 
 
@@ -528,7 +576,7 @@ function calcularAngulos(periodo, beta, latitud) {
     return angulos;
 }
 
-function calcularGammasPared(gamma ) {
+function calcularGammasPared(gamma) {
     let gammas = {
         gamma1: 0,
         gamma2: 0
@@ -638,52 +686,61 @@ function toRadians(angle) {
 function toDegrees(angle) {
     return angle * (180 / Math.PI);
 }
-function cacularRbPared(pared,latitud,longitud, periodo,angulos) {
-    //let angulos = calcularAngulos(periodo, 90, latitud);
-    if (pared.separacion === EXTERIOR) {
-        let rbPared = [];
-        //console.log(pared.userData.gamma);
-        let gammas = calcularGammasPared(pared.userData.gamma);
-        pared.userData.gammas = gammas;
+
+function calcularRbParedes(latitud, longitud, periodo, anguloRotado) {
+    //console.log("periodo en calcularrbparedes", periodo);
+    let angulos = calcularAngulos(periodo, 90, latitud);
+    //se determina el gamma de cuatro orientaciones y se le suma el angulo rotado.
+    let rbParedes = [];
+    let gamma = -90 + anguloRotado;
+    if (gamma > 180) {
+        gamma -= 360;
+    }
+    for (let i = 0; i < 4; i++) {
+        let rb = [];
+        let gammas = calcularGammasPared(gamma);
+        console.log("VALOR GAMMA", gamma);
         for (let angulo of angulos) {
             let omega_mna = calcularOmegaPared(angulo.date, angulo.delta, gammas.gamma1, latitud, longitud);
             let omega_tde = calcularOmegaPared(angulo.date, angulo.delta, gammas.gamma2, latitud, longitud);
-            let omegas = calcularHoraIncidencia(pared.userData.gamma, angulo.w1, angulo.w2, omega_mna, omega_tde);
-            let Rb = calcularRB(angulo, pared.userData.gamma, omegas);
-            rbPared.push(Rb.toFixed(3));
-            if (angulo.date.getMonth() === new Date().getMonth()) {
-                let omegasDate = {
-                    wm: {
-                        desde: omegas.wm[0] >= angulo.w1 && omegas.wm[0] <= angulo.w2 ?
-                            hourAngleToDate(angulo.date, omegas.wm[0], latitud, longitud) : null,
-                        //new Date((omegas.wm[0] / 15) * 36e5) : null,
-                        hasta: omegas.wt[0] >= angulo.w1 && omegas.wt[0] <= angulo.w2 ?
-                            hourAngleToDate(angulo.date, omegas.wt[0], latitud, longitud) : null,
-                        //new Date((omegas.wt[0] / 15) * 36e5) : null
-                    },
-                    wt: {
-                        desde: omegas.wm[1] >= angulo.w1 && omegas.wm[1] <= angulo.w2 ?
-                            hourAngleToDate(angulo.date, omegas.wm[1], latitud, longitud) : null,
-                        //new Date((omegas.wm[1] / 15) * 36e5): null,
-                        hasta: omegas.wt[1] >= angulo.w1 && omegas.wt[1] <= angulo.w2 ?
-                            hourAngleToDate(angulo.date, omegas.wt[1], latitud, longitud) : null,
-                        //new Date((omegas.wt[1] / 15) * 36e5): null
-                    },
-                    rb: Rb.toFixed(3)
-                };
-                pared.userData.omegas = omegasDate;
-                pared.userData.omega_mna = omega_mna;
-                pared.userData.omega_tde = omega_tde;
-            }
+            let omegas = calcularHoraIncidencia(gamma, angulo.w1, angulo.w2, omega_mna, omega_tde);
+            let Rb = calcularRB(angulo, gamma, omegas);
+            let omegasDate = {
+                wm: {
+                    desde: omegas.wm[0] >= angulo.w1 && omegas.wm[0] <= angulo.w2 ?
+                        hourAngleToDate(angulo.date, omegas.wm[0], latitud, longitud) : null,
+                    //new Date((omegas.wm[0] / 15) * 36e5) : null,
+                    hasta: omegas.wt[0] >= angulo.w1 && omegas.wt[0] <= angulo.w2 ?
+                        hourAngleToDate(angulo.date, omegas.wt[0], latitud, longitud) : null,
+                    //new Date((omegas.wt[0] / 15) * 36e5) : null
+                },
+                wt: {
+                    desde: omegas.wm[1] >= angulo.w1 && omegas.wm[1] <= angulo.w2 ?
+                        hourAngleToDate(angulo.date, omegas.wm[1], latitud, longitud) : null,
+                    //new Date((omegas.wm[1] / 15) * 36e5): null,
+                    hasta: omegas.wt[1] >= angulo.w1 && omegas.wt[1] <= angulo.w2 ?
+                        hourAngleToDate(angulo.date, omegas.wt[1], latitud, longitud) : null,
+                    //new Date((omegas.wt[1] / 15) * 36e5): null
+                },
+                rb: Rb.toFixed(3)
+            };
+            rb.push({
+                gamma: gamma,
+                gammas: gammas,
+                date: angulo.date,
+                omegasDate: omegasDate,
+                omega_mna: omega_mna,
+                omega_tde: omega_tde,
+            });
         }
-        pared.userData.rb = rbPared;
+        rbParedes.push(rb);
+        gamma += 90;
+        if (gamma > 180) {
+            gamma -= 360;
+        }
     }
-}
-
-function calcularRbParedes(paredes, latitud, longitud, periodo, angulos) {
-    //console.log("periodo en calcularrbparedes", periodo);
-    //let angulos = calcularAngulos(periodo, 90, latitud);
-    for (let [index, pared] of paredes.entries()) {
+    return rbParedes;
+    /*for (let [index, pared] of paredes.entries()) {
         if (pared.userData.separacion === Morfologia.separacion.EXTERIOR) {
             let rbPared = [];
             //console.log(pared.userData.gamma);
@@ -722,23 +779,30 @@ function calcularRbParedes(paredes, latitud, longitud, periodo, angulos) {
             }
             pared.userData.rb = rbPared;
         }
-    }
-    return paredes;
+    }*/
+    return rbParedes;
 }
 
-function calcularAporteSolar(periodo, ventanas, difusa, directa) {
+function calcularAporteSolar(periodo, farVentanas, niveles, difusa, directa,info_material,marco,rb) {
     let aporte_solar = 0;
     let aporte_solar_objetivo = 0;
-    for (let ventana of ventanas) {
-        let f = calcularF(ventana);
-        let pared = ventana.parent;
+    let index;
+    let indicesVentana = farVentanas.indices;
+    console.log("INDI",indicesVentana);
+    for (let indices of indicesVentana) {
+        let ventana = niveles[indices.indexNivel]
+            .bloques[indices.indexBloque]
+            .paredes[indices.indexPared]
+            .ventanas[indices.indexVentana];
+
+        let f = calcularF(ventana,info_material,marco,farVentanas);
+        index = ventana.orientacion.z !== 0 ? ventana.orientacion.z === 1 ? 1 : 3 : ventana.orientacion.x === 1 ? 0 : 2;
         let Igb = 0;
         for (let i = 0; i < (periodo[1] - periodo[0]) + 1; i++) {
             //console.log("Igb", difusa[i].valor,directa[i].valor, pared.userData.rb[i], pared.userData.rb.length, (periodo[1]-periodo[0])+1);
-            Igb += calcularIgb(difusa[i].valor, directa[i].valor, pared.userData.rb[i]);
+            Igb += calcularIgb(difusa[i].valor, directa[i].valor, parseFloat(rb[0][i].omegasDate.rb));
         }
-        let area_ventana = Math.abs((ventana.geometry.boundingBox.max.x - ventana.geometry.boundingBox.min.x) *
-            (ventana.geometry.boundingBox.max.y - ventana.geometry.boundingBox.min.y));
+        let area_ventana = ventana.superficie;
         aporte_solar += Igb * area_ventana * f.normal;
         //console.log("aporte_solar", Igb, area_ventana, f.normal);
         aporte_solar_objetivo += Igb * area_ventana * f.objetivo;
@@ -746,15 +810,27 @@ function calcularAporteSolar(periodo, ventanas, difusa, directa) {
     return {normal: aporte_solar, objetivo: aporte_solar_objetivo}
 }
 
-function calcularF(ventana) {
-    let fm = ventana.userData.info_marco.fs;
-    let fmObjetivo = ventana.userData.info_marco.fsObjetivo;
-    let fs = ventana.userData.info_material.fs;
-    let fsObjetivo = ventana.userData.info_material.fsObjetivo;
-    let um = ventana.userData.info_marco.u;
-    let umObjetivo = ventana.userData.info_marco.uObjetivo;
+function calcularF(ventana,info_material,info_marco,farVentanas) {
+    const material = ventana.material.material;
+    const tipo = ventana.material.tipo;
+    const fs = info_material[material].tipos[tipo].propiedad.FS;
+    const marco = ventana.marco.material;
+    const tipo_marco = ventana.marco.tipo;
+    const far = farVentanas[ventana.id].far;
+
+    let fm,um;
+    if(!info_marco[marco].hasOwnProperty('tipos')){
+        um = info_marco[marco].propiedades[0].U;
+        fm = info_marco[marco].propiedades[0].FS;
+    }else{
+        um = info_marco[marco].tipos[tipo_marco].propiedad.U;
+        fm = info_marco[marco].tipos[tipo_marco].propiedad.FS;
+    }
+    let fmObjetivo = 0.8;
+    let fsObjetivo = 0.87;
+    let umObjetivo = 5.8;
     return {
-        normal: ventana.userData.far * ((1 - fm) * fs + (fm * 0.04 * um * 0.35)),
+        normal: far * ((1 - fm) * fs + (fm * 0.04 * um * 0.35)),
         objetivo: ((1 - fmObjetivo) * fsObjetivo + (fmObjetivo * 0.04 * umObjetivo * 0.35)),
     }
 }

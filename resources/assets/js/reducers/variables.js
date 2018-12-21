@@ -26,7 +26,7 @@ const initialState = {
     periodo: {
 
     },
-    angulo: null,
+    rbParedes: null,
     gradosDias: null,
 };
 
@@ -44,7 +44,7 @@ const variables = (state = initialState , action) =>
                 break;
             case SET_PERIODO:
                 draft.periodo = action.periodo;
-                draft.angulo = action.angulo;
+                draft.rbParedes = action.rbParedes;
                 draft.gradosDias = action.gradosDias;
         }
     });

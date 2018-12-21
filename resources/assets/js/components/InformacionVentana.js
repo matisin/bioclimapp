@@ -62,6 +62,7 @@ const mapStateToProps = state => {
         seleccionados: state.app.seleccion_morfologia,
         info_material_ventana: state.app.materiales_ventanas,
         info_material_marco: state.app.materiales_marcos,
+        farVentanas: state.balance.farVentanas,
     }
 };
 
@@ -341,7 +342,7 @@ class InformacionVentana extends Component {
 
 
     render() {
-        const {classes, seleccionados,info_material_marco,info_material_ventana} = this.props;
+        const {classes, seleccionados,info_material_marco,info_material_ventana, farVentanas} = this.props;
 
 
         let height, width, alturaPiso, posicion;
@@ -349,7 +350,7 @@ class InformacionVentana extends Component {
         let material,tipo,fs,u;
 
         const esVentana = seleccionados[0] !== null && seleccionados[0].tipo === Tipos.VENTANA;
-
+        let id = null;
         if(esVentana){
             const indices = seleccionados[0].indices;
             const ventana = this.props.morfologia.present
@@ -357,6 +358,8 @@ class InformacionVentana extends Component {
                 .bloques[indices.bloque]
                 .paredes[indices.pared]
                 .ventanas[indices.ventana];
+
+            id = ventana.id;
 
             height = ventana.dimensiones.alto;
             width = ventana.dimensiones.ancho;
@@ -413,22 +416,21 @@ class InformacionVentana extends Component {
                             {'Configuración Ventana' }
                         </Typography>
 
-                        {/*CUADNO SE ARREGLE AGREGARLO
-                        <ExpansionPanel>
+                         <ExpansionPanel>
                             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon/>}>
                                 <Typography className={classes.heading}>Información Solar</Typography>
                             </ExpansionPanelSummary>
                             <ExpansionPanelDetails>
                                 <Grid container spacing={8} justify="center" style={{textAlign:"center"}}>
                                     <Grid item xs={12}>
-                                        <Typography>
-                                            FAR de la ventana: {seleccionado.userData.far.toFixed(3)}
+                                        <Typography variant="body1">
+                                            FAR de la ventana: {Object.keys(farVentanas).length > 0 ?
+                                            farVentanas[id].far.toFixed(3) : 1.000}
+
                                         </Typography>
                                     </Grid>
                                     <Grid item xs={12}>
-                                        {seleccionado.userData.obstrucciones !== null ? seleccionado.userData.obstrucciones.map((obstruccion,index) => (
-                                            obstruccion.ventanas.map(ventana => (
-                                                ventana.id === seleccionado.uuid ?
+                                        {Object.keys(farVentanas).length > 0 ? Object.values(farVentanas[id].obstrucciones).map((obstruccion,index) => (
                                                 <ExpansionPanel key={index}>
                                                     <ExpansionPanelSummary expandIcon={<ExpandMoreIcon/>}>
                                                         <Typography className={classes.heading}>Obstruccion: {index}</Typography>
@@ -436,31 +438,27 @@ class InformacionVentana extends Component {
                                                     <ExpansionPanelDetails>
                                                         <Grid container spacing={40}>
                                                             <Grid item xs>
-                                                                <Typography>FAR obstruccion: {ventana.far.toFixed(3)}</Typography>
+                                                                <Typography>FAR obstruccion: {obstruccion.far.toFixed(3)}</Typography>
                                                             </Grid>
                                                             <Grid item xs>
-                                                                <Typography>Altura respecto a la ventana: {ventana.aDistance.toFixed(3)}</Typography>
+                                                                <Typography>Altura respecto a la ventana: {obstruccion.aDistance.toFixed(1)}m</Typography>
                                                             </Grid>
                                                             <Grid item xs>
-                                                                <Typography>Distancia respecto a la ventana: {ventana.bDistance.toFixed(3)}</Typography>
+                                                                <Typography>Distancia respecto a la ventana: {obstruccion.bDistance.toFixed(1)}m</Typography>
                                                             </Grid>
                                                             <Grid item xs>
-                                                                <Typography>Ángulo(s) que obstruye:</Typography>
-                                                                {ventana.betaAngle != null ? ventana.betaAngle.map((angle,index) => (
-                                                                        <Typography key={index}>{angle.toFixed(3)}</Typography>
-                                                                    )): <div/>
-                                                                }
+                                                                <Typography>Ángulo que obstruye: {obstruccion.beta.toFixed(1)}°</Typography>
                                                             </Grid>
                                                         </Grid>
                                                     </ExpansionPanelDetails>
-                                                </ExpansionPanel>: <div/>
-                                            ))
+                                                </ExpansionPanel>
+
                                         )) : <div/>}
                                     </Grid>
                                 </Grid>
 
                             </ExpansionPanelDetails>
-                        </ExpansionPanel>*/}
+                        </ExpansionPanel>
 
                         <ExpansionPanel>
                             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon/>}>

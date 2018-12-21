@@ -3,7 +3,7 @@ import {
     AGREGAR_OBSTRUCCION,
     CAMBIAR_VARS_INTERNA,
     SELECCIONAR_MORFOLOGIA,
-    SELECCIONAR_OBSTRUCCION,
+    SELECCIONAR_OBSTRUCCION, SET_CALCULANDO,
     SET_CARGANDO,
     SET_MATERIALES,
     SET_MATERIALES_MARCOS,
@@ -17,6 +17,7 @@ const initialState = {
     seleccion_morfologia: [null],
     seleccion_contexto: null,
     cargando : {},
+    calculando : {},
     materiales : null,
     materiales_ventanas : null,
     materiales_marcos : null,
@@ -38,6 +39,16 @@ const app = (state = initialState , action) =>
                     draft.seleccion_morfologia.push(action.seleccion);
                 }
                 //draft.seleccion_morfologia = action.seleccion;
+                break;
+            case SET_CALCULANDO:
+                let calculando = {};
+                Object.assign(calculando,draft.calculando);
+                if(action.calculando){
+                    calculando[action.sender] = action.calculando;
+                }else{
+                    delete calculando[action.sender];
+                }
+                draft.calculando = calculando;
                 break;
             case SET_CARGANDO:
                 let cargando = {};
