@@ -1,5 +1,4 @@
-import React, { Component } from 'react';
-import Popup from "reactjs-popup";
+import React from 'react';
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
 import {MapControl} from 'react-leaflet';
 import {thunk_set_state_mapa} from "../actions";
@@ -20,28 +19,24 @@ class SearchBar extends MapControl{
     locationFound(e) {
         this.props.thunk_set_state_mapa(parseFloat(e.location.y),parseFloat(e.location.x));
     }
-  createLeafletElement() {
-    return GeoSearchControl({
-      provider: new OpenStreetMapProvider({ params: { countrycodes: 'CL' ,featuretype: 'city'}, }),
-      style:'button',
-      autoComplete: true,
-      autoClose:true,
-      autoCompleteDelay: 250,
-      retainZoomLevel: true,
-      searchLabel: 'Ingrese localidad',
-      keepResult: true,
-      showMarker: false,
-      animateZoom: true,
-
+    createLeafletElement(props) {
+        return GeoSearchControl({
+          provider: new OpenStreetMapProvider({ params: { countrycodes: 'CL' ,featuretype: 'city'}, }),
+          style:'button',
+          autoComplete: true,
+          autoClose:true,
+          autoCompleteDelay: 250,
+          retainZoomLevel: true,
+          searchLabel: 'Ingrese localidad',
+          keepResult: true,
+          showMarker: false,
+          animateZoom: true,
     });
   }
-
-    componentDidMount() {
+  componentDidMount() {
         super.componentDidMount();
         this.leafletElement.map.on('geosearch/showlocation', this.locationFound);
     }
-
-
 }
 
 export default connect(null,mapDispatchToProps)(SearchBar);

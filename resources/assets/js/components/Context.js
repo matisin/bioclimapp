@@ -13,17 +13,14 @@ import {
     seleccionarObstruccion,
     thunk_agregar_obstruccion,
     thunk_eliminar_obstruccion,
-    actualizarObstruccionesApp, thunk_actualizar_obstrucciones_app
+    thunk_actualizar_obstrucciones_app
 } from "../actions";
 import {
-    clearThree, crearGeometriaPared,
+    clearThree,
     crearMeshObstruccion,
-    crearMeshPared, crearMeshPiso,
-    crearMeshPuerta, crearMeshTecho,
-    crearMeshVentana
+    crearMeshPiso,
 } from "../Utils/dibujosMesh";
 import {materialHovered, materialObstruccion, materialSeleccionObstruccion} from "../constants/materiales-threejs";
-import * as Tipos from "../constants/morofologia-types";
 
 const styles = theme => ({
     typography: {
@@ -63,10 +60,6 @@ class Context extends Component {
         this.onClick = this.onClick.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
-        this.onKeyDown = this.onKeyDown.bind(this);
-        this.handleRotation = this.handleRotation.bind(this);
-        this.handleParamChange = this.handleParamChange.bind(this);
-        this.resetObstrucciones = this.resetObstrucciones.bind(this);
 
         this.state = {
             height: props.height,
@@ -78,84 +71,10 @@ class Context extends Component {
         this.seleccionando = false;
         this.borrando = false;
         this.ventanas = [];
-        let PW_N = new Map(); // p/w orientacion norte para calculo de FAV2
-        this.PW_N = PW_N;
-        this.dif = 0;
-        PW_N.set(0, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
-        PW_N.set(0.2, [0.89, 0.94, 0.97, 0.99, 0.99, 0.99, 1, 1, 1, 1]);
-        PW_N.set(0.4, [0.75, 0.81, 0.89, 0.94, 0.96, 0.98, 0.99, 1, 1, 1]);
-        PW_N.set(0.6, [0.64, 0.71, 0.81, 0.87, 0.91, 0.94, 0.99, 0.99, 1, 1]);
-        PW_N.set(0.8, [0.57, 0.64, 0.74, 0.81, 0.86, 0.89, 0.96, 0.99, 1, 1]);
-        PW_N.set(1, [0.53, 0.59, 0.7, 0.77, 0.82, 0.85, 0.95, 0.99, 1, 1]);
-        PW_N.set(1.5, [0.49, 0.55, 0.65, 0.72, 0.78, 0.81, 0.9, 0.98, 0.99, 0.99]);
-        PW_N.set(2, [0.44, 0.5, 0.62, 0.7, 0.76, 0.79, 0.92, 0.99, 1, 1]);
-        PW_N.set(4, [0.35, 0.41, 0.53, 0.63, 0.7, 0.74, 0.87, 0.99, 1, 1]);
-        PW_N.set(6, [0.3, 0.37, 0.49, 0.58, 0.67, 0.71, 0.85, 0.98, 0.99, 1]);
-        PW_N.set(10, [0.26, 0.32, 0.44, 0.54, 0.63, 0.68, 0.83, 0.97, 0.99, 1]);
-        let SW = [0.1, 0.2, 0.4, 0.6, 0.8, 1, 2, 4, 6, 8]; // s/w para calculo de FAV2
-        this.SW = SW;
-        let PW_EOS = new Map(); // p/w orientaciones este, oeste y sur para calculo de FAV2
-        this.PW_EOS = PW_EOS;
-        PW_EOS.set(0, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
-        PW_EOS.set(0.2, [0.9, 0.94, 0.98, 0.99, 0.99, 1, 1, 1, 1, 1]);
-        PW_EOS.set(0.4, [0.77, 0.83, 0.91, 0.95, 0.97, 0.99, 1, 1, 1, 1]);
-        PW_EOS.set(0.6, [0.67, 0.74, 0.84, 0.9, 0.94, 0.97, 0.99, 1, 1, 1]);
-        PW_EOS.set(0.8, [0.61, 0.68, 0.79, 0.86, 0.91, 0.95, 0.99, 1, 1, 1]);
-        PW_EOS.set(1, [0.56, 0.63, 0.74, 0.82, 0.88, 0.92, 0.99, 1, 1, 1]);
-        PW_EOS.set(1.5, [0.5, 0.57, 0.68, 0.76, 0.82, 0.86, 0.97, 0.99, 1, 1]);
-        PW_EOS.set(2, [0.45, 0.53, 0.64, 0.73, 0.79, 0.84, 0.97, 0.99, 1, 1]);
-        PW_EOS.set(4, [0.37, 0.45, 0.57, 0.67, 0.75, 0.8, 0.96, 0.99, 1, 1]);
-        PW_EOS.set(6, [0.33, 0.41, 0.53, 0.63, 0.72, 0.77, 0.94, 0.99, 1, 1]);
-        PW_EOS.set(10, [0.28, 0.35, 0.48, 0.59, 0.68, 0.73, 0.9, 0.99, 1, 1]);
-        let LH_N = new Map(); // l/h orientacion norte para calculo de FAV1
-        this.LH_N = LH_N;
-        LH_N.set(0.5, [0.79, 0.87, 0.93]);
-        LH_N.set(1, [0.57, 0.69, 0.81]);
-        LH_N.set(1.5, [0.42, 0.55, 0.69]);
-        LH_N.set(2, [0.33, 0.44, 0.59]);
-        LH_N.set(3, [0.22, 0.32, 0.44]);
-        let LH_EOS = new Map();
-        this.LH_EOS = LH_EOS; // l/h orientacion oeste, este y sur para calculo de FAV1
-        LH_EOS.set(0.5, [0.88, 0.93, 0.96]);
-        LH_EOS.set(1, [0.74, 0.82, 0.89]);
-        LH_EOS.set(1.5, [0.63, 0.73, 0.82]);
-        LH_EOS.set(2, [0.54, 0.65, 0.76]);
-        LH_EOS.set(3, [0.42, 0.52, 0.65]);
-        this.DH = [0.2, 0.5, 1]; // d/h para calculo de FAV1
     }
 
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        //Si se cerró el popper y se modificó alguna obstrucción entonces se debe volver a calcular el FAR
-        if (prevState.open === true && this.state.open === false && this.ventanas != null) {
-            this.calcularFAR(this.ventanas);
-        }
-        if (this.props.agregarContexto) {
-            this.agregarContexto = true;
-            this.seleccionando = false;
-            this.borrando = false;
-            let geometry = new THREE.BoxBufferGeometry(0.05, 2, 0.05);
-            const material = new THREE.MeshBasicMaterial({color: '#433F81', opacity: 0.5, transparent: true});
-            let obstruccionFantasma = new THREE.Mesh(geometry, material);
-            obstruccionFantasma.visible = false;
-            this.escena.add(obstruccionFantasma);
-            this.obstruccionFantasma = obstruccionFantasma;
-        }
-        if (this.props.seleccionar) {
-            this.seleccionando = true;
-            this.agregarContexto = false;
-            this.borrando = false;
-        }
-        if (this.props.borrarContexto) {
-            this.seleccionando = true;
-            this.agregarContexto = false;
-            this.borrando = true;
-        }
-        if (this.ventanas !== this.props.ventanas && prevProps.ventanas !== this.props.ventanas) {
-            this.ventanas = this.props.ventanas.slice();
-            this.calcularFAR(this.ventanas);
-
-        }
         if(this.props.contexto.present !== null && prevProps.contexto.present !== this.props.contexto.present){
             this.dibujarEstado();
         }
@@ -394,7 +313,7 @@ class Context extends Component {
         shape.holes = [new THREE.Path(vertices)];
         let geometria = new THREE.ShapeBufferGeometry(shape);
         geometria.rotateX(Math.PI/2);
-        var mesh = new THREE.Mesh( geometria, new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.DoubleSide}) );
+        let mesh = new THREE.Mesh( geometria, new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.DoubleSide}) );
         mesh.position.set(0,0.1,0);
         this.escena.add(mesh);
 
@@ -451,7 +370,7 @@ class Context extends Component {
     onMouseMove(event) {
         event.preventDefault();
         if (document.getElementById("text")) {
-            var text = document.getElementById("text");
+            let text = document.getElementById("text");
             text.parentNode.removeChild(text);
         }
         let rect = this.renderer.domElement.getBoundingClientRect();
@@ -483,8 +402,6 @@ class Context extends Component {
             if(this.dibujando){
                 this.obstruccionDibujado();
             }
-
-            //this.nuevaObstruccion();
         }
         if (this.props.acciones.seleccionar || this.props.acciones.eliminar) {
             this.onHoverObstruction();
@@ -518,23 +435,12 @@ class Context extends Component {
                 clearThree(this.obstruccionDibujo);
 
             }
-            /*let material = new THREE.MeshBasicMaterial({color: 0x000000});
-            let obstruccion = this.obstruccionFantasma.clone();
-            obstruccion.material = material;
-            obstruccion.ventanas = [];
-            obstruccion.userData.altura = obstruccion.geometry.parameters.height;
-            this.obstrucciones.push(obstruccion);
-            this.escena.add(obstruccion);
-            this.crearTextoObstruccion(obstruccion);
-            this.obstruccionFantasma.visible = false;
-            this.dibujando = false;
-            this.calcularFAR(this.ventanas);*/
         }
     }
 
     onMouseLeave(event) {
         if (document.getElementById("text")) {
-            var text = document.getElementById("text");
+            let text = document.getElementById("text");
             text.parentNode.removeChild(text);
         }
     }
@@ -575,32 +481,12 @@ class Context extends Component {
                 this.props.seleccionarObstruccion(this.seleccion.userData.indice);
             }
         }
-        /*
-        if (this.intersections.length > 0) {
-            if (this.selectedObstruction !== this.hoveredObstruction && this.selectedObstruction != null) {
-                this.selectedObstruction.material = new THREE.MeshBasicMaterial({color: this.selectedObstruction.currentHex});
-            }
-            this.selectedObstruction = this.hoveredObstruction;
-            this.setState({open: true, popperCoords: {x: x, y: y}});
-        }
-        else {
-            this.selectedObstruction.material = new THREE.MeshBasicMaterial({color: this.selectedObstruction.currentHex});
-            this.selectedObstruction = null;
-            this.setState({open: false});
-        }*/
     }
 
     onDeleteObstruction() {
-        /*this.setState({open: false});
-        this.escena.remove(this.selectedObstruction);
-        let index = this.obstrucciones.indexOf(this.selectedObstruction);
-        this.obstrucciones.splice(index, 1);*/
-
         let state = this.props.contexto.present;
-        //let seleccion = state.seleccion;
 
         if(this.hoveredObstruction !== null){
-            console.log(this.hoveredObstruction);
             this.props.thunk_eliminar_obstruccion(this.hoveredObstruction.userData.indice);
         }else{
             if(this.props.seleccion !== null && this.hoveredSelected){
@@ -608,148 +494,6 @@ class Context extends Component {
             }
         }
         this.hoveredObstruction = null;
-        /*this.calcularFAR(this.ventanas);*/
-    }
-
-    onKeyDown(event) {
-
-    }
-
-    compareVectors(v1, v2) {
-        if (v1 == null || v2 == null) return false;
-        return v1.x === v2.x && v1.y === v2.y && v1.z === v2.z;
-
-    }
-
-    resetObstrucciones() {
-        for (let obs of this.obstrucciones) {
-            obs.ventanas = [];
-        }
-    }
-/*
-    calcularFarVentana(ventanaNueva) {
-
-    }
-
-    calcularFarObstrucciones(){
-        for(let ventana of ventanas){
-            let axisY = new THREE.Vector3(0, 1, 0);
-            let raycasterFAR = new THREE.Raycaster();
-            let orientacionVentana = ventana.
-            let angleLeft = ventana.userData.orientacion.clone().applyAxisAngle(axisY, Math.PI / 4);
-        }
-    }*/
-
-
-    calcularFAR(ventanas) {
-        for (let obs of this.obstrucciones) {
-            for (let vent of obs.ventanas) {
-                vent.betaIndex = null;
-                vent.betaAngle = null;
-            }
-        }
-        for (let ventana of ventanas) {
-            let axisY = new THREE.Vector3(0, 1, 0);
-            let raycasterFAR = new THREE.Raycaster();
-            let angleLeft = ventana.userData.orientacion.clone().applyAxisAngle(axisY, Math.PI / 4);
-            let angle = angleLeft.clone();
-            let obstruccionesVentana = [];
-            let current = {};
-            let pos = new THREE.Vector3();
-            ventana.getWorldPosition(pos);
-            for (let x = 0; x < 90; x++) {
-                angle = angle.normalize();
-                raycasterFAR.set(new THREE.Vector3(0,pos.y,0), angle);
-                let intersections = raycasterFAR.intersectObjects(this.obstrucciones);
-                let masAlto = {aDistance: 0};
-                //para cada obstruccion en el angulo actual se obtiene su aDistance y su bDistance, además se almacena el más alto
-                for (let i = 0; i < intersections.length; i++) {
-                    if (intersections[i].distance > 50) {
-                        intersections[i].object.fuera = true
-                    }
-                    /*let aDistance = intersections[i].object.userData.altura - pos.y;
-                    let bDistance = ventana.userData.orientacion.clone().dot(intersections[i].object.position);*/
-                    /*let far = Math.pow(0.2996, (aDistance / bDistance));*/
-                    let ventanaObstruida = {
-                        id: ventana.uuid,
-                        orientacion: ventana.userData.orientacion,
-                        aDistance: aDistance,
-                        bDistance: bDistance,
-                        far: far,
-                    };
-                    intersections[i].aDistance = aDistance;
-                    let ventanaAgregada = intersections[i].object.ventanas.find(element => element.id === ventanaObstruida.id);
-                    if (!ventanaAgregada) intersections[i].object.ventanas.push(ventanaObstruida);
-                    else {
-                        intersections[i].object.ventanas[intersections[i].object.ventanas.findIndex(elem => elem === ventanaAgregada)].aDistance = aDistance;
-                        intersections[i].object.ventanas[intersections[i].object.ventanas.findIndex(elem => elem === ventanaAgregada)].bDistance = bDistance;
-                        intersections[i].object.ventanas[intersections[i].object.ventanas.findIndex(elem => elem === ventanaAgregada)].far = far;
-                    }
-                    if (aDistance > masAlto.aDistance) {
-                        masAlto = intersections[i];
-                    }
-                }
-                //si no hay obstruccion en el angulo actual entonces pasamos al siguiente
-                if (masAlto.point == null) {
-                    angle.applyAxisAngle(axisY, -Math.PI / 180); //angulo + 1
-                    continue;
-                }
-                //si cambiamos de obstruccion mas alta entonces se reinicia el start point
-                if (masAlto.object !== current) {
-                    current.startPoint = null;
-                    current = masAlto.object;
-                    //el beta index indica si hay un nuevo angulo que agregar a la obstruccion
-                    let betaIndex = current.ventanas.find(ele => ele.id === ventana.uuid).betaIndex;
-                    if (betaIndex == null) betaIndex = -1;
-                    betaIndex += 1
-                    current.ventanas.find(ele => ele.id === ventana.uuid).betaIndex = betaIndex;
-                }
-                //cuando se cambia de obstruccion se reinicia el startpoint,
-                // entonces si ha sido reiniciado y volvemos a la misma obstruccion lo inicializamos de nuevo
-                if (current.startPoint == null) {
-                    current.startPoint = masAlto.point;
-                }
-                //se inicializa el arreglo de angulos beta
-                let betaAngle = current.ventanas.find(ele => ele.id === ventana.uuid).betaAngle;
-                let betaIndex = current.ventanas.find(ele => ele.id === ventana.uuid).betaIndex;
-                if (betaAngle == null) betaAngle = [];
-                betaAngle[betaIndex] = current.startPoint.angleTo(masAlto.point) * 180 / Math.PI;
-                current.ventanas.find(ele => ele.id === ventana.uuid).betaAngle = betaAngle;
-                //se agrega la obstruccion actual a las obstrucciones de la ventana si es que no ha sido agregada antes
-                //además las obstrucciones de una ventana se pintan rojas
-                if (!obstruccionesVentana.includes(current)) {
-                    obstruccionesVentana.push(current);
-                }
-
-                //pasamos al siguiente angulo
-                angle.applyAxisAngle(axisY, -Math.PI / 180);
-            }
-            //se calcula el far de la ventana en base a la formula
-            ventana.userData.obstrucciones = obstruccionesVentana;
-            let f1 = 1;
-            let f2 = 0;
-            for (let obs of ventana.userData.obstrucciones) {
-                // Si la obstrucción está fuera del rango y tiene FAR > 0.95 no se considera
-                if (obs.ventanas.find(element => element.id === ventana.uuid).far > 0.95 && obs.fuera) {
-                    ventana.userData.obstrucciones.splice(ventana.userData.obstrucciones.indexOf(obs), 1);
-                    obs.startPoint = null;
-                    continue;
-                }
-                obs.startPoint = null; //reseteamos el punto de inicio de la obstruccion para futuros cálculos
-                obs.material.color.setHex(0xff0000);
-                obs.currentHex = 0xff0000;
-                // if(ventana.userData.obstrucciones.length === 1 && obs.betaAngle.length > 1){
-                //     console.log("beta angle", obs.betaAngle);
-                //     obs.betaAngle = [obs.betaAngle[0]];
-                // }
-                for (let beta of obs.ventanas.find(element => element.id === ventana.uuid).betaAngle) {
-                    f1 -= beta / 90;
-                    f2 += obs.ventanas.find(element => element.id === ventana.uuid).far * beta / 90;
-                }
-            }
-            ventana.userData.far = f1 + f2;
-        }
-        this.props.onFarChanged(ventanas);
     }
 
     obstruccionDibujado(){
@@ -786,93 +530,6 @@ class Context extends Component {
 
     }
 
-
-    nuevaObstruccion() {
-        let puntoActual = new THREE.Vector3(Math.round(this.mousePoint.x), 0,
-            -Math.round(this.mousePoint.y));
-        let dir = puntoActual.sub(this.puntoInicial);
-        let largo = dir.length();
-        this.obstruccionFantasma.geometry = new THREE.BoxBufferGeometry(largo, 3, 0.5);
-        dir = dir.normalize().multiplyScalar(largo / 2);
-        let pos = this.puntoInicial.clone().add(dir);
-        this.obstruccionFantasma.position.set(pos.x, 0, pos.z);
-        this.obstruccionFantasma.rotation.y = Math.atan2(-dir.z, dir.x);
-        this.obstruccionFantasma.visible = true;
-    }
-
-    crearTextoObstruccion(obstruccion) {
-        let sprite = new MeshText2D("alt: " + obstruccion.geometry.parameters.height + "   long: " + Math.round(obstruccion.geometry.parameters.width), {
-            align: textAlign.center,
-            font: '40px Arial',
-            fillStyle: '#000000',
-            antialias: false
-        });
-        sprite.scale.setX(0.03);
-        sprite.scale.setY(0.03);
-        sprite.position.set(sprite.position.x, sprite.position.y, sprite.position.z + 1);
-        sprite.rotateX(-Math.PI / 2);
-        sprite.name = "info";
-        obstruccion.add(sprite);
-    }
-
-
-    handleRotation(sentido) {
-        if (sentido < 0) {
-            this.selectedObstruction.rotateY(Math.PI / 180);
-        }
-        else {
-            this.selectedObstruction.rotateY(-Math.PI / 180);
-        }
-        this.setState({
-            selectedObstruction: this.selectedObstruction
-        })
-    }
-
-
-    handleParamChange(name, value) {
-        if (name === 'altura') {
-            this.selectedObstruction.userData.altura = value;
-            let sprite = this.selectedObstruction.getObjectByName("info");
-            sprite.text = "alt: " + value + "   long: " + Math.round(this.selectedObstruction.geometry.parameters.width);
-        }
-        if (name === 'longitud') {
-            this.selectedObstruction.geometry = new THREE.BoxBufferGeometry(value, this.selectedObstruction.geometry.parameters.height, 0.5);
-            let sprite = this.selectedObstruction.getObjectByName("info");
-            sprite.text = "alt: " + this.selectedObstruction.geometry.parameters.height + "   long: " + Math.round(value);
-        }
-        this.setState({
-            selectedObstruction: this.selectedObstruction
-        })
-
-    }
-
-    getFAV2(pw, sw, orientacion) {
-        let pw_values = [0, 0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 4, 6, 10];
-        let closest = pw_values.reduce(function (prev, curr) {
-            return (Math.abs(curr - pw) < Math.abs(prev - pw) ? curr : prev);
-        });
-        if (orientacion.z > 0) { //orientacion norte
-            return this.PW_N.get(closest)[this.SW.indexOf(sw)];
-        }
-        else {
-            return this.PW_EOS.get(closest)[this.SW.indexOf(sw)];
-        }
-    }
-
-    getFAV1(lh, dh, orientacion) {
-        let lh_values = [0.5, 1, 1.5, 2, 3];
-        let closest = lh_values.reduce(function (prev, curr) {
-            return (Math.abs(curr - lh) < Math.abs(prev - lh) ? curr : prev);
-        });
-        if (orientacion.z > 0) { //orientacion norte
-            return this.LH_N.get(closest)[this.DH.indexOf(sw)];
-        }
-        else {
-            return this.LH_EOS.get(closest)[this.DH.indexOf(sw)];
-        }
-    }
-
-
     render() {
         const open = this.props.seleccion != null;
         const id = open ? 'simple-popper' : null;
@@ -883,7 +540,6 @@ class Context extends Component {
             top: this.state.popperCoords != null ? this.state.popperCoords.y + 'px' : 0,
             zIndex: 1
         };
-        console.log(open);
         return (
             <div style={{height: this.props.height}}>
                 <div
@@ -910,10 +566,7 @@ class Context extends Component {
                         />
                     </Popper>
                 </div>
-
             </div>
-
-
         )
     }
 }

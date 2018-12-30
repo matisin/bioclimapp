@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import { connect } from "react-redux";
 import { thunk_cambiar_variables_internas} from "../actions/index";
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import Paper from "@material-ui/core/Paper/Paper";
@@ -32,7 +31,6 @@ const styles = theme => ({
 });
 
 const mapStateToProps = state => {
-    console.log(state);
     return {
         personas: state.variables.personas,
         temperatura: state.variables.temperatura,

@@ -2,8 +2,6 @@ import React, {Component} from 'react';
 import {Map, TileLayer, Marker, Popup} from 'react-leaflet';
 import SearchBar from './SearchBar';
 
-var SunCalc = require('suncalc');
-import axios from 'axios'
 import { connect } from "react-redux";
 import {thunk_set_state_mapa} from "../actions";
 
@@ -32,33 +30,17 @@ class MapContainer extends Component {
             markers: this.props.markers,
         };
         this.mapClicked = this.mapClicked.bind(this);
-        this.getSunPosition = this.getSunPosition.bind(this);
     }
 
-    componentDidUpdate(prevProps){
-        if(this.props.fecha != prevProps.fecha){
-            this.setState((state) => ({sunPosition: this.getSunPosition(state.lat,state.lng,this.props.fecha)}), () => {this.props.onComunaChanged(this.state)});
-        }
+    componentDidUpdate(prevProps, prevState, snapshot){
         if(this.props.comuna !== prevProps.comuna && this.props.comuna != null){
             this.createMarker(this.props.lat,this.props.lng);
         }
     }
 
     componentWillMount(){
-        let comuna, sunPosition, sunPath;
         this.props.thunk_set_state_mapa(this.props.lat,this.props.lng);
 
-    }
-
-
-    getSunPosition(lat, lng, date = new Date()) {
-        let sun = SunCalc.getPosition(/*Date*/ date, /*Number*/ lat, /*Number*/ lng);
-        let altitude = sun.altitude * 180 / Math.PI;
-        let azimuth = sun.azimuth * 180 / Math.PI;
-        return {
-            altitude: altitude,
-            azimuth: azimuth
-        }
     }
 
     createMarker(lat, lng) {
@@ -71,28 +53,6 @@ class MapContainer extends Component {
 
     mapClicked(e) {
         this.props.thunk_set_state_mapa(e.latlng.lat,e.latlng.lng);
-
-        /*this.props.setLoading(false);
-        axios.get("https://bioclimapp.host/api/comuna/" + e.latlng.lat + "/" + e.latlng.lng)
-            .then(response => {
-                    if(response.data.length > 0) {
-                        this.createMarker(e.latlng.lat, e.latlng.lng);
-                        this.setState({
-                            lat: e.latlng.lat,
-                            lng: e.latlng.lng,
-                            comuna: response.data[0],
-                            sunPosition: this.getSunPosition(e.latlng.lat, e.latlng.lng),
-                            sunPath: this.getSunPath(e.latlng.lat, e.latlng.lng),
-                        }, function () {
-                            this.props.onComunaChanged(this.state);
-                        });
-                    }
-                    else{
-                        this.props.setLoading(true);
-                        alert("No se encuentra comuna en la base de datos");
-                    }
-                }
-            );*/
 
     }
 

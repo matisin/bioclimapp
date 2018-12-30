@@ -525,22 +525,6 @@ export const actualizarObstruccionesApp = (obstrucciones) => (
     }
 );
 
-function wait(ms){
-    var start = new Date().getTime();
-    var end = start;
-    while(end < start + ms) {
-        end = new Date().getTime();
-    }
-    return true;
-}
-
-function resolveAfter2Seconds() {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            resolve('resolved');
-        }, 20000);
-    });
-}
 
 
 export const setPeriodo = (periodo,rbParedes,gradosDias) => (
@@ -567,7 +551,7 @@ export const thunk_actualizar_obstrucciones_app = (obstrucciones) => {
         setTimeout(function(){
             let estadoCasa = getState().morfologia.present.niveles;
             let rotacion = getState().morfologia.present.rotacion;
-            var result = calcularFAR(obstrucciones, estadoCasa,rotacion);
+            let result = calcularFAR(obstrucciones, estadoCasa,rotacion);
             dispatch(actualizarObstruccionesApp(obstrucciones));
             dispatch(setFarVentanas(result));
             dispatch(setCalculando(false,'calcFar'));
@@ -798,15 +782,6 @@ export const agregarPuerta = (bloque, nivel, pared, puerta) => (
         bloque: bloque,
         pared: pared,
         puerta: puerta,
-    }
-);
-
-export const agregarTecho = (techo, nivel, bloque, pared) => (
-    {
-        type: AGREGAR_TECHO,
-        nivel: nivel,
-        bloque: bloque,
-        techo: techo,
     }
 );
 

@@ -1,18 +1,11 @@
 import React, {Component} from 'react';
-import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import {withStyles} from "@material-ui/core/styles";
 import PropTypes from "prop-types";
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
-import Undo from "@material-ui/icons/Undo";
-import Redo from "@material-ui/icons/Redo";
-import IconButton from '@material-ui/core/IconButton';
-import Tooltip from '@material-ui/core/Tooltip';
-import {modificarObstrucion, thunk_modificar_obstruccion} from "../actions";
+import {thunk_modificar_obstruccion} from "../actions";
 import {connect} from "react-redux";
-
-
 
 const styles = theme => ({
     root: {
@@ -56,7 +49,6 @@ class InfoObstruccion extends Component{
         this.handleChange = this.handleChange.bind(this);
     }
 
-
     handleChange(event){
         const target = event.target;
         const value = target.value;
@@ -89,7 +81,6 @@ class InfoObstruccion extends Component{
     }
 
     render(){
-        //
         const {classes, seleccion, obstrucciones} = this.props;
         return(
 

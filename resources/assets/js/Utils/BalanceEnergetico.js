@@ -3,9 +3,9 @@ import Morfologia from "../components/Morfologia";
 import {AISLADO, CORRIENTE, MEDIO, PARED, PISO, PUERTA, TECHO, VENTANA} from "../constants/morofologia-types";
 
 
-var SunCalc = require('suncalc');
+let SunCalc = require('suncalc');
 
-var periodo = [];
+let periodo = [];
 const diasMeses = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const uso = 1407.12;
 const resistenciasTermicasSuperficie = [
@@ -164,80 +164,6 @@ function getConductividadCapa(capa,info_materiales) {
     return conductividad;
 }
 
-function transmitanciaSuperficie(elemento, zona, info_materiales, info_ventana) {
-    let transmitancia = 0, u,conductividad;
-    switch (elemento.userData.tipo) {
-        case Morfologia.tipos.PARED:
-            for (let capa of elemento.userData.capas) {
-                getConductividadCapa(capa,info_materiales);
-                transmitancia += capa.espesor / capa.conductividad;
-            }
-            transmitancia += resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.userData.separacion];
-            u = 1 / transmitancia;
-            elemento.userData.transmitancia = u;
-            elemento.userData.transmitanciaObjetivo = uObjetivoMuro[zona - 1];
-            elemento.userData.transSup = u * elemento.userData.superficie;
-            elemento.userData.transSupObjetivo = uObjetivoMuro[zona - 1] * elemento.userData.superficie;
-            //console.log("elemento transsupobjetivo", elemento.userData.transSupObjetivo, uObjetivoMuro[zona-1], zona ,elemento.userData.superficie);
-            break;
-        case Morfologia.tipos.TECHO:
-            for (let capa of elemento.userData.capas) {
-                transmitancia += capa.espesor / capa.conductividad;
-            }
-            transmitancia += resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.userData.separacion];
-            u = 1 / transmitancia;
-            elemento.userData.transmitancia = u;
-            elemento.userData.transmitanciaObjetivo = uObjetivoTecho[zona - 1];
-            elemento.userData.transSup = u * elemento.userData.superficie;
-            elemento.userData.transSupObjetivo = uObjetivoTecho[zona - 1] * elemento.userData.superficie;
-            //console.log("techo",elemento);
-            break;
-        case Morfologia.tipos.PISO:
-            for (let capa of elemento.userData.capas) {
-                transmitancia += capa.espesor / capa.conductividad;
-            }
-            transmitancia += resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.userData.separacion];
-            u = 1 / transmitancia;
-
-            //console.log('resistencias',resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.userData.separacion]);
-            elemento.userData.transmitancia = u;
-            elemento.userData.transmitanciaObjetivo = uObjetivoPiso[zona - 1];
-            elemento.userData.transSup = u * elemento.userData.superficie;
-            elemento.userData.transSupObjetivo = uObjetivoPiso[zona - 1] * elemento.userData.superficie;
-
-            if (elemento.userData.transSup >= 0.15 && elemento.userData.transSup <= 0.25) {
-                elemento.userData.aislacion = Morfologia.aislacionPiso.CORRIENTE;
-            } else if (elemento.userData.transSup >= 0.26 && elemento.userData.transSup <= 0.60) {
-                elemento.userData.aislacion = Morfologia.aislacionPiso.MEDIO;
-            } else {
-                elemento.userData.aislacion = Morfologia.aislacionPiso.AISLADO;
-            }
-            break;
-        case Morfologia.tipos.VENTANA:
-            elemento.userData.transSupObjetivo = 5.8 * elemento.userData.superficie;
-            elemento.userData.transSup = elemento.userData.info_material.u * elemento.userData.superficie;
-            break;
-
-        case Morfologia.tipos.PUERTA:
-            transmitancia += elemento.userData.info_material.espesor / elemento.userData.info_material.conductividad;
-            transmitancia += resistenciasTermicasSuperficie[elemento.userData.tipo][elemento.parent.userData.separacion];
-
-            u = 1 / transmitancia;
-
-            elemento.userData.transmitancia = u;
-            elemento.userData.transmitanciaObjetivo = uObjetivoMuro[zona - 1];
-            elemento.userData.transSup = u * elemento.userData.superficie;
-            elemento.userData.transSupObjetivo = uObjetivoMuro[zona - 1] * elemento.userData.superficie;
-            break;
-    }
-
-}
-
-function cambioTransmitanciaSuperficie(tramitanciaSuperficie, elementoCambio) {
-    tramitanciaSuperficie -= elementoCambio.userData.tramitancia;
-    return tramitanciaSuperficie(tramitanciaSuperficie, elementoCambio);
-
-}
 
 function puenteTermico(piso, zona) {
     let aislacionObjetivo = Morfologia.aislacionPiso.CORRIENTE;
@@ -290,17 +216,17 @@ function transformDegreeToGamma(degree) {
     return degree;
 }
 
-function transformGammaToDegree(gamma) {
+export function transformGammaToDegree(gamma) {
     if (gamma < -90) gamma += 450;
     else gamma += 90;
     return gamma;
 }
 
 function getDayOfYear(date) {
-    var now = date;
-    var start = new Date(now.getFullYear(), 0, 0);
-    var diff = (now - start) + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000);
-    var oneDay = 1000 * 60 * 60 * 24;
+    let now = date;
+    let start = new Date(now.getFullYear(), 0, 0);
+    let diff = (now - start) + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000);
+    let oneDay = 1000 * 60 * 60 * 24;
     return Math.floor(diff / oneDay);
 
 }
@@ -357,7 +283,7 @@ function calcularFAR(threejsObs, estadoCasa, rotacion) {
                     );
                     let pos = posVentana.clone();
                     pos.applyAxisAngle(axisY, (Math.PI / 180) * rotacion);
-                    var origin = new THREE.Vector3(pos.x, 0, pos.z);
+                    let origin = new THREE.Vector3(pos.x, 0, pos.z);
                     let obstrucciones = {};
                     let obstuccionActual = null;
                     let infoPunto = null;
@@ -473,7 +399,7 @@ export function calcularFARVentana(threejsObs, rotacion, ventana) {
     );
     let pos = posVentana.clone();
     pos.applyAxisAngle(axisY, (Math.PI / 180) * rotacion);
-    var origin = new THREE.Vector3(pos.x, 0, pos.z);
+    let origin = new THREE.Vector3(pos.x, 0, pos.z);
     let obstrucciones = {};
     let obstuccionActual = null;
     let infoPunto = null;
@@ -852,8 +778,6 @@ function calcularIgb(difusa, directa, rb) {
 export {
     perdidasConduccion,
     puenteTermico,
-    cambioTransmitanciaSuperficie,
-    transmitanciaSuperficie,
     aporteInterno,
     gradosDias,
     perdidasVentilacion,

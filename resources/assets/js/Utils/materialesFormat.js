@@ -6,7 +6,7 @@ export function getJsonMateriales(response) {
     for (let i = 0; i < info_material.length; i++) {
         info_material[i].index = i;
 
-        var theme = createMuiTheme({
+        let theme = createMuiTheme({
             palette: {
                 primary: {
                     main: info_material[i].color,

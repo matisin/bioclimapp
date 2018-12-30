@@ -5,7 +5,6 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Morfologia from "./Morfologia";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import * as Tipos from '../constants/morofologia-types';
 import Select from '@material-ui/core/Select';
@@ -536,8 +535,6 @@ class InformacionPuerta extends Component {
 
 InformacionPuerta.propTypes = {
     classes: PropTypes.object.isRequired,
-    seleccion: PropTypes.object,
-    onDimensionChanged: PropTypes.func,
-}
+};
 
 export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InformacionPuerta));

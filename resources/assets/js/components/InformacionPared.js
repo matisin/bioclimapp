@@ -23,22 +23,19 @@ import IconButton from '@material-ui/core/IconButton';
 import Grid from "@material-ui/core/Grid";
 import SvgIcon from "@material-ui/core/SvgIcon/SvgIcon";
 import {
-    seleccionarMorfologia,
     thunk_agregar_capa_pared,
     thunk_aplicar_capa_paredes,
     thunk_borrar_capa_pared,
-    thunk_modificar_capa_pared, thunk_modificar_dimensiones_bloque,
+    thunk_modificar_capa_pared,
+    thunk_modificar_dimensiones_bloque,
 } from "../actions";
 import {connect} from "react-redux";
 import Button from "@material-ui/core/es/Button/Button";
-
-const ITEM_HEIGHT = 48;
 
 const styles = theme => ({
     titulo: {
         margin: theme.spacing.unit * 2,
     },
-
 
     root: {
         width: '100%',
@@ -92,17 +89,6 @@ const styles = theme => ({
 
 });
 
-function SunPathIcon() {
-    return (
-        <SvgIcon viewBox="0 0 64 64">
-            <path d="M62 30H47.9a15.9 15.9 0 0 0-3.2-7.8l10-10a2 2 0 0 0-2.8-2.8l-10 10a15.9 15.9 0 0 0-7.9-3.3V2a2 2 0
-             0 0-4 0v14.2a15.9 15.9 0 0 0-7.8 3.2l-10-10a2 2 0 1 0-2.8 2.8l10 10a15.9 15.9 0 0 0-3.2 7.8H2a2 2 0 1 0 0
-             4subheading4.2a15.9 15.9 0 0 0 3.2 7.8l-10 10a2 2 0 1 0 2.8 2.8l10-10a15.9 15.9 0 0 0 7.8 3.3V62a2 2 0 0 0
-              4 0V47.9a15.9 15.9 0 0 0 7.8-3.2l10 10a2 2 0 1 0 2.8-2.8l-10-10a15.9 15.9 0 0 0 3.3-7.9H62a2 2 0 1 0 0-4z"
-                  fill="#757575"/>
-        </SvgIcon>
-    );
-}
 
 const mapStateToProps = state => {
     return {
@@ -151,7 +137,7 @@ class InformacionPared extends Component {
         this.handleClickAplicar = this.handleClickAplicar.bind(this);
 
 
-        var theme = createMuiTheme({
+        let theme = createMuiTheme({
             palette: {
                 primary: {
                     main: "#fc0f4f",
@@ -161,121 +147,12 @@ class InformacionPared extends Component {
         this.colorSelected = [theme.palette.primary.main, theme.palette.primary.contrastText];
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props.seleccionados !== prevProps.seleccionados) {
             this.setState({
                 capaS: null
             });
         }
-        //console.log("selec pared",this.props.seleccion);
-        /*if (this.props.seleccion !== prevProps.seleccion) {
-            if(this.props.seleccion !== null  && this.props.seleccion.userData.tipo === Morfologia.tipos.PARED ){
-                let capas = this.props.seleccion.userData.capas;
-                for (let i = 0; i < capas.length; i++) {
-                    capas[i].index = i;
-                }
-
-                let capasVacias = 9 - capas.length - 1;
-                this.vaciosArray = [];
-                for(let i = 0 ; i < capasVacias ; i++){
-                    this.vaciosArray.push(i);
-                }
-
-                this.setState({
-                    capas: capas,
-                    capaS: null,
-                });
-                if(this.props.seleccion.userData.separacion === Morfologia.separacion.EXTERIOR && this.props.seleccion.userData.hasOwnProperty('omegas')) {
-                    this.info_rb = <div/>;
-                    if (this.props.seleccion.userData.omegas.wm.desde != null && this.props.seleccion.userData.omegas.wt.desde == null) {
-                        this.info_rb = <Grid container spacing={8} justify="center" alignItems="center">
-                            <Grid item xs={12} style={{textAlign:'center'}}><Typography variant="subheading">Información Solar</Typography></Grid>
-                            <Grid item xs={6} container spacing={0}>
-                                <Grid item xs={12} >Hoy el muro recibe sol</Grid>
-                                <Grid item xs={6}>
-                                    Desde:
-                                </Grid>
-                                <Grid item xs={6}>
-                                    Hasta:
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {this.props.seleccion.userData.omegas.wm.desde.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'})}
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {this.props.seleccion.userData.omegas.wm.hasta.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'})}
-                                </Grid>
-                            </Grid>
-                            <Grid item xs={6}>
-                                RB: {this.props.seleccion.userData.omegas.rb}
-                            </Grid>
-                        </Grid>
-                    }
-                    else if (this.props.seleccion.userData.omegas.wm.desde == null && this.props.seleccion.userData.omegas.wt.desde != null) {
-                        this.info_rb = <Grid container spacing={8} justify="center" alignItems="center">
-                            <Grid item xs={12} style={{textAlign:'center'}}><Typography variant="subheading">Información Solar</Typography></Grid>
-                            <Grid item xs={6} container spacing={0}>
-                                <Grid item xs={12} >Hoy el muro recibe sol</Grid>
-                                <Grid item xs={6}>
-                                    Desde:
-                                </Grid>
-                                <Grid item xs={6}>
-                                    Hasta:
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {this.props.seleccion.userData.omegas.wt.desde.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'})}
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {this.props.seleccion.userData.omegas.wt.hasta.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'})}
-                                </Grid>
-                            </Grid>
-                            <Grid item xs={6}>
-                                RB: {this.props.seleccion.userData.omegas.rb}
-                            </Grid>
-                        </Grid>
-                    }
-                    else if (this.props.seleccion.userData.omegas.wm.desde != null && this.props.seleccion.userData.omegas.wt.desde != null) {
-                        this.info_rb = <Grid container spacing={8} justify="center" alignItems="center">
-                            <Grid item xs={12} style={{textAlign:'center'}}><Typography variant="subheading">Información Solar</Typography></Grid>
-                            <Grid item xs={6} container spacing={0}>
-                                <Grid item xs={12} >Hoy el muro recibe sol</Grid>
-                                <Grid item xs={6}>
-                                    Desde:
-                                </Grid>
-                                <Grid item xs={6}>
-                                    Hasta:
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {this.props.seleccion.userData.omegas.wm.desde.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'})}
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {this.props.seleccion.userData.omegas.wm.hasta.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'})}
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {this.props.seleccion.userData.omegas.wt.desde.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'})}
-                                </Grid>
-                                <Grid item xs={6}>
-                                    {this.props.seleccion.userData.omegas.wt.hasta.toLocaleTimeString([],{hour: '2-digit', minute:'2-digit'})}
-                                </Grid>
-                            </Grid>
-                            <Grid item xs={6}>
-                                RB: {this.props.seleccion.userData.omegas.rb}
-                            </Grid>
-                        </Grid>
-                    }
-                    else {
-                        this.info_rb = <Grid container spacing={8} justify="center" alignItems="center">
-                            <Grid item xs={12} style={{textAlign:'center'}}><Typography variant="subheading">Información Solar</Typography></Grid>
-                            <Grid item xs={6} container spacing={0}>
-                                <Grid item xs={12} >Hoy el muro no recibe sol</Grid>
-                            </Grid>
-                            <Grid item xs={6}>
-                                RB: {this.props.seleccion.userData.omegas.rb}
-                            </Grid>
-                        </Grid>
-                    }
-                }
-            }
-        }*/
     }
 
     handleChangeCapa(event) {

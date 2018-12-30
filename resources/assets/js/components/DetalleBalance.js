@@ -283,7 +283,7 @@ class DetalleBalance extends Component {
 
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState, snapshot) {
         //console.log("PROPS", this.props);
         if (this.props.aporte_solar !== prevProps.aporte_solar) {
             this.setState({

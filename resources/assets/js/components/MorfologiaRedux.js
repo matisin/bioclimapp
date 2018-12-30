@@ -9,9 +9,8 @@ import Typography from "@material-ui/core/Typography/Typography";
 
 import * as THREE from 'three'
 import * as materiales from '../constants/materiales-threejs'
+import texto_accion from '../constants/morofologia-types.texto_accion'
 import * as Tipos from '../constants/morofologia-types';
-import * as BalanceEnergetico from '../Utils/BalanceEnergetico';
-import axios from "axios";
 
 import {
     crearGeometriaPared, crearMeshPared, crearMeshPiso,
@@ -19,19 +18,18 @@ import {
 } from '../Utils/dibujosMesh'
 
 import {
-    casaPredefinidaDoble, casaPredefinidaDobleDosPisos, casaPredefinidaSimple,
-    casaPredefinidaSimpleDosPisos, thunk_agregar_bloque, thunk_agregar_ventana,
-    thunk_agregar_puerta, thunk_borrar_puerta, thunk_borrar_ventana, thunk_borrar_bloque,
+    thunk_agregar_bloque, thunk_agregar_ventana,
+    thunk_agregar_puerta, thunk_borrar_puerta,
+    thunk_borrar_ventana, thunk_borrar_bloque,
 } from '../actions/index';
+
 import {seleccionarMorfologia, thunk_rotar_casa} from "../actions";
-import {materialObstruccion} from "../constants/materiales-threejs";
-import {materialSeleccionObstruccion} from "../constants/materiales-threejs";
-import {SELECCIONAR_MORFOLOGIA} from "../constants/action-types";
-import {materialHoveredMorf} from "../constants/materiales-threejs";
 import {createMuiTheme} from "@material-ui/core";
 const uuidv4 = require('uuid/v4');
 
-//El estado en redux se mapean como props.
+import transformGammaToDegree from '../Utils/BalanceEnergetico'
+
+//Se mapean los estados requeridos del componente como props
 const mapStateToProps = state => {
     return {
         personas: state.variables.personas,
@@ -53,10 +51,6 @@ const mapStateToProps = state => {
 //Las acciones se mapean a props.
 const mapDispatchToProps = dispatch => {
     return {
-        casaPredefinidaSimple: () => dispatch(casaPredefinidaSimple()),
-        casaPredefinidaDoble: () => dispatch(casaPredefinidaDoble()),
-        casaPredefinidaSimpleDosPisos: () => dispatch(casaPredefinidaSimpleDosPisos()),
-        casaPredefinidaDobleDosPisos: () => dispatch(casaPredefinidaDobleDosPisos()),
         thunk_agregar_bloque: (bloque, nivel) => dispatch(thunk_agregar_bloque(bloque, nivel)),
         thunk_agregar_ventana:
             (bloque, nivel, pared, ventana) =>
@@ -93,12 +87,9 @@ class Morfologia extends Component {
         this.onClick = this.onClick.bind(this);
         this.onChangeCamera = this.onChangeCamera.bind(this);
 
-        this.temperaturasMes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
         this.angleRotatedTemp = 0;
         this.angleRotated = 0;
         this.dragging = false;
-        //this.coordenadasRotadas = false;
 
         this.state = {
             height: props.height,
@@ -109,7 +100,7 @@ class Morfologia extends Component {
 
         };
 
-        var theme = createMuiTheme({
+        let theme = createMuiTheme({
             palette: {
                 primary: {
                     main: "#fc0f4f",
@@ -119,16 +110,11 @@ class Morfologia extends Component {
         this.colorSelected = [theme.palette.primary.main,theme.palette.primary.contrastText];
     };
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props.sunPosition !== prevProps.sunPosition && this.props.sunPosition !== null) {
             this.onSunpositionChanged();
             this.getSunPath();
-            /*if(this.props.fecha != null) this.getSunPath(this.props.fecha);
-            else this.getSunPath();*/
         }
-        /*if(this.props.sunPath !== prevProps.sunPath || (this.sunPath == null && this.props.sunPosition != null)){
-            this.getSunPath();
-        }*/
         if (this.props.camara3D !== prevProps.camara3D) {
             this.onPerspectiveChanged();
         }
@@ -151,10 +137,6 @@ class Morfologia extends Component {
             }
         }
 
-        if (this.props.comuna !== prevProps.comuna) {
-            this.onComunaChanged();
-        }
-
         if (this.props.width !== prevProps.width || this.props.height !== prevProps.height) {
             this.renderer.setSize(this.props.width, this.props.height);
             this.camara.aspect = this.props.width / this.props.height;
@@ -165,6 +147,267 @@ class Morfologia extends Component {
         if (this.props.morfologia.present !== null && prevProps.morfologia.present !== this.props.morfologia.present) {
             this.dibujarEstado();
         }
+    }
+
+    componentDidMount() {
+        //configuracion pantalla
+        const width = this.state.width;
+        const height = this.state.height;
+
+        //posicion de mouse en la pantalla
+        this.mouse = new THREE.Vector2();
+
+        //arreglo de objetos visibles que podrían interactuar
+        this.superficies = [];
+
+        this.allObjects = [];
+
+        //arreglos de objetos Object3D de three js para saber a que objeto se está apuntando.
+        this.paredes = [];
+        this.ventanas = [];
+        this.puertas = [];
+        this.pisos = [];
+
+        //objetos que se están destacando
+        this.objApuntadoMouse = null;
+        this.objSeleccionado = [];
+
+        //Hay que cargar escena, camara, y renderer,
+
+        //Escena
+        let escena = new THREE.Scene();
+        escena.background = new THREE.Color(0xf0f0f0);
+        this.escena = escena;
+
+        this.heightWall = 2.5;
+        //Camaras
+
+        //camara 2d
+        const val = 2 * 16;
+        let camara2D = new THREE.OrthographicCamera(width / -val, width / val, height / val, height / -val, 1, 1000);
+        camara2D.position.set(0, 3, 0);
+        camara2D.zoom = 2.5;
+        camara2D.updateProjectionMatrix();
+        this.camara2D = camara2D;
+        //CAMARA 3D
+        let camara3D = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
+        camara3D.position.set(0, 6, 15);
+        camara3D.lookAt(new THREE.Vector3());
+        this.camara3D = camara3D;
+
+        //camara de la escena es 3D al principio
+        this.camara = this.camara3D;
+
+        //Renderer
+        let renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
+        renderer.setClearColor('#F0F0F0');
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer = renderer;
+
+        this.escena.add(new THREE.AmbientLight(0xB1B1B1));
+        //this.escena.add(this.casas);
+
+        //Luz
+        this.light = new THREE.DirectionalLight(0xffff00, 1, 100);
+        this.light.castShadow = true;
+
+        this.light.shadow.mapSize.width = 2048;
+        this.light.shadow.mapSize.height = 2048;
+        let d = 50;
+        this.light.shadow.camera.left = -d;
+        this.light.shadow.camera.right = d;
+        this.light.shadow.camera.top = d;
+        this.light.shadow.camera.bottom = -d;
+        this.light.shadow.camera.far = 35;
+        this.light.shadow.bias = -0.0001;
+
+        //Mesh Sol
+        let solGeometry = new THREE.SphereBufferGeometry(2, 32, 32);
+        let solMaterial = new THREE.MeshBasicMaterial({color: 0xffff00});
+        this.sol = new THREE.Mesh(solGeometry, solMaterial);
+        this.sol.position.set(this.light.position.x, this.light.position.y, this.light.position.z);
+
+        //Controles para la camara2D
+        const control2D = new OrbitControls(camara2D, renderer.domElement);
+        control2D.enabled = false;
+        control2D.maxDistance = 10;
+        control2D.mouseButtons = {
+            PAN: -1,
+            ZOOM: THREE.MOUSE.MIDDLE,
+            ORBIT: -1,
+        };
+        this.control2D = control2D;
+
+        //Controles para la camara3D
+        const control3D = new OrbitControls(camara3D, renderer.domElement);
+        control3D.enabled = true;
+        control3D.maxDistance = 100;
+        control3D.mouseButtons = {
+            PAN: -1,
+            ZOOM: THREE.MOUSE.MIDDLE,
+            ORBIT: THREE.MOUSE.RIGHT,
+        };
+        this.control3D = control3D;
+
+        //Plano se agrega a objetos
+        let sizePlano = 40;
+        let planoGeometria = new THREE.PlaneBufferGeometry(sizePlano, sizePlano);
+        planoGeometria.rotateX(-Math.PI / 2);
+        planoGeometria.computeFaceNormals();
+        planoGeometria.computeVertexNormals();
+
+        this.positionParedes = [];
+        for (let i = 0; i < sizePlano; i++) {
+            this.positionParedes[i] = [];
+            for (let j = 0; j < sizePlano; j++) {
+                this.positionParedes[i][j] = [];
+            }
+        }
+
+        let plano = new THREE.Mesh(planoGeometria, new THREE.MeshLambertMaterial({
+            color: '#549833',
+            side: THREE.DoubleSide,
+        }));
+        plano.receiveShadow = true;
+        plano.castShadow = false;
+        escena.add(plano);
+        this.light.target = plano;
+        this.plano = plano;
+        this.superficies.push(this.plano);
+
+        //Grid del plano
+        let gridHelper = new THREE.GridHelper(sizePlano, sizePlano, 0xCCCCCC, 0xCCCCCC);
+        gridHelper.material = new THREE.LineBasicMaterial({
+            color: 0x1E3E0E,
+            linewidth: 4,
+            linecap: 'round', //ignored by WebGLRenderer
+            linejoin: 'round' //ignored by WebGLRenderer
+        });
+        escena.add(gridHelper);
+        gridHelper.position.y += 0.001;
+
+        //Ejes x e y
+        let lineMaterial = new THREE.LineBasicMaterial({
+            color: 0x90E567,
+            linewidth: 6,
+            linecap: 'round', //ignored by WebGLRenderer
+            linejoin: 'round' //ignored by WebGLRenderer
+        });
+        let lineGeometry = new THREE.Geometry();
+        lineGeometry.vertices.push(
+            new THREE.Vector3(-sizePlano / 2, 0.003, 0),
+            new THREE.Vector3(sizePlano / 2, 0.003, 0),
+        );
+        let ejeX = new THREE.Line(lineGeometry, lineMaterial);
+
+        let ejeY = ejeX.clone();
+        ejeY.rotation.y = Math.PI / 2;
+        this.escena.add(ejeX);
+        this.escena.add(ejeY);
+
+        //Indicador de puntos cardinales
+        let curve = new THREE.EllipseCurve(
+            0, 0,            // ax, aY
+            sizePlano/2, sizePlano/2,           // xRadius, yRadius
+            0, 2 * Math.PI,  // aStartAngle, aEndAngle
+            false,            // aClockwise
+            0                 // aRotation
+        );
+
+        let points = curve.getPoints(360);
+        let circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        let circleMaterial = new THREE.LineBasicMaterial({color: 0x1E3E0E, linewidth: 5});
+        let cardinalPointsCircle = new THREE.Line(circleGeometry, circleMaterial,);
+
+        cardinalPointsCircle.rotateX(-Math.PI / 2);
+        cardinalPointsCircle.position.set(0, 0.001, 0);
+        cardinalPointsCircle.name = "cardinalPointsCircle";
+        this.cardinalPointsCircle = cardinalPointsCircle;
+        this.circlePoints = points;
+
+        this.sunPathCardinal = new THREE.Group();
+        this.sunPath = new THREE.Group();
+        this.sunPathCardinal.add(this.cardinalPointsCircle);
+        this.sunPathCardinal.add(this.sunPath);
+
+        escena.add(this.sunPathCardinal);
+
+        let sprite = new MeshText2D("S", {
+            align: textAlign.center,
+            font: '40px Arial',
+            fillStyle: '0xCCCCCC',
+            antialias: false
+        });
+        sprite.scale.setX(0.03);
+        sprite.scale.setY(0.03);
+        sprite.position.set(0,-sizePlano/2, 0.0);
+        cardinalPointsCircle.add(sprite);
+
+        sprite = new MeshText2D("N", {
+            align: textAlign.center,
+            font: '40px Arial',
+            fillStyle: '0xCCCCCC',
+            antialias: false
+        });
+        sprite.scale.setX(0.03);
+        sprite.scale.setY(0.03);
+        sprite.position.set(0, sizePlano/2 + 2, 0.0);
+        cardinalPointsCircle.add(sprite);
+        sprite = new MeshText2D("E", {
+            align: textAlign.center,
+            font: '40px Arial',
+            fillStyle: '0xCCCCCC',
+            antialias: false
+        });
+        sprite.scale.setX(0.03);
+        sprite.scale.setY(0.03);
+        sprite.position.set(sizePlano/2+1, 0.3, 0);
+        cardinalPointsCircle.add(sprite);
+
+        sprite = new MeshText2D("O", {
+            align: textAlign.center,
+            font: '40px Arial',
+            fillStyle: '0xCCCCCC',
+            antialias: false
+        });
+        sprite.scale.setX(0.03);
+        sprite.scale.setY(0.03);
+        sprite.position.set(-sizePlano/2-1, 0.3, 0);
+        cardinalPointsCircle.add(sprite);
+
+        let light = new THREE.AmbientLight(0x404040); // soft white light
+        escena.add(light);
+
+        //raycaster, usado para apuntar objetos
+        let raycaster = new THREE.Raycaster();
+        raycaster.linePrecision = 1;
+        this.raycaster = raycaster;
+
+        this.construyendo = false;
+
+        this.indicador_dibujado = this.crearIndicadorConstruccionPared(this.heightWall, 0.05);
+        escena.add(this.indicador_dibujado);
+
+        this.indicador_dibujado_ventana = this.crearIndicardorConstruccionVentana(0.09);
+        escena.add(this.indicador_dibujado_ventana);
+
+        this.casa = new THREE.Group();
+        escena.add(this.casa);
+        this.mount.appendChild(this.renderer.domElement);
+
+        this.start();
+
+        this.bloqueDibujo = new THREE.Group();
+        this.ventanaDibujo = new THREE.Group();
+        this.puertaDibujo = new THREE.Group();
+        this.escena.add(this.bloqueDibujo);
+        this.escena.add(this.ventanaDibujo);
+        this.escena.add(this.puertaDibujo);
+
+        this.dibujarEstado();
     }
 
     dibujarEstado() {
@@ -219,7 +462,7 @@ class Morfologia extends Component {
                         }
                     }
 
-                    var holes = [];
+                    let holes = [];
 
                     for (let ventana of pared.ventanas) {
                         let ventanaMesh = crearMeshVentana(ventana.dimensiones.ancho, ventana.dimensiones.alto);
@@ -320,8 +563,8 @@ class Morfologia extends Component {
             alto: heigth,
         };
 
-        var dir = worldEnd.clone().sub(worldStart);
-        var len = dir.length();
+        let dir = worldEnd.clone().sub(worldStart);
+        let len = dir.length();
         dir = dir.normalize().multiplyScalar(len * 0.5);
         let pos = worldStart.clone().add(dir);
 
@@ -360,8 +603,8 @@ class Morfologia extends Component {
             alto: heigth,
         };
 
-        var dir = worldEnd.clone().sub(worldStart);
-        var len = dir.length();
+        let dir = worldEnd.clone().sub(worldStart);
+        let len = dir.length();
         dir = dir.normalize().multiplyScalar(len * 0.5);
         let pos = worldStart.clone().add(dir);
 
@@ -401,8 +644,8 @@ class Morfologia extends Component {
             largo: depth,
         };
 
-        var dir = end.clone().sub(start);
-        var len = dir.length();
+        let dir = end.clone().sub(start);
+        let len = dir.length();
         dir = dir.normalize().multiplyScalar(len * 0.5);
         let pos = start.clone().add(dir);
 
@@ -470,29 +713,8 @@ class Morfologia extends Component {
 
     }
 
-    onComunaChanged() {
-        axios.get("https://bioclimapp.host/api/temperaturas/" + this.props.comuna.id)
-            .then(response => this.getJson(response));
-
-    }
-
-    getJson(response) {
-        let data = response.data.slice();
-        for (let i = 0; i < data.length; i++) {
-            this.temperaturasMes[i] = data[i].valor;
-        }
-        let res = BalanceEnergetico.gradosDias(this.temperaturasMes, this.temperaturaConfort);
-        let gradoDias = res[0];
-        let periodo = res[1];
-        this.managerCasas.setZona(this.props.comuna.zona);
-        this.managerCasas.setGradosDias(gradoDias, periodo);
-        this.props.onParedesChanged(this.paredes);
-        this.props.onFarChanged(this.ventanas);
-        this.handleChangeCasa();
-    }
-
     onSunpositionChanged() {
-        var sunDegrees = this.transformGammaToDegree(this.props.sunPosition.azimuth);
+        let sunDegrees = transformGammaToDegree(this.props.sunPosition.azimuth);
         let index = Math.round(sunDegrees);
         let sunPosCircle = this.circlePoints[index];
         index = Math.round(this.props.sunPosition.altitude);
@@ -546,7 +768,7 @@ class Morfologia extends Component {
         for (let daySunPath of this.props.sunPath) {
             let curvePoints = [];
             for (let sunPosition of daySunPath) {
-                let sunDegrees = this.transformGammaToDegree(sunPosition.azimuth);
+                let sunDegrees = transformGammaToDegree(sunPosition.azimuth);
                 let index = Math.round(sunDegrees);
                 let sunPosCircle = this.circlePoints[index];
                 index = Math.round(sunPosition.altitude);
@@ -601,270 +823,9 @@ class Morfologia extends Component {
         }
     }
 
-    componentDidMount() {
-        //configuracion pantalla
-        const width = this.state.width;
-        const height = this.state.height;
-
-        //posicion de mouse en la pantalla
-        this.mouse = new THREE.Vector2();
-
-        //arreglo de objetos visibles que podrían interactuar
-        this.superficies = [];
-
-        this.allObjects = [];
-
-        //arreglos de objetos Object3D de three js para saber a que objeto se está apuntando.
-        this.paredes = [];
-        this.ventanas = [];
-        this.puertas = [];
-        this.pisos = [];
-
-        //objetos que se están destacando
-        this.objApuntadoMouse = null;
-        this.objSeleccionado = [];
-
-        //Hay que cargar escena, camara, y renderer,
-
-        //Escena
-        let escena = new THREE.Scene();
-        escena.background = new THREE.Color(0xf0f0f0);
-        this.escena = escena;
-
-        this.heightWall = 2.5;
-        //Camaras
-
-        //camara 2d
-        const val = 2 * 16;
-        let camara2D = new THREE.OrthographicCamera(width / -val, width / val, height / val, height / -val, 1, 1000);
-        camara2D.position.set(0, 3, 0);
-        camara2D.zoom = 2.5;
-        camara2D.updateProjectionMatrix();
-        this.camara2D = camara2D;
-        //CAMARA 3D
-        let camara3D = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-        camara3D.position.set(0, 6, 15);
-        camara3D.lookAt(new THREE.Vector3());
-        this.camara3D = camara3D;
-
-        //camara de la escena es 3D al principio
-        this.camara = this.camara3D;
-
-        //Renderer
-        var renderer = new THREE.WebGLRenderer({antialias: true});
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFShadowMap;
-        renderer.setClearColor('#F0F0F0');
-        renderer.setSize(width, height);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer = renderer;
-
-        this.escena.add(new THREE.AmbientLight(0xB1B1B1));
-        //this.escena.add(this.casas);
-
-        //Luz
-        this.light = new THREE.DirectionalLight(0xffff00, 1, 100);
-        this.light.castShadow = true;
-
-        this.light.shadow.mapSize.width = 2048;
-        this.light.shadow.mapSize.height = 2048;
-        var d = 50;
-        this.light.shadow.camera.left = -d;
-        this.light.shadow.camera.right = d;
-        this.light.shadow.camera.top = d;
-        this.light.shadow.camera.bottom = -d;
-        this.light.shadow.camera.far = 35;
-        this.light.shadow.bias = -0.0001;
-
-        //Mesh Sol
-        var solGeometry = new THREE.SphereBufferGeometry(2, 32, 32);
-        var solMaterial = new THREE.MeshBasicMaterial({color: 0xffff00});
-        this.sol = new THREE.Mesh(solGeometry, solMaterial);
-        this.sol.position.set(this.light.position.x, this.light.position.y, this.light.position.z);
-
-        //Controles para la camara2D
-        const control2D = new OrbitControls(camara2D, renderer.domElement);
-        control2D.enabled = false;
-        control2D.maxDistance = 10;
-        control2D.mouseButtons = {
-            PAN: -1,
-            ZOOM: THREE.MOUSE.MIDDLE,
-            ORBIT: -1,
-        };
-        this.control2D = control2D;
-
-        //Controles para la camara3D
-        const control3D = new OrbitControls(camara3D, renderer.domElement);
-        control3D.enabled = true;
-        control3D.maxDistance = 100;
-        control3D.mouseButtons = {
-            PAN: -1,
-            ZOOM: THREE.MOUSE.MIDDLE,
-            ORBIT: THREE.MOUSE.RIGHT,
-        };
-        this.control3D = control3D;
-
-        //Plano se agrega a objetos
-        let sizePlano = 40;
-        let planoGeometria = new THREE.PlaneBufferGeometry(sizePlano, sizePlano);
-        planoGeometria.rotateX(-Math.PI / 2);
-        planoGeometria.computeFaceNormals();
-        planoGeometria.computeVertexNormals();
-
-        this.positionParedes = [];
-        for (let i = 0; i < sizePlano; i++) {
-            this.positionParedes[i] = [];
-            for (let j = 0; j < sizePlano; j++) {
-                this.positionParedes[i][j] = [];
-            }
-        }
-
-        let plano = new THREE.Mesh(planoGeometria, new THREE.MeshLambertMaterial({
-            color: '#549833',
-            side: THREE.DoubleSide,
-        }));
-        plano.receiveShadow = true;
-        plano.castShadow = false;
-        escena.add(plano);
-        this.light.target = plano;
-        this.plano = plano;
-        this.superficies.push(this.plano);
-
-        //Grid del plano
-        let gridHelper = new THREE.GridHelper(sizePlano, sizePlano, 0xCCCCCC, 0xCCCCCC);
-        gridHelper.material = new THREE.LineBasicMaterial({
-            color: 0x1E3E0E,
-            linewidth: 4,
-            linecap: 'round', //ignored by WebGLRenderer
-            linejoin: 'round' //ignored by WebGLRenderer
-        });
-        escena.add(gridHelper);
-        gridHelper.position.y += 0.001;
-
-        //Ejes x e y
-        let lineMaterial = new THREE.LineBasicMaterial({
-            color: 0x90E567,
-            linewidth: 6,
-            linecap: 'round', //ignored by WebGLRenderer
-            linejoin: 'round' //ignored by WebGLRenderer
-        });
-        let lineGeometry = new THREE.Geometry();
-        lineGeometry.vertices.push(
-            new THREE.Vector3(-sizePlano / 2, 0.003, 0),
-            new THREE.Vector3(sizePlano / 2, 0.003, 0),
-        );
-        let ejeX = new THREE.Line(lineGeometry, lineMaterial);
-
-        let ejeY = ejeX.clone();
-        ejeY.rotation.y = Math.PI / 2;
-        this.escena.add(ejeX);
-        this.escena.add(ejeY);
-
-        //Indicador de puntos cardinales
-        let curve = new THREE.EllipseCurve(
-            0, 0,            // ax, aY
-            sizePlano/2, sizePlano/2,           // xRadius, yRadius
-            0, 2 * Math.PI,  // aStartAngle, aEndAngle
-            false,            // aClockwise
-            0                 // aRotation
-        );
-
-        var points = curve.getPoints(360);
-        var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
-        var circleMaterial = new THREE.LineBasicMaterial({color: 0x1E3E0E, linewidth: 5});
-        var cardinalPointsCircle = new THREE.Line(circleGeometry, circleMaterial,);
-
-        cardinalPointsCircle.rotateX(-Math.PI / 2);
-        cardinalPointsCircle.position.set(0, 0.001, 0);
-        cardinalPointsCircle.name = "cardinalPointsCircle";
-        this.cardinalPointsCircle = cardinalPointsCircle;
-        this.circlePoints = points;
-
-        this.sunPathCardinal = new THREE.Group();
-        this.sunPath = new THREE.Group();
-        this.sunPathCardinal.add(this.cardinalPointsCircle);
-        this.sunPathCardinal.add(this.sunPath);
-
-        escena.add(this.sunPathCardinal);
-
-        var sprite = new MeshText2D("S", {
-            align: textAlign.center,
-            font: '40px Arial',
-            fillStyle: '0xCCCCCC',
-            antialias: false
-        });
-        sprite.scale.setX(0.03);
-        sprite.scale.setY(0.03);
-        sprite.position.set(0,-sizePlano/2, 0.0);
-        cardinalPointsCircle.add(sprite);
-
-        sprite = new MeshText2D("N", {
-            align: textAlign.center,
-            font: '40px Arial',
-            fillStyle: '0xCCCCCC',
-            antialias: false
-        });
-        sprite.scale.setX(0.03);
-        sprite.scale.setY(0.03);
-        sprite.position.set(0, sizePlano/2 + 2, 0.0);
-        cardinalPointsCircle.add(sprite);
-        sprite = new MeshText2D("E", {
-            align: textAlign.center,
-            font: '40px Arial',
-            fillStyle: '0xCCCCCC',
-            antialias: false
-        });
-        sprite.scale.setX(0.03);
-        sprite.scale.setY(0.03);
-        sprite.position.set(sizePlano/2+1, 0.3, 0);
-        cardinalPointsCircle.add(sprite);
-
-        sprite = new MeshText2D("O", {
-            align: textAlign.center,
-            font: '40px Arial',
-            fillStyle: '0xCCCCCC',
-            antialias: false
-        });
-        sprite.scale.setX(0.03);
-        sprite.scale.setY(0.03);
-        sprite.position.set(-sizePlano/2-1, 0.3, 0);
-        cardinalPointsCircle.add(sprite);
-
-        var light = new THREE.AmbientLight(0x404040); // soft white light
-        escena.add(light);
-
-        //raycaster, usado para apuntar objetos
-        var raycaster = new THREE.Raycaster();
-        raycaster.linePrecision = 1;
-        this.raycaster = raycaster;
-
-        this.construyendo = false;
-
-        this.indicador_dibujado = this.crearIndicadorConstruccionPared(this.heightWall, 0.05);
-        escena.add(this.indicador_dibujado);
-
-        this.indicador_dibujado_ventana = this.crearIndicardorConstruccionVentana(0.09);
-        escena.add(this.indicador_dibujado_ventana);
-
-        this.casa = new THREE.Group();
-        escena.add(this.casa);
-        this.mount.appendChild(this.renderer.domElement);
-
-        this.start();
-
-        this.bloqueDibujo = new THREE.Group();
-        this.ventanaDibujo = new THREE.Group();
-        this.puertaDibujo = new THREE.Group();
-        this.escena.add(this.bloqueDibujo);
-        this.escena.add(this.ventanaDibujo);
-        this.escena.add(this.puertaDibujo);
-
-        this.dibujarEstado();
-    }
-
     crearIndicadorConstruccionPared(heightWall, radius) {
         const geometria = new THREE.CylinderBufferGeometry(radius, radius, heightWall, 32);
-        var indicadorPared = new THREE.Mesh(geometria, materiales.materialIndicador.clone());
+        let indicadorPared = new THREE.Mesh(geometria, materiales.materialIndicador);
         indicadorPared.visible = false;
         return indicadorPared;
     }
@@ -1040,7 +1001,6 @@ class Morfologia extends Component {
             || this.props.acciones.agregar_puerta
             || this.props.acciones.agregar_bloque) {
 
-            let index = parseInt(this.props.dibujando);
             let intersect;
             //si se dibujan bloques
             if (this.props.acciones.agregar_bloque) {
@@ -1077,7 +1037,7 @@ class Morfologia extends Component {
                     console.log(this.heightWall);
                     if (this.construyendo) {
                         this.indicador_dibujado.position.y = this.worldPosition.y + this.heightWall / 2;
-                        var nextPosition = (intersect.point).add(intersect.face.normal).clone();
+                        let nextPosition = (intersect.point).add(intersect.face.normal).clone();
                         nextPosition.round();
                         this.bloqueDibujado(this.startHabitacion, nextPosition, this.heightWall, this.indicador_dibujado.position.y - this.heightWall / 2);
                         this.nexPosition = nextPosition;
@@ -1423,48 +1383,23 @@ class Morfologia extends Component {
     changeColorSeleccion(elemento) {
         switch (elemento.userData.tipo) {
             case  Tipos.PARED:
-                elemento.material = materiales.materialPared.clone();
+                elemento.material = materiales.materialPared;
                 break;
             case  Tipos.VENTANA:
-                elemento.material = materiales.materialVentana.clone();
+                elemento.material = materiales.materialVentana;
                 break;
             case Tipos.PUERTA:
-                elemento.material = materiales.materialPuerta.clone();
+                elemento.material = materiales.materialPuerta;
                 break;
             case Tipos.PISO:
-                elemento.material = materiales.materialPiso.clone();
+                elemento.material = materiales.materialPiso;
                 break;
             case Tipos.TECHO:
-                elemento.material = materiales.materialTecho.clone();
+                elemento.material = materiales.materialTecho;
                 break;
             default:
                 break;
         }
-    }
-
-    transformDegreeToGamma(degree) {
-        if (degree > 270 && degree <= 360) degree = 180 - degree;
-        else degree -= 90;
-        return degree;
-    }
-
-    transformGammaToDegree(gamma) {
-        if (gamma < -90) gamma += 450;
-        else gamma += 90;
-        return gamma;
-    }
-
-    handleChangeCasa() {
-        let casa = this.managerCasas.getCasa();
-        this.props.onCasaChanged(
-            casa.userData.aporteInterno,
-            casa.userData.perdidaVentilacion,
-            casa.userData.perdidaVentilacionObjetivo,
-            casa.userData.perdidaPorConduccion,
-            casa.userData.perdidaPorConduccionObjetivo,
-            casa.userData.volumen,
-            casa.userData.area,
-        );
     }
 
     onClick(event) {
@@ -1476,7 +1411,6 @@ class Morfologia extends Component {
 
         if (this.props.acciones.seleccionar) {
             this.handleSeleccionado(event);
-
         }
     }
 
@@ -1632,25 +1566,25 @@ class Morfologia extends Component {
 
     render() {
         let text = '';
-        if (this.props.acciones.seleccionar) text = Morfologia.texto_accion.seleccionar;
+        if (this.props.acciones.seleccionar) text = texto_accion.texto_accion.seleccionar;
         else if (this.props.acciones.rotar) {
             if (this.state.dragging) {
                 text = 'Angulo rotado: ' + Math.round(this.state.angleRotated) + '° ';
             } else {
-                text = Morfologia.texto_accion.rotar;
+                text = texto_accion.texto_accion.rotar;
             }
 
-        } else if (this.props.acciones.eliminar) text = Morfologia.texto_accion.borrar;
-        else if (this.props.acciones.agregar_bloque) text = Morfologia.texto_accion.bloque_paredes;
-        else if (this.props.acciones.agregar_ventana) text = Morfologia.texto_accion.ventanas;
-        else if (this.props.acciones.agregar_puerta) text = Morfologia.texto_accion.puertas;
-        else if (this.props.acciones.mover_camara) text = Morfologia.texto_accion.mover_camara;
+        }else if (this.props.acciones.eliminar) text = texto_accion.texto_accion.borrar;
+        else if (this.props.acciones.agregar_bloque) text = texto_accion.texto_accion.bloque_paredes;
+        else if (this.props.acciones.agregar_ventana) text = texto_accion.texto_accion.ventanas;
+        else if (this.props.acciones.agregar_puerta) text = texto_accion.texto_accion.puertas;
+        else if (this.props.acciones.mover_camara) text = texto_accion.texto_accion.mover_camara;
         return (
             <div style={{height: this.props.height}}>
                 <div style={{height: 5,
                     backgroundImage: 'linear-gradient(to bottom, rgba(128,128,128,1),rgba(128,128,128,0.9))'
                 }}
-                    //tabIndex="0"
+                    //{tabIndex="0}"
                      onMouseDown={this.onMouseDown}
                      onMouseUp={this.onMouseUp}
                      onMouseMove={this.onMouseMove}
@@ -1671,53 +1605,10 @@ class Morfologia extends Component {
                     Rotar camara: Arrastrar click derecho
                     <br/>{text}
                 </Typography>
-                {/*<TextoAccion
-                    seleccionando={this.props.acciones.seleccionar}
-                    rotando={this.props.acciones.rotar}
-                    dragging={this.state.dragging}
-                    angleRotated={this.state.angleRotated}
-                    borrando={this.props.acciones.eliminar}
-                    agregar_puerta={this.props.acciones.agregar_puerta}
-                    agregar_ventana={this.props.acciones.agregar_ventana}
-                    agregar_bloque={this.props.acciones.agregar_bloque}
-                    mover_camara={this.props.acciones.mover_camara}
-
-                />*/}
             </div>
 
         )
     }
-}
-
-function TextoAccion(props) {
-    let text = '';
-    let angulo = props.angleRotated;
-
-    if (props.seleccionando) text = Morfologia.texto_accion.seleccionar;
-    else if (props.rotando) {
-        if (props.dragging) {
-            text = 'Angulo rotado: ' + Math.round(angulo) + '° ';
-        } else {
-            text = Morfologia.texto_accion.rotar;
-        }
-
-    } else if (props.borrando) text = Morfologia.texto_accion.borrar;
-    else if (props.agregar_bloque) text = Morfologia.texto_accion.bloque_paredes;
-    else if (props.agregar_ventana) text = Morfologia.texto_accion.ventanas;
-    else if (props.agregar_puerta) text = Morfologia.texto_accion.puertas;
-    else if (props.mover_camara) text = Morfologia.texto_accion.mover_camara;
-    return (
-        <Typography style={{
-            fontSize: 'x-small',
-            zIndex: 0,
-            position: 'relative',
-        }}
-                    align={"center"}
-                    variant={"button"}
-                    color={"contrastText"}>
-            {text}
-        </Typography>
-    )
 }
 
 Morfologia.propTypes = {
@@ -1742,30 +1633,6 @@ Morfologia.propTypes = {
     thunk_borrar_puerta: PropTypes.func,
     thunk_borrar_ventana: PropTypes.func,
     thunk_borrar_bloque: PropTypes.func,
-
-
-};
-
-Morfologia.tipos = {PARED: 0, VENTANA: 1, PUERTA: 2, TECHO: 3, PISO: 4,};
-Morfologia.separacion = {EXTERIOR: 0, INTERIOR: 1};
-Morfologia.aislacionPiso = {CORRIENTE: 0, MEDIO: 1, AISLADO: 2};
-Morfologia.tipos_texto = {
-    0: 'Pared',
-    1: 'Ventana',
-    2: 'Puerta',
-    3: 'Techo',
-    4: 'Piso',
-};
-
-Morfologia.texto_accion = {
-    seleccionar: '\nseleccionar: click izquierdo en un elemento',
-    rotar: '\nrotar coordenadas: arrastrar click izquierdo',
-    borrar: '\neliminar: click izquierdo en un elemento',
-    bloque_paredes: '\nAgregar bloque paredes: arrastrar click izquierdo desde punto inicio hasta punto final',
-    ventanas: '\nAgregar ventanas: click izquierdo dentro de una pared',
-    puertas: '\nAgregar puertas: click izquierdo dentro de una pared ',
-    techos: '\nAgregar techos: Click izquierdo dentro de un bloque de paredes',
-    mover_camara: '\nMover camara: arrastrar click izquierdo',
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Morfologia);

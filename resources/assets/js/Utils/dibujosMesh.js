@@ -91,7 +91,7 @@ function crearGeometriaVentana(width, height) {
 }
 
 function crearSpriteTexto(texto){
-    var sprite = new MeshText2D(texto, {
+    let sprite = new MeshText2D(texto, {
         align: textAlign.center,
         font: '40px Arial',
         fillStyle: '#000000',
@@ -104,11 +104,11 @@ function crearSpriteTexto(texto){
 }
 
 function agregarDimensionesMesh(width, height, mesh,z = false){
-    var derecha = new THREE.Vector3( 1, 0, 0 );
-    var izquierda = new THREE.Vector3( -1, 0, 0 );
+    let derecha = new THREE.Vector3( 1, 0, 0 );
+    let izquierda = new THREE.Vector3( -1, 0, 0 );
 
-    var arriba = new THREE.Vector3( 0, 1, 0 );
-    var abajo =  new THREE.Vector3( 0, -1, 0 );
+    let arriba = new THREE.Vector3( 0, 1, 0 );
+    let abajo =  new THREE.Vector3( 0, -1, 0 );
 
     derecha.normalize();
     izquierda.normalize();
@@ -125,17 +125,17 @@ function agregarDimensionesMesh(width, height, mesh,z = false){
 
         const offsetVertical = 0.06;
 
-        var destinoIzquierda = new THREE.Vector3(-width/2, height + offsetVertical, 0 );
-        var originIzquierda = new THREE.Vector3( -offsetV, height + offsetVertical, 0 );
+        let destinoIzquierda = new THREE.Vector3(-width/2, height + offsetVertical, 0 );
+        let originIzquierda = new THREE.Vector3( -offsetV, height + offsetVertical, 0 );
 
-        var marcaIzquierdaArriba = new THREE.Vector3(-width/2, height + offsetVertical*2, 0 );
-        var marcaIzquierdaAbajo = new THREE.Vector3(-width/2, height , 0 );
+        let marcaIzquierdaArriba = new THREE.Vector3(-width/2, height + offsetVertical*2, 0 );
+        let marcaIzquierdaAbajo = new THREE.Vector3(-width/2, height , 0 );
 
-        var originDerecha = new THREE.Vector3( offsetV, height+ offsetVertical, 0 );
-        var destinoDerecha = new THREE.Vector3(width/2, height + offsetVertical, 0 );
+        let originDerecha = new THREE.Vector3( offsetV, height+ offsetVertical, 0 );
+        let destinoDerecha = new THREE.Vector3(width/2, height + offsetVertical, 0 );
 
-        var marcaDerechaArriba = new THREE.Vector3( width/2, height+ offsetVertical*2, 0 );
-        var marcaDerechaAbajo = new THREE.Vector3( width/2, height, 0 );
+        let marcaDerechaArriba = new THREE.Vector3( width/2, height+ offsetVertical*2, 0 );
+        let marcaDerechaAbajo = new THREE.Vector3( width/2, height, 0 );
 
         lineGeometry = new THREE.Geometry();
         lineGeometry.vertices.push(
@@ -174,17 +174,17 @@ function agregarDimensionesMesh(width, height, mesh,z = false){
     if(height > offsetH*2){
 
         const offsetHorizontal = 0.06;
-        var originArriba = new THREE.Vector3( -(width / 2 + offsetHorizontal), (height/2 + offsetH), 0 );
-        var destinoArriba = new THREE.Vector3( -(width / 2 + offsetHorizontal), height , 0 );
+        let originArriba = new THREE.Vector3( -(width / 2 + offsetHorizontal), (height/2 + offsetH), 0 );
+        let destinoArriba = new THREE.Vector3( -(width / 2 + offsetHorizontal), height , 0 );
 
-        var marcaArribaArriba = new THREE.Vector3( -width/2 , height, 0 );
-        var marcaArribaAbajo = new THREE.Vector3( -(width/2 + offsetHorizontal*2), height, 0 );
+        let marcaArribaArriba = new THREE.Vector3( -width/2 , height, 0 );
+        let marcaArribaAbajo = new THREE.Vector3( -(width/2 + offsetHorizontal*2), height, 0 );
 
-        var marcaAbajoArriba = new THREE.Vector3( -width/2 , 0, 0 );
-        var marcaAbajoAbajo = new THREE.Vector3( -(width / 2 + offsetHorizontal * 2), 0, 0 );
+        let marcaAbajoArriba = new THREE.Vector3( -width/2 , 0, 0 );
+        let marcaAbajoAbajo = new THREE.Vector3( -(width / 2 + offsetHorizontal * 2), 0, 0 );
 
-        var originAbajo = new THREE.Vector3( -(width / 2 + offsetHorizontal), height/2 - offsetH, 0 );
-        var destinoAbajo = new THREE.Vector3(-(width / 2 + offsetHorizontal), 0, 0 );
+        let originAbajo = new THREE.Vector3( -(width / 2 + offsetHorizontal), height/2 - offsetH, 0 );
+        let destinoAbajo = new THREE.Vector3(-(width / 2 + offsetHorizontal), 0, 0 );
 
         lineGeometry = new THREE.Geometry();
         lineGeometry.vertices.push(
@@ -220,13 +220,13 @@ function agregarDimensionesMesh(width, height, mesh,z = false){
         mesh.add(marcaAbajo);
     }
 
-    var spriteAncho = crearSpriteTexto(width.toString()+' m');
+    let spriteAncho = crearSpriteTexto(width.toString()+' m');
     spriteAncho.position.set(0,height+0.15, 0.009);
     let scale = 0.004;
     spriteAncho.scale.setX(scale);
     spriteAncho.scale.setY(scale);
 
-    var spriteAlto = crearSpriteTexto(height.toString()+' m');
+    let spriteAlto = crearSpriteTexto(height.toString()+' m');
     spriteAlto.position.set(-(width/2 + 0.1),height/2+0.06 , 0.009);
     spriteAlto.scale.setX(scale);
     spriteAlto.scale.setY(scale);
@@ -238,7 +238,7 @@ function agregarDimensionesMesh(width, height, mesh,z = false){
 export function crearMeshPared(width, height,holes = []) {
     let geometria = crearGeometriaPared(width, height, holes);
 
-    let meshPared = new THREE.Mesh(geometria, materiales.materialPared.clone());
+    let meshPared = new THREE.Mesh(geometria, materiales.materialPared);
 
     agregarDimensionesMesh(width, height,meshPared);
 

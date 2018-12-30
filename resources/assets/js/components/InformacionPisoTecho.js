@@ -5,9 +5,7 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Morfologia from "./Morfologia";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import axios from 'axios';
 import Select from '@material-ui/core/Select';
 import Input from '@material-ui/core/Input';
 import TextField from '@material-ui/core/TextField';
@@ -23,7 +21,6 @@ import Clear from '@material-ui/icons/Clear';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from "@material-ui/core/Grid";
 import {
-    seleccionarMorfologia,
     thunk_agregar_capa_piso,
     thunk_agregar_capa_techo,
     thunk_aplicar_capa_pisos, thunk_aplicar_capa_techos,
@@ -104,7 +101,6 @@ const mapStateToProps = state => {
 //Las acciones se mapean a props.
 const mapDispatchToProps = dispatch => {
     return {
-        seleccionarMorfologia: (seleccion) => dispatch(seleccionarMorfologia(seleccion)),
         thunk_agregar_capa_piso: (nivel, bloque, capa) =>
             dispatch(thunk_agregar_capa_piso(nivel, bloque, capa)),
         thunk_borrar_capa_piso: (nivel, bloque, capa) =>
@@ -152,7 +148,7 @@ class InformacionPisoTecho extends Component {
         this.handleClickAplicarPisos = this.handleClickAplicarPisos.bind(this);
         this.handleClickAplicarTechos = this.handleClickAplicarTechos.bind(this);
 
-        var theme = createMuiTheme({
+        let theme = createMuiTheme({
             palette: {
                 primary: {
                     main: "#fc0f4f",
@@ -162,47 +158,13 @@ class InformacionPisoTecho extends Component {
         this.colorSelected = [theme.palette.primary.main, theme.palette.primary.contrastText];
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props.seleccionados !== prevProps.seleccionados) {
             this.setState({
                 capaSeleccionadaPiso: null,
                 capaSeleccionadaTecho: null,
             });
         }
-        /*if (this.props.seleccion !== prevProps.seleccion) {
-            if (this.props.seleccion !== null && this.props.seleccion.userData.tipo === Morfologia.tipos.PISO) {
-                let seleccionados;
-                if(this.props.seleccion.userData.techo !== undefined){
-                    seleccionados = [this.props.seleccion, this.props.seleccion.userData.techo];
-                }else{
-                    seleccionados = [this.props.seleccion];
-                }
-                for(let seleccionado of seleccionados){
-                    let capas = seleccionado.userData.capas;
-                    for (let i = 0; i < capas.length; i++) {
-                        capas[i].index = i;
-                    }
-
-                    let capasVacias = 9 - capas.length - 1;
-                    this['vaciosArray'+Morfologia.tipos_texto[seleccionado.userData.tipo]] = [];
-                    for(let i = 0 ; i < capasVacias ; i++){
-                        this['vaciosArray'+Morfologia.tipos_texto[seleccionado.userData.tipo]].push(i);
-                    }
-                    
-                    let nombreCapa = 'capas'+Morfologia.tipos_texto[seleccionado.userData.tipo];
-                    let nombreCapaS = 'capaSeleccionada'+Morfologia.tipos_texto[seleccionado.userData.tipo];
-                    
-                    this.setState({
-                        [nombreCapa]: capas,
-                        [nombreCapaS]: null,
-                    });
-                }
-                this.setState({
-                    width: this.props.seleccion.userData.width,
-                    depth: this.props.seleccion.userData.depth,
-                })
-            }
-        }*/
 
     }
 
@@ -1206,9 +1168,6 @@ class InformacionPisoTecho extends Component {
 
 InformacionPisoTecho.propTypes = {
     classes: PropTypes.object.isRequired,
-    seleccion: PropTypes.object,
-    onDimensionChanged: PropTypes.func,/*
-    onCapaChanged: PropTypes.func,*/
 };
 
 export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InformacionPisoTecho));

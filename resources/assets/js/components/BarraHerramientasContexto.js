@@ -9,16 +9,14 @@ import AddCircle from '@material-ui/icons/AddCircle';
 import Tooltip from '@material-ui/core/Tooltip';
 import KeyboardArrowLeft from "@material-ui/icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
-import { ActionCreators as UndoActionCreators } from 'redux-undo'
 import * as icons from '../icons/index';
 import { connect } from 'react-redux'
 import {
     mostrarOcultarMapa,
     activarAgregarContexto,
     activarEliminarContexto,
-    activarSeleccionarContexto, morfologiaUndo, morfologiaRedo, contextoUndo, contextoRedo,
+    activarSeleccionarContexto, contextoUndo, contextoRedo,
 } from "../actions";
-import MenuItem from "@material-ui/core/MenuItem";
 
 const styles = theme => ({
     button: {
@@ -72,7 +70,6 @@ class BarraHerramientasContexto extends Component {
             onUndo,onRedo,mostrar_mapa,acciones
         } = this.props;
 
-        const cuartoWidth = width/4+'px';
         return (
             <div style={{
                 display: 'table',

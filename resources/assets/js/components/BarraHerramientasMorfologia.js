@@ -18,8 +18,7 @@ import Select from "@material-ui/core/Select/Select";
 import InputLabel from "@material-ui/core/InputLabel/InputLabel";
 import PanTool from '@material-ui/icons/PanTool';
 import CalendarToday from "@material-ui/icons/CalendarToday";
-import { ActionCreators as UndoActionCreators } from 'redux-undo';
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 import * as icons from '../icons/index';
 import {
     casaPredefinidaDoble,
@@ -33,7 +32,6 @@ import {
     activarEliminarMorfologia,
     activarSeleccionarMorfologia,
     verSol,
-    cambiarFecha,
     activarRotar,
     activarMoverCamara, morfologiaUndo, morfologiaRedo, thunk_cambiar_fecha,
 } from "../actions";
@@ -56,7 +54,6 @@ const styles = theme => ({
     },
 });
 
-
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
@@ -67,9 +64,8 @@ const MenuProps = {
     },
 };
 
-function DatePicker(props){
-
-    return(
+function DatePicker(props) {
+    return (
         <Grid container spacing={8} style={{margin: 5}}>
             <Grid item xs={4}>
                 <InputLabel htmlFor="dia-simple">Día</InputLabel>
@@ -90,7 +86,7 @@ function DatePicker(props){
                         id: 'dia-simple',
                     }}
                 >
-                    {Array.from(Array(new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate()), (x,index) => index+1).map(dia => (
+                    {Array.from(Array(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()), (x, index) => index + 1).map(dia => (
                         <MenuItem value={dia} key={dia}>
                             {dia}
                         </MenuItem>
@@ -107,7 +103,7 @@ function DatePicker(props){
                         id: 'mes-simple',
                     }}
                 >
-                    {Array.from(Array(12), (x,index) => index+1).map(mes => (
+                    {Array.from(Array(12), (x, index) => index + 1).map(mes => (
                         <MenuItem value={mes} key={mes}>
                             {mes}
                         </MenuItem>
@@ -124,9 +120,9 @@ function DatePicker(props){
                         id: 'hora-simple',
                     }}
                 >
-                    {Array.from(Array(24), (x,index) => index).map(hora => (
+                    {Array.from(Array(24), (x, index) => index).map(hora => (
                         <MenuItem value={hora} key={hora}>
-                            {hora >= 10 ? hora : '0'+hora}
+                            {hora >= 10 ? hora : '0' + hora}
                         </MenuItem>
 
                     ))}
@@ -140,9 +136,9 @@ function DatePicker(props){
                         id: 'minutos-simple',
                     }}
                 >
-                    {Array.from(Array(60), (x,index) => index).map(minutos => (
+                    {Array.from(Array(60), (x, index) => index).map(minutos => (
                         <MenuItem value={minutos} key={minutos}>
-                            {minutos >= 10 ? minutos : '0'+minutos}
+                            {minutos >= 10 ? minutos : '0' + minutos}
                         </MenuItem>
                     ))}
                 </Select>
@@ -159,15 +155,15 @@ const mapDispatchToProps = dispatch => {
         casaPredefinidaDobleDosPisos: () => dispatch(casaPredefinidaDobleDosPisos()),
         onUndo: () => dispatch(morfologiaUndo()),
         onRedo: () => dispatch(morfologiaRedo()),
-        cambioTipoCamara : () => dispatch(cambioTipoCamara()),
-        activarAgregarBloque : () => dispatch(activarAgregarBloque()),
-        activarAgregarVentana : () => dispatch(activarAgregarVentana()),
-        activarAgregarPuerta : () => dispatch(activarAgregarPuerta()),
-        activarEliminarMorfologia : () => dispatch(activarEliminarMorfologia()),
-        activarSeleccionarMorfologia : () => dispatch(activarSeleccionarMorfologia()),
-        verSol : () => dispatch(verSol()),
-        activarRotar : () => dispatch(activarRotar()),
-        activarMoverCamara : () => dispatch(activarMoverCamara()),
+        cambioTipoCamara: () => dispatch(cambioTipoCamara()),
+        activarAgregarBloque: () => dispatch(activarAgregarBloque()),
+        activarAgregarVentana: () => dispatch(activarAgregarVentana()),
+        activarAgregarPuerta: () => dispatch(activarAgregarPuerta()),
+        activarEliminarMorfologia: () => dispatch(activarEliminarMorfologia()),
+        activarSeleccionarMorfologia: () => dispatch(activarSeleccionarMorfologia()),
+        verSol: () => dispatch(verSol()),
+        activarRotar: () => dispatch(activarRotar()),
+        activarMoverCamara: () => dispatch(activarMoverCamara()),
         thunk_cambiar_fecha: (fecha) => dispatch(thunk_cambiar_fecha(fecha)),
     }
 };
@@ -188,7 +184,7 @@ class BarraHerramientasMorfologia extends Component {
     constructor(props) {
         super(props);
 
-        var dibujandoStatesButtons = new Array(5).fill(false);
+        let dibujandoStatesButtons = new Array(5).fill(false);
 
         this.state = {
             spacing: '16',
@@ -215,19 +211,19 @@ class BarraHerramientasMorfologia extends Component {
 
     };
 
-    handleClickCamara(event){
-      this.setState({anchorCamara: event.currentTarget})
+    handleClickCamara(event) {
+        this.setState({anchorCamara: event.currentTarget})
     };
 
-    handleCloseCamara(event){
-      this.setState({anchorCamara: null})
+    handleCloseCamara(event) {
+        this.setState({anchorCamara: null})
     };
 
-    handleClickSol(event){
+    handleClickSol(event) {
         this.setState({anchorSol: event.currentTarget})
     };
 
-    handleCloseSol(event){
+    handleCloseSol(event) {
         this.setState({anchorSol: null, anchorFecha: null})
     };
 
@@ -256,7 +252,8 @@ class BarraHerramientasMorfologia extends Component {
             dibujandoStatesButtons: dibujandoStatesButtons,
         });
     };
-    handleClickFecha(event){
+
+    handleClickFecha(event) {
         this.setState({anchorFecha: event.currentTarget});
     }
 
@@ -264,7 +261,7 @@ class BarraHerramientasMorfologia extends Component {
         this.setState({anchorEl: null});
     };
 
-    handleCasaPredefinida(event){
+    handleCasaPredefinida(event) {
         this.handleClose();
         this.handleCloseCasa();
         let casaPredefinida = parseInt(event.currentTarget.value);
@@ -293,36 +290,32 @@ class BarraHerramientasMorfologia extends Component {
         this.props.onDrawingChanged(event.target.value);
     }
 
-    handleSunPathClick(){
+    handleSunPathClick() {
         this.props.onSunPathClicked();
     }
 
 
-    onDateChange(event){
+    onDateChange(event) {
         const fecha = this.props.fecha;
 
         let date = {
-            mes : fecha.getMonth(), //months from 1-12
-            dia : fecha.getDate(),
-            minutos : fecha.getMinutes(),
-            hora : fecha.getHours(),
-            year : fecha.getFullYear(),
+            mes: fecha.getMonth(), //months from 1-12
+            dia: fecha.getDate(),
+            minutos: fecha.getMinutes(),
+            hora: fecha.getHours(),
+            year: fecha.getFullYear(),
         };
 
         date[event.target.name] = event.target.value;
 
-        let newFecha = new Date(date.year,date.mes-1,date.dia,date.hora,date.minutos);
+        let newFecha = new Date(date.year, date.mes - 1, date.dia, date.hora, date.minutos);
         this.props.thunk_cambiar_fecha(newFecha);
-        /*this.setState({ [event.target.name]: event.target.value }, () => {
-            let year = new Date().getFullYear();
-            let fecha = new Date(year,this.state.mes-1, this.state.dia, this.state.hora, this.state.minutos);
-            this.props.handleChangeFecha("fecha",fecha);
-        });*/
     }
 
 
     render() {
-        const {classes,width,canUndo, canRedo, onUndo, onRedo,
+        const {
+            classes, width, canUndo, canRedo, onUndo, onRedo,
             cambioTipoCamara,
             activarAgregarBloque,
             activarAgregarVentana,
@@ -330,13 +323,12 @@ class BarraHerramientasMorfologia extends Component {
             activarEliminarMorfologia,
             activarSeleccionarMorfologia,
             verSol,
-            cambiarFecha,
             activarRotar,
             activarMoverCamara,
             camara3D,
             acciones,
             fecha,
-            sol} = this.props;
+        } = this.props;
 
         const month = fecha.getMonth() + 1; //months from 1-12
         const day = fecha.getDate();
@@ -345,404 +337,395 @@ class BarraHerramientasMorfologia extends Component {
 
         const {dibujandoStatesButtons, anchorEl, anchor, anchorCamara, anchorSol, anchorFecha} = this.state;
         return (
-            <div style={{display: 'table',
+            <div style={{
+                display: 'table',
                 marginLeft: 'auto',
                 marginRight: 'auto',
-                }}>
-            <div className={classes.root} align="center" >
+            }}>
+                <div className={classes.root} align="center">
 
-                <Tooltip title="Cambiar tipo camara"
-                         disableFocusListener={true}>
-                    <div>
-                        <IconButton
-                            className={classes.button}
-                            aria-label="Seleccionar"
-                            aria-owns={anchorCamara ? 'simple-menu-camara' : null}
-                            aria-haspopup="true"
-                            onClick={this.handleClickCamara}
-                        >
-                            <Videocam/>
-                        </IconButton>
-                    </div>
-                </Tooltip>
-
-                <Menu
-                    id="simple-menu-camara"
-                    anchorEl={anchorCamara}
-                    open={Boolean(anchorCamara)}
-                    onClose={this.handleCloseCamara}
-                    transformOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'left',
-                    }}
-                    elevation={9}
-                >
-                    <Tooltip title="Tipo 2D"
-                             disableFocusListener={true}
-                    >
-                        <MenuItem onClick={this.handleCloseCamara}
-                                  disabled={!camara3D}>
+                    <Tooltip title="Cambiar tipo camara"
+                             disableFocusListener={true}>
+                        <div>
                             <IconButton
                                 className={classes.button}
-                                aria-label="2D"
-                                disabled={!camara3D}
-                                onClick={cambioTipoCamara}>
-                                <icons.IconTwoD/>
+                                aria-label="Seleccionar"
+                                aria-owns={anchorCamara ? 'simple-menu-camara' : null}
+                                aria-haspopup="true"
+                                onClick={this.handleClickCamara}
+                            >
+                                <Videocam/>
                             </IconButton>
-                        </MenuItem>
-                    </Tooltip>
-                    <Tooltip title="Tipo 3D"
-                             disableFocusListener={true}
-                    >
-                        <MenuItem onClick={this.handleCloseCamara}
-                                  disabled={camara3D}>
-                            <IconButton
-                                className={classes.button}
-                                aria-label="3D"
-                                disabled={camara3D}
-                                onClick={cambioTipoCamara}>
-                                <icons.IconThreeD/>
-                            </IconButton>
-                        </MenuItem>
-                    </Tooltip>
-                    <Tooltip title="Mover camara"
-                             disableFocusListener={true}
-                    >
-                        <MenuItem onClick={this.handleCloseCamara}
-                                  disabled={acciones.mover_camara}>
-                            <IconButton
-                                className={classes.button}
-                                aria-label="3D"
-                                disabled={acciones.mover_camara}
-                                onClick={activarMoverCamara}>
-                                <PanTool/>
-                            </IconButton>
-                        </MenuItem>
-                    </Tooltip>
-
-                </Menu>
-
-                <Tooltip title="Agregar elementos"
-                         disableFocusListener={true}>
-                    <div>
-                        <IconButton
-                            className={classes.button}
-                            aria-label="Seleccionar"
-                            aria-owns={anchorEl ? 'simple-menu' : null}
-                            aria-haspopup="true"
-                            onClick={this.handleClickAgregar}
-                        >
-                            <AddCircle/>
-                        </IconButton>
-                    </div>
-                </Tooltip>
-
-                <Menu
-                    id="simple-menu"
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={this.handleClose}
-                    transformOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'left',
-                    }}
-                    elevation={9}
-                >
-                    <Tooltip title="Agregar bloques de paredes"
-                             disableFocusListener={true}
-                             placement="left">
-                        <MenuItem onClick={this.handleClose}
-                                  disabled={acciones.agregar_bloque}>
-                            <IconButton
-                                className={classes.button}
-                                aria-label="AgregarPared"
-                                value={0}
-                                disabled={acciones.agregar_bloque}
-                                onClick={activarAgregarBloque}>
-                                <icons.WallIcon/>
-                            </IconButton>
-                        </MenuItem>
-                    </Tooltip>
-
-                    <Tooltip title="Agregar ventanas"
-                             disableFocusListener={true}
-                             placement="left">
-                        <MenuItem onClick={this.handleClose}
-                                  disabled={acciones.agregar_ventana}>
-                            <IconButton
-                                className={classes.button}
-                                aria-label="AgregarVentana"
-                                value={1}
-                                 disabled={acciones.agregar_ventana}
-                                onClick={activarAgregarVentana}>
-                                <icons.WindowIcon/>
-                            </IconButton>
-                        </MenuItem>
-                    </Tooltip>
-
-                    <Tooltip title="Agregar puertas"
-                             disableFocusListener={true}
-                             placement="left">
-                        <MenuItem onClick={this.handleClose}
-                                  disabled={acciones.agregar_puerta}>
-                            <IconButton
-                                className={classes.button}
-                                aria-label="AgregarPuerta"
-                                value={2}
-                                disabled={acciones.agregar_puerta}
-                                onClick={activarAgregarPuerta}>
-                                <icons.DoorIcon/>
-                            </IconButton>
-                        </MenuItem>
-                    </Tooltip>
-
-                    <Tooltip title="Cambiar a casa predefinida"
-                             disableFocusListener={true}
-                             placement="left">
-                        <MenuItem disabled={dibujandoStatesButtons[4]}>
-                            <IconButton
-                                className={classes.button}
-                                aria-label="Predefinida"
-                                aria-owns={anchor ? 'simple-menu2' : null}
-                                aria-haspopup="false"
-                                disabled={dibujandoStatesButtons[4]}
-                                value={4}
-                                onClick={this.handleClickCasa}>
-                                <Home/>
-                            </IconButton>
-                        </MenuItem>
+                        </div>
                     </Tooltip>
 
                     <Menu
-                        id="simple-menu2"
-                        anchorEl={anchor}
-                        open={Boolean(anchor)}
-                        onClose={this.handleCloseCasa}
+                        id="simple-menu-camara"
+                        anchorEl={anchorCamara}
+                        open={Boolean(anchorCamara)}
+                        onClose={this.handleCloseCamara}
                         transformOrigin={{
                             vertical: 'bottom',
                             horizontal: 'left',
                         }}
                         elevation={9}
                     >
-                        <Tooltip title="Casa simple"
+                        <Tooltip title="Tipo 2D"
                                  disableFocusListener={true}
-                                 placement="left">
-                            <MenuItem onClick={this.handleCloseCasa}>
+                        >
+                            <MenuItem onClick={this.handleCloseCamara}
+                                      disabled={!camara3D}>
                                 <IconButton
                                     className={classes.button}
-                                    aria-label="Simple"
-                                    value={0}
-                                    onClick={this.handleCasaPredefinida}>
-                                    <icons.SimpleIcon/>
+                                    aria-label="2D"
+                                    disabled={!camara3D}
+                                    onClick={cambioTipoCamara}>
+                                    <icons.IconTwoD/>
+                                </IconButton>
+                            </MenuItem>
+                        </Tooltip>
+                        <Tooltip title="Tipo 3D"
+                                 disableFocusListener={true}
+                        >
+                            <MenuItem onClick={this.handleCloseCamara}
+                                      disabled={camara3D}>
+                                <IconButton
+                                    className={classes.button}
+                                    aria-label="3D"
+                                    disabled={camara3D}
+                                    onClick={cambioTipoCamara}>
+                                    <icons.IconThreeD/>
+                                </IconButton>
+                            </MenuItem>
+                        </Tooltip>
+                        <Tooltip title="Mover camara"
+                                 disableFocusListener={true}
+                        >
+                            <MenuItem onClick={this.handleCloseCamara}
+                                      disabled={acciones.mover_camara}>
+                                <IconButton
+                                    className={classes.button}
+                                    aria-label="3D"
+                                    disabled={acciones.mover_camara}
+                                    onClick={activarMoverCamara}>
+                                    <PanTool/>
                                 </IconButton>
                             </MenuItem>
                         </Tooltip>
 
-                        <Tooltip title="Casa pareada"
-                                 disableFocusListener={true}
-                                 placement="left">
-                            <MenuItem onClick={this.handleCloseCasa}>
-                                <IconButton
-                                    className={classes.button}
-                                    aria-label="Double"
-                                    value={1}
-                                    onClick={this.handleCasaPredefinida}>
-                                    <icons.DoubleIcon/>
-                                </IconButton>
-                            </MenuItem>
-                        </Tooltip>
-
-                        <Tooltip title="Casa simple dos pisos"
-                                 disableFocusListener={true}
-                                 placement="left">
-                            <MenuItem onClick={this.handleCloseCasa}>
-                                <IconButton
-                                    className={classes.button}
-                                    aria-label="Simple dos pisos"
-                                    value={2}
-                                    onClick={this.handleCasaPredefinida}>
-                                    <icons.SimpleTwoFloorIcon/>
-                                </IconButton>
-                            </MenuItem>
-                        </Tooltip>
-
-                        <Tooltip title="Casa pareada dos pisos"
-                                 disableFocusListener={true}
-                                 placement="left">
-                            <MenuItem onClick={this.handleCloseCasa}>
-                                <IconButton
-                                    className={classes.button}
-                                    aria-label="Simple"
-                                    value={3}
-                                    onClick={this.handleCasaPredefinida}>
-                                    <icons.DoubleTwoFloorIcon/>
-                                </IconButton>
-                            </MenuItem>
-                        </Tooltip>
                     </Menu>
 
-                </Menu>
+                    <Tooltip title="Agregar elementos"
+                             disableFocusListener={true}>
+                        <div>
+                            <IconButton
+                                className={classes.button}
+                                aria-label="Seleccionar"
+                                aria-owns={anchorEl ? 'simple-menu' : null}
+                                aria-haspopup="true"
+                                onClick={this.handleClickAgregar}
+                            >
+                                <AddCircle/>
+                            </IconButton>
+                        </div>
+                    </Tooltip>
 
-                <Tooltip title="Deshacer"
-                         disableFocusListener={true}>
-                    <div>
-                        <IconButton
-                            className={classes.button}
-                            aria-label="Seleccionar"
-                            disabled={!canUndo}
-                            onClick={onUndo}>
-                            <Undo/>
-                        </IconButton>
-                    </div>
-                </Tooltip>
+                    <Menu
+                        id="simple-menu"
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={this.handleClose}
+                        transformOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'left',
+                        }}
+                        elevation={9}
+                    >
+                        <Tooltip title="Agregar bloques de paredes"
+                                 disableFocusListener={true}
+                                 placement="left">
+                            <MenuItem onClick={this.handleClose}
+                                      disabled={acciones.agregar_bloque}>
+                                <IconButton
+                                    className={classes.button}
+                                    aria-label="AgregarPared"
+                                    value={0}
+                                    disabled={acciones.agregar_bloque}
+                                    onClick={activarAgregarBloque}>
+                                    <icons.WallIcon/>
+                                </IconButton>
+                            </MenuItem>
+                        </Tooltip>
 
-                <Tooltip title="Rehacer"
-                         disableFocusListener={true}>
-                    <div>
-                        <IconButton
-                            className={classes.button}
-                            aria-label="Seleccionar"
-                            disabled={!canRedo}
-                            onClick={onRedo}>
-                            <Redo/>
-                        </IconButton>
-                    </div>
-                </Tooltip>
+                        <Tooltip title="Agregar ventanas"
+                                 disableFocusListener={true}
+                                 placement="left">
+                            <MenuItem onClick={this.handleClose}
+                                      disabled={acciones.agregar_ventana}>
+                                <IconButton
+                                    className={classes.button}
+                                    aria-label="AgregarVentana"
+                                    value={1}
+                                    disabled={acciones.agregar_ventana}
+                                    onClick={activarAgregarVentana}>
+                                    <icons.WindowIcon/>
+                                </IconButton>
+                            </MenuItem>
+                        </Tooltip>
 
-                <Tooltip title="Seleccionar elementos"
-                         disableFocusListener={true}>
-                    <div>
-                        <IconButton
-                            className={classes.button}
-                            aria-label="Seleccionar"
-                            disabled={acciones.seleccionar}
-                            onClick={activarSeleccionarMorfologia}>
-                            <icons.CursorIcon/>
-                        </IconButton>
-                    </div>
-                </Tooltip>
+                        <Tooltip title="Agregar puertas"
+                                 disableFocusListener={true}
+                                 placement="left">
+                            <MenuItem onClick={this.handleClose}
+                                      disabled={acciones.agregar_puerta}>
+                                <IconButton
+                                    className={classes.button}
+                                    aria-label="AgregarPuerta"
+                                    value={2}
+                                    disabled={acciones.agregar_puerta}
+                                    onClick={activarAgregarPuerta}>
+                                    <icons.DoorIcon/>
+                                </IconButton>
+                            </MenuItem>
+                        </Tooltip>
 
-                <Tooltip title="Eliminar elementos"
-                         disableFocusListener={true}>
-                    <div>
-                        <IconButton
-                            className={classes.button}
-                            aria-label="AgregarPuerta"
-                            disabled={acciones.eliminar}
-                            onClick={activarEliminarMorfologia}>
-                            <Delete/>
-                        </IconButton>
-                    </div>
-                </Tooltip>
+                        <Tooltip title="Cambiar a casa predefinida"
+                                 disableFocusListener={true}
+                                 placement="left">
+                            <MenuItem disabled={dibujandoStatesButtons[4]}>
+                                <IconButton
+                                    className={classes.button}
+                                    aria-label="Predefinida"
+                                    aria-owns={anchor ? 'simple-menu2' : null}
+                                    aria-haspopup="false"
+                                    disabled={dibujandoStatesButtons[4]}
+                                    value={4}
+                                    onClick={this.handleClickCasa}>
+                                    <Home/>
+                                </IconButton>
+                            </MenuItem>
+                        </Tooltip>
 
-                <Tooltip title="Configuración sol"
-                         disableFocusListener={true}>
-                    <div>
-                        <IconButton
-                            className={classes.button}
-                            aria-label="ConfigSol"
-                            aria-owns={anchor ? 'simple-menu-sol' : null}
-                            aria-haspopup="true"
-                            onClick={this.handleClickSol}
+                        <Menu
+                            id="simple-menu2"
+                            anchorEl={anchor}
+                            open={Boolean(anchor)}
+                            onClose={this.handleCloseCasa}
+                            transformOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'left',
+                            }}
+                            elevation={9}
                         >
-                            <icons.SunPathIcon/>
-                        </IconButton>
-                    </div>
-                </Tooltip>
+                            <Tooltip title="Casa simple"
+                                     disableFocusListener={true}
+                                     placement="left">
+                                <MenuItem onClick={this.handleCloseCasa}>
+                                    <IconButton
+                                        className={classes.button}
+                                        aria-label="Simple"
+                                        value={0}
+                                        onClick={this.handleCasaPredefinida}>
+                                        <icons.SimpleIcon/>
+                                    </IconButton>
+                                </MenuItem>
+                            </Tooltip>
 
-                <Menu
-                    id="simple-menu-sol"
-                    anchorEl={anchorSol}
-                    open={Boolean(anchorSol)}
-                    onClose={this.handleCloseSol}
-                    transformOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'left',
-                    }}
-                    elevation={9}
-                >
+                            <Tooltip title="Casa pareada"
+                                     disableFocusListener={true}
+                                     placement="left">
+                                <MenuItem onClick={this.handleCloseCasa}>
+                                    <IconButton
+                                        className={classes.button}
+                                        aria-label="Double"
+                                        value={1}
+                                        onClick={this.handleCasaPredefinida}>
+                                        <icons.DoubleIcon/>
+                                    </IconButton>
+                                </MenuItem>
+                            </Tooltip>
 
-                    <Tooltip title="Ver/Ocultar sol"
-                             disableFocusListener={true}
-                            placement="left">
-                        <MenuItem onClick={this.handleCloseSol}>
+                            <Tooltip title="Casa simple dos pisos"
+                                     disableFocusListener={true}
+                                     placement="left">
+                                <MenuItem onClick={this.handleCloseCasa}>
+                                    <IconButton
+                                        className={classes.button}
+                                        aria-label="Simple dos pisos"
+                                        value={2}
+                                        onClick={this.handleCasaPredefinida}>
+                                        <icons.SimpleTwoFloorIcon/>
+                                    </IconButton>
+                                </MenuItem>
+                            </Tooltip>
+
+                            <Tooltip title="Casa pareada dos pisos"
+                                     disableFocusListener={true}
+                                     placement="left">
+                                <MenuItem onClick={this.handleCloseCasa}>
+                                    <IconButton
+                                        className={classes.button}
+                                        aria-label="Simple"
+                                        value={3}
+                                        onClick={this.handleCasaPredefinida}>
+                                        <icons.DoubleTwoFloorIcon/>
+                                    </IconButton>
+                                </MenuItem>
+                            </Tooltip>
+                        </Menu>
+
+                    </Menu>
+
+                    <Tooltip title="Deshacer"
+                             disableFocusListener={true}>
+                        <div>
                             <IconButton
                                 className={classes.button}
-                                aria-label="Sunpath"
-                                aria-haspopup="true"
-                                onClick={verSol}>
-                                <RemoveRedEye/>
+                                aria-label="Seleccionar"
+                                disabled={!canUndo}
+                                onClick={onUndo}>
+                                <Undo/>
                             </IconButton>
-                        </MenuItem>
+                        </div>
                     </Tooltip>
 
-                    <Tooltip title="Rotar coordenadas"
-                             disableFocusListener={!this.state.rotando}
-                             placement="left"
-                    >
-                        <MenuItem onClick={this.handleCloseSol}
-                                  disabled={acciones.rotar}>
+                    <Tooltip title="Rehacer"
+                             disableFocusListener={true}>
+                        <div>
                             <IconButton
                                 className={classes.button}
-                                aria-label="Rotar"
-                                aria-haspopup="true"
-                                onClick={activarRotar}
-                                disabled={acciones.rotar}>
-                                <RotateRight/>
+                                aria-label="Seleccionar"
+                                disabled={!canRedo}
+                                onClick={onRedo}>
+                                <Redo/>
                             </IconButton>
-                        </MenuItem>
+                        </div>
                     </Tooltip>
-                    <Tooltip title="Cambiar Fecha"
-                             placement="left"
-                    >
-                        <MenuItem onClick={this.handleClickFecha}>
+
+                    <Tooltip title="Seleccionar elementos"
+                             disableFocusListener={true}>
+                        <div>
                             <IconButton
                                 className={classes.button}
-                                aria-label="Fecha"
-                                aria-haspopup="true">
-                                <CalendarToday/>
+                                aria-label="Seleccionar"
+                                disabled={acciones.seleccionar}
+                                onClick={activarSeleccionarMorfologia}>
+                                <icons.CursorIcon/>
                             </IconButton>
-                        </MenuItem>
+                        </div>
+                    </Tooltip>
+
+                    <Tooltip title="Eliminar elementos"
+                             disableFocusListener={true}>
+                        <div>
+                            <IconButton
+                                className={classes.button}
+                                aria-label="AgregarPuerta"
+                                disabled={acciones.eliminar}
+                                onClick={activarEliminarMorfologia}>
+                                <Delete/>
+                            </IconButton>
+                        </div>
+                    </Tooltip>
+
+                    <Tooltip title="Configuración sol"
+                             disableFocusListener={true}>
+                        <div>
+                            <IconButton
+                                className={classes.button}
+                                aria-label="ConfigSol"
+                                aria-owns={anchor ? 'simple-menu-sol' : null}
+                                aria-haspopup="true"
+                                onClick={this.handleClickSol}
+                            >
+                                <icons.SunPathIcon/>
+                            </IconButton>
+                        </div>
                     </Tooltip>
 
                     <Menu
                         id="simple-menu-sol"
-                        anchorEl={anchorFecha}
-                        open={Boolean(anchorFecha)}
+                        anchorEl={anchorSol}
+                        open={Boolean(anchorSol)}
                         onClose={this.handleCloseSol}
                         transformOrigin={{
                             vertical: 'bottom',
                             horizontal: 'left',
                         }}
                         elevation={9}
-
                     >
-                        <DatePicker
-                            dia={day}
-                            mes={month}
-                            hora={hour}
-                            minutos={min}
-                            onDateChange={this.onDateChange}/>
+
+                        <Tooltip title="Ver/Ocultar sol"
+                                 disableFocusListener={true}
+                                 placement="left">
+                            <MenuItem onClick={this.handleCloseSol}>
+                                <IconButton
+                                    className={classes.button}
+                                    aria-label="Sunpath"
+                                    aria-haspopup="true"
+                                    onClick={verSol}>
+                                    <RemoveRedEye/>
+                                </IconButton>
+                            </MenuItem>
+                        </Tooltip>
+
+                        <Tooltip title="Rotar coordenadas"
+                                 disableFocusListener={!this.state.rotando}
+                                 placement="left"
+                        >
+                            <MenuItem onClick={this.handleCloseSol}
+                                      disabled={acciones.rotar}>
+                                <IconButton
+                                    className={classes.button}
+                                    aria-label="Rotar"
+                                    aria-haspopup="true"
+                                    onClick={activarRotar}
+                                    disabled={acciones.rotar}>
+                                    <RotateRight/>
+                                </IconButton>
+                            </MenuItem>
+                        </Tooltip>
+                        <Tooltip title="Cambiar Fecha"
+                                 placement="left"
+                        >
+                            <MenuItem onClick={this.handleClickFecha}>
+                                <IconButton
+                                    className={classes.button}
+                                    aria-label="Fecha"
+                                    aria-haspopup="true">
+                                    <CalendarToday/>
+                                </IconButton>
+                            </MenuItem>
+                        </Tooltip>
+
+                        <Menu
+                            id="simple-menu-sol"
+                            anchorEl={anchorFecha}
+                            open={Boolean(anchorFecha)}
+                            onClose={this.handleCloseSol}
+                            transformOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'left',
+                            }}
+                            elevation={9}
+
+                        >
+                            <DatePicker
+                                dia={day}
+                                mes={month}
+                                hora={hour}
+                                minutos={min}
+                                onDateChange={this.onDateChange}/>
+                        </Menu>
                     </Menu>
-
-                </Menu>
-
+                </div>
             </div>
-            </div>
-
-
         );
     }
-
 }
 
 BarraHerramientasMorfologia.propTypes = {
     classes: PropTypes.object.isRequired,
-    onPerspectiveChanged: PropTypes.func,
-    onSeleccionandoMorfChanged: PropTypes.func,
-    onBorrandoMorfChanged: PropTypes.func,
-    onDibujandoMorfChanged: PropTypes.func,
-    onCasaPredefinidaChanged: PropTypes.func,
 };
 
-export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(BarraHerramientasMorfologia));
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(BarraHerramientasMorfologia));

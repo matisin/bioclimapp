@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import axios from 'axios';
 import {Bar} from 'react-chartjs-2';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';

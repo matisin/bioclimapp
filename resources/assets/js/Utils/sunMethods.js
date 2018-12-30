@@ -1,4 +1,4 @@
-var SunCalc = require('suncalc');
+let SunCalc = require('suncalc');
 
 export function getSunPosition(lat, lng, date) {
     let sun = SunCalc.getPosition(/*Date*/ date, /*Number*/ lat, /*Number*/ lng);

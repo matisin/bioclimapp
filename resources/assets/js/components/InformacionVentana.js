@@ -7,7 +7,6 @@ import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import * as Tipos from '../constants/morofologia-types';
-import axios from 'axios';
 import Select from '@material-ui/core/Select';
 import Input from '@material-ui/core/Input';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -86,85 +85,13 @@ class InformacionVentana extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {/*
-            info_material_ventana: {},
-            info_material_marco: {},*/
-            /*material: 0,
-            tipo: 0,
-            U: 0,
-            FS: 0,
-            marco: 0,
-            tipo_marco: 0,
-            U_marco: 0,
-            FM: 0,
-            height: 0,
-            width: 0,*/
-
-        };
         this.handleClickAplicarMaterial = this.handleClickAplicarMaterial.bind(this);
         this.handleClickAplicarMarco = this.handleClickAplicarMarco.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleChangeDimension = this.handleChangeDimension.bind(this);
         this.handleChangeAlturaPiso = this.handleChangeAlturaPiso.bind(this);
-        this.handleClickAgregar = this.handleClickAgregar.bind(this);
         this.handleChangeMarco = this.handleChangeMarco.bind(this);
         this.handleChangeMaterial = this.handleChangeMaterial.bind(this);
-    }
-
-    componentDidUpdate(prevProps,prevState,snapShot){
-        /*if (this.props.seleccion !== prevProps.seleccion) {
-            if (this.props.seleccion !== null  && this.props.seleccion.userData.tipo === Morfologia.tipos.VENTANA) {
-
-                let info_material_ventana = this.props.seleccion.userData.info_material;
-                let info_material_marco = this.props.seleccion.userData.info_marco;
-
-                this.setState({
-                    info_material_ventana: info_material_ventana,
-                    info_material_marco: info_material_marco,
-                    /!*height: this.props.seleccion.userData.height,
-                    width: this.props.seleccion.userData.width,*!/
-                });
-
-
-            }
-        }*/
-    }
-
-    /*getJson(response) {
-        this.info_material = response.data.slice();
-        for(let i = 0; i < this.info_material.length; i++){
-            this.info_material[i].index = i;
-            for(let j = 0; j < this.info_material[i].tipos.length ; j++){
-                this.info_material[i].tipos[j].index = j;
-                //PARA cuando las ventanas tengan mas propiedades
-                /!*for (let k = 0; k < this.info_material[i].tipos[j].propiedad.length; k++) {
-                    this.info_material[i].tipos[j].propiedad[k].index = k;
-                }*!/
-            }
-        }
-    }
-    getJsonMarcos(response){
-        this.info_marcos = response.data.slice();
-        for(let i = 0; i < this.info_marcos.length; i++){
-            this.info_marcos[i].index = i;
-            if(this.info_marcos[i].hasOwnProperty('tipos')){
-                for(let j = 0; j < this.info_marcos[i].tipos.length ; j++){
-                    this.info_marcos[i].tipos[j].index = j;
-                    //PARA cuando las ventanas tengan mas propiedades
-                    /!*for (let k = 0; k < this.info_material[i].tipos[j].propiedad.length; k++) {
-                        this.info_material[i].tipos[j].propiedad[k].index = k;
-                    }*!/
-                }
-            }
-        }
-    }*/
-
-    getFilteredRadiation(comuna,tipo,mes){
-        axios.get("https://bioclimapp.host/api/radiaciones/"+comuna+"/"+tipo+"/"+mes)
-            .then(response => {
-                tipo === 2 ? this.difusa = response.data.valor : null;
-                tipo === 3 ? this.directa = response.data.valor : null;
-            });
     }
 
 
@@ -172,7 +99,6 @@ class InformacionVentana extends Component {
         this.setState({
             [event.target.name]: event.target.value,
         });
-        //
     }
 
     handleChangeMaterial(event){
@@ -234,22 +160,6 @@ class InformacionVentana extends Component {
             marcoNuevo
         );
 
-    }
-
-    handleClickAgregar() {
-        let FM = this.info_marcos[this.state.marco].hasOwnProperty('tipos') ?
-            this.info_marcos[this.state.marco].tipos[this.state.tipo_marco].propiedad.FS :
-            this.info_marcos[this.state.marco].propiedades[0].FS;
-        let FS = this.info_material[this.state.material].tipos[this.state.tipo].propiedad.FS;
-        let Um = this.info_marcos[this.state.marco].hasOwnProperty('tipos') ?
-            this.info_marcos[this.state.marco].tipos[this.state.tipo_marco].propiedad.U :
-            this.info_marcos[this.state.marco].propiedades[0].U;
-        this.props.seleccion.fm = FM;
-        this.props.seleccion.fs = FS;
-        this.props.um = Um;
-        let periodo = this.props.ventanas[0].parent.parent.parent.parent.parent.userData.periodo;
-        let aporte_solar = BalanceEnergetico.calcularAporteSolar(periodo,this.props.ventanas,this.difusa,this.directa);
-        this.props.onAporteSolarChanged(aporte_solar);
     }
     handleChangeDimension(event) {
         const indices = this.props.seleccionados[0].indices;
@@ -385,24 +295,6 @@ class InformacionVentana extends Component {
             }
 
         }
-
-       /* if(seleccionado !== null && seleccionado.userData.tipo === Morfologia.tipos.VENTANA
-            && Object.keys(info_material_ventana).length > 0
-            && Object.keys(info_material_marco).length){
-            height = seleccionado.userData.height;
-            width = seleccionado.userData.width;
-            alturaPiso = seleccionado.position.y;
-
-            var {material, tipo, fs, u} = info_material_ventana;
-
-            marco = info_material_marco.material;
-            tipo_marco = info_material_marco.tipo;
-            u_marco = info_material_marco.u;
-            fm = info_material_marco.fs;
-        }*/
-
-        //seleccion != null ? console.log("seleccion",seleccion.uuid, seleccion.userData) : seleccion;
-
 
         return (
             <div>
@@ -846,9 +738,6 @@ class InformacionVentana extends Component {
 
 InformacionVentana.propTypes = {
     classes: PropTypes.object.isRequired,
-    seleccion: PropTypes.object,
-    onAlturaVentanaChanged: PropTypes.func,
-    onDimensionChanged: PropTypes.func,
 };
 
 export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InformacionVentana));
