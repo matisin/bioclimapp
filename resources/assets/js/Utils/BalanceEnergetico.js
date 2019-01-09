@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import Morfologia from "../components/Morfologia";
 import {AISLADO, CORRIENTE, MEDIO, PARED, PISO, PUERTA, TECHO, VENTANA} from "../constants/morofologia-types";
 
 
@@ -166,9 +165,9 @@ function getConductividadCapa(capa,info_materiales) {
 
 
 function puenteTermico(piso, zona) {
-    let aislacionObjetivo = Morfologia.aislacionPiso.CORRIENTE;
-    if (rtObjetivoPiso[zona - 1] > 0.6) aislacionObjetivo = Morfologia.aislacionPiso.AISLADO;
-    else if (rtObjetivoPiso[zona - 1] < 0.6 && rtObjetivoPiso[zona - 1] > 0.26) aislacionObjetivo = Morfologia.aislacionPiso.MEDIO;
+    let aislacionObjetivo = CORRIENTE;
+    if (rtObjetivoPiso[zona - 1] > 0.6) aislacionObjetivo = AISLADO;
+    else if (rtObjetivoPiso[zona - 1] < 0.6 && rtObjetivoPiso[zona - 1] > 0.26) aislacionObjetivo = MEDIO;
     piso.userData.puenteTermico = piso.userData.perimetro * transmitanciaLineal[piso.userData.aislacion];
     piso.userData.puenteTermicoObjetivo = piso.userData.perimetro * transmitanciaLineal[aislacionObjetivo];
 }
@@ -216,7 +215,7 @@ function transformDegreeToGamma(degree) {
     return degree;
 }
 
-export function transformGammaToDegree(gamma) {
+function transformGammaToDegree(gamma) {
     if (gamma < -90) gamma += 450;
     else gamma += 90;
     return gamma;
@@ -789,7 +788,7 @@ export {
     calcularRB,
     calcularGammasPared,
     hourAngleToDate,
-    getHourAngle,
+    transformGammaToDegree,
     calcularAporteSolar,
     calcularRbParedes,
     calcularGammaParedes,

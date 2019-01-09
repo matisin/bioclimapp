@@ -9,7 +9,7 @@ import Typography from "@material-ui/core/Typography/Typography";
 
 import * as THREE from 'three'
 import * as materiales from '../constants/materiales-threejs'
-import texto_accion from '../constants/morofologia-types.texto_accion'
+import {texto_accion} from '../constants/morofologia-types'
 import * as Tipos from '../constants/morofologia-types';
 
 import {
@@ -25,9 +25,10 @@ import {
 
 import {seleccionarMorfologia, thunk_rotar_casa} from "../actions";
 import {createMuiTheme} from "@material-ui/core";
+import {transformGammaToDegree} from "../Utils/BalanceEnergetico";
 const uuidv4 = require('uuid/v4');
 
-import transformGammaToDegree from '../Utils/BalanceEnergetico'
+
 
 //Se mapean los estados requeridos del componente como props
 const mapStateToProps = state => {
@@ -1566,19 +1567,19 @@ class Morfologia extends Component {
 
     render() {
         let text = '';
-        if (this.props.acciones.seleccionar) text = texto_accion.texto_accion.seleccionar;
+        if (this.props.acciones.seleccionar) text = texto_accion.seleccionar;
         else if (this.props.acciones.rotar) {
             if (this.state.dragging) {
                 text = 'Angulo rotado: ' + Math.round(this.state.angleRotated) + '° ';
             } else {
-                text = texto_accion.texto_accion.rotar;
+                text = texto_accion.rotar;
             }
 
-        }else if (this.props.acciones.eliminar) text = texto_accion.texto_accion.borrar;
-        else if (this.props.acciones.agregar_bloque) text = texto_accion.texto_accion.bloque_paredes;
-        else if (this.props.acciones.agregar_ventana) text = texto_accion.texto_accion.ventanas;
-        else if (this.props.acciones.agregar_puerta) text = texto_accion.texto_accion.puertas;
-        else if (this.props.acciones.mover_camara) text = texto_accion.texto_accion.mover_camara;
+        }else if (this.props.acciones.eliminar) text = texto_accion.borrar;
+        else if (this.props.acciones.agregar_bloque) text = texto_accion.bloque_paredes;
+        else if (this.props.acciones.agregar_ventana) text = texto_accion.ventanas;
+        else if (this.props.acciones.agregar_puerta) text = texto_accion.puertas;
+        else if (this.props.acciones.mover_camara) text = texto_accion.mover_camara;
         return (
             <div style={{height: this.props.height}}>
                 <div style={{height: 5,
