@@ -15,10 +15,10 @@ import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from '@material-ui/core/FormControl';
 import Grid from "@material-ui/core/Grid";
 import {
-    thunk_aplicar_material_puertas ,
-    thunk_modificar_dimensiones_puerta,
-    thunk_modificar_material_puerta,
-    thunk_modificar_posicion_puerta,
+    middleware_aplicar_material_puertas ,
+    middleware_modificar_dimensiones_puerta,
+    middleware_modificar_material_puerta,
+    middleware_modificar_posicion_puerta,
 } from "../actions";
 import {connect} from "react-redux";
 import Button from "@material-ui/core/es/Button";
@@ -91,14 +91,14 @@ const mapStateToProps = state => {
 //Las acciones se mapean a props.
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_modificar_material_puerta: (nivel, bloque, pared, puerta, material) =>
-            dispatch(thunk_modificar_material_puerta(nivel, bloque, pared, puerta, material)),
-        thunk_modificar_dimensiones_puerta: (nivel, bloque, pared, puerta, dimensiones) =>
-            dispatch(thunk_modificar_dimensiones_puerta(nivel, bloque, pared, puerta, dimensiones)),
-        thunk_modificar_posicion_puerta: (nivel, bloque, pared, puerta, posicion) =>
-            dispatch(thunk_modificar_posicion_puerta(nivel, bloque, pared, puerta, posicion)),
-        thunk_aplicar_material_puertas: (nivel, bloque, pared, puerta, indices) =>
-            dispatch(thunk_aplicar_material_puertas(nivel, bloque, pared, puerta, indices)),
+        middleware_modificar_material_puerta: (nivel, bloque, pared, puerta, material) =>
+            dispatch(middleware_modificar_material_puerta(nivel, bloque, pared, puerta, material)),
+        middleware_modificar_dimensiones_puerta: (nivel, bloque, pared, puerta, dimensiones) =>
+            dispatch(middleware_modificar_dimensiones_puerta(nivel, bloque, pared, puerta, dimensiones)),
+        middleware_modificar_posicion_puerta: (nivel, bloque, pared, puerta, posicion) =>
+            dispatch(middleware_modificar_posicion_puerta(nivel, bloque, pared, puerta, posicion)),
+        middleware_aplicar_material_puertas: (nivel, bloque, pared, puerta, indices) =>
+            dispatch(middleware_aplicar_material_puertas(nivel, bloque, pared, puerta, indices)),
     }
 };
 
@@ -150,7 +150,7 @@ class InformacionPuerta extends Component {
 
         console.log(materialNuevo,material);
 
-        this.props.thunk_modificar_material_puerta(
+        this.props.middleware_modificar_material_puerta(
             indices.nivel,
             indices.bloque,
             indices.pared,
@@ -175,7 +175,7 @@ class InformacionPuerta extends Component {
         };
         nuevaPosicion[event.target.name] =  parseFloat(event.target.value);
 
-        this.props.thunk_modificar_posicion_puerta(
+        this.props.middleware_modificar_posicion_puerta(
             indices.nivel,
             indices.bloque,
             indices.pared,
@@ -205,7 +205,7 @@ class InformacionPuerta extends Component {
             nuevasDimensiones.ancho = parseFloat(event.target.value);
         }
 
-        this.props.thunk_modificar_dimensiones_puerta(
+        this.props.middleware_modificar_dimensiones_puerta(
             indices.nivel,
             indices.bloque,
             indices.pared,
@@ -221,7 +221,7 @@ class InformacionPuerta extends Component {
         for(let seleccionado of seleccionados){
             indices.push(seleccionado.indices);
         }
-        this.props.thunk_aplicar_material_puertas(
+        this.props.middleware_aplicar_material_puertas(
             indiceSel.nivel,
             indiceSel.bloque,
             indiceSel.pared,

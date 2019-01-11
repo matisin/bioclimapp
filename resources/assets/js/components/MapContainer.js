@@ -3,7 +3,7 @@ import {Map, TileLayer, Marker, Popup} from 'react-leaflet';
 import SearchBar from './SearchBar';
 
 import { connect } from "react-redux";
-import {thunk_set_state_mapa} from "../actions";
+import {middleware_set_state_mapa} from "../actions";
 
 
 const mapStateToProps = state => {
@@ -19,7 +19,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_set_state_mapa : (lat,lng) => dispatch(thunk_set_state_mapa(lat,lng)),
+        middleware_set_state_mapa : (lat,lng) => dispatch(middleware_set_state_mapa(lat,lng)),
     }
 };
 class MapContainer extends Component {
@@ -39,7 +39,7 @@ class MapContainer extends Component {
     }
 
     componentWillMount(){
-        this.props.thunk_set_state_mapa(this.props.lat,this.props.lng);
+        this.props.middleware_set_state_mapa(this.props.lat,this.props.lng);
 
     }
 
@@ -52,7 +52,7 @@ class MapContainer extends Component {
     }
 
     mapClicked(e) {
-        this.props.thunk_set_state_mapa(e.latlng.lat,e.latlng.lng);
+        this.props.middleware_set_state_mapa(e.latlng.lat,e.latlng.lng);
 
     }
 

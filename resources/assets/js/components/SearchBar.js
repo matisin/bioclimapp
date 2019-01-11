@@ -1,13 +1,13 @@
 import React from 'react';
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
 import {MapControl} from 'react-leaflet';
-import {thunk_set_state_mapa} from "../actions";
+import {middleware_set_state_mapa} from "../actions";
 import {connect} from "react-redux";
 
 
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_set_state_mapa : (lat,lng) => dispatch(thunk_set_state_mapa(lat,lng)),
+        middleware_set_state_mapa : (lat,lng) => dispatch(middleware_set_state_mapa(lat,lng)),
     }
 };
 
@@ -17,7 +17,7 @@ class SearchBar extends MapControl{
         this.locationFound = this.locationFound.bind(this);
     }
     locationFound(e) {
-        this.props.thunk_set_state_mapa(parseFloat(e.location.y),parseFloat(e.location.x));
+        this.props.middleware_set_state_mapa(parseFloat(e.location.y),parseFloat(e.location.x));
     }
     createLeafletElement(props) {
         return GeoSearchControl({

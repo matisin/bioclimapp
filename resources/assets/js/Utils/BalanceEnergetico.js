@@ -22,6 +22,9 @@ const rtObjetivoPiso = [0.28, 1.15, 1.43, 1.67, 2, 2.56, 3.13];
 
 //se simplifico el calculo del uso ya que es constante el multiplicar el perfilde uso con el coeficiente de usuario
 function aporteInterno(ocupantes, superficie, horasIluminacion, periodo) {
+    if(superficie === 0){
+        return 0;
+    }
     const ilumuinacion = 1.5 * horasIluminacion * superficie;
     const aporte_usuarios = uso * ocupantes;
     const aportes = ilumuinacion + aporte_usuarios;

@@ -4,7 +4,7 @@ import {withStyles} from "@material-ui/core/styles";
 import PropTypes from "prop-types";
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
-import {thunk_modificar_obstruccion} from "../actions";
+import {middleware_modificar_obstruccion} from "../actions";
 import {connect} from "react-redux";
 
 const styles = theme => ({
@@ -32,7 +32,7 @@ const styles = theme => ({
 
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_modificar_obstruccion: (obstruccion, indice) => dispatch(thunk_modificar_obstruccion(obstruccion,indice)),
+        middleware_modificar_obstruccion: (obstruccion, indice) => dispatch(middleware_modificar_obstruccion(obstruccion,indice)),
     }
 };
 
@@ -77,7 +77,7 @@ class InfoObstruccion extends Component{
             obstruccion[target.name] = parseInt(value);
         }
 
-        this.props.thunk_modificar_obstruccion(obstruccion,this.props.seleccion);
+        this.props.middleware_modificar_obstruccion(obstruccion,this.props.seleccion);
     }
 
     render(){
@@ -130,6 +130,6 @@ class InfoObstruccion extends Component{
 
 InfoObstruccion.propTypes = {
     classes: PropTypes.object.isRequired,
-    thunk_modificar_obstruccion: PropTypes.func,
+    middleware_modificar_obstruccion: PropTypes.func,
 };
 export default connect(mapStateToProps,mapDispatchToProps)(withStyles(styles)(InfoObstruccion));

@@ -21,12 +21,12 @@ import Clear from '@material-ui/icons/Clear';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from "@material-ui/core/Grid";
 import {
-    thunk_agregar_capa_piso,
-    thunk_agregar_capa_techo,
-    thunk_aplicar_capa_pisos, thunk_aplicar_capa_techos,
-    thunk_borrar_capa_piso, thunk_borrar_capa_techo,
-    thunk_modificar_capa_piso, thunk_modificar_capa_techo,
-    thunk_modificar_dimensiones_bloque
+    middleware_agregar_capa_piso,
+    middleware_agregar_capa_techo,
+    middleware_aplicar_capa_pisos, middleware_aplicar_capa_techos,
+    middleware_borrar_capa_piso, middleware_borrar_capa_techo,
+    middleware_modificar_capa_piso, middleware_modificar_capa_techo,
+    middleware_modificar_dimensiones_bloque
 } from "../actions";
 import {connect} from "react-redux";
 import Button from "@material-ui/core/es/Button";
@@ -101,26 +101,26 @@ const mapStateToProps = state => {
 //Las acciones se mapean a props.
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_agregar_capa_piso: (nivel, bloque, capa) =>
-            dispatch(thunk_agregar_capa_piso(nivel, bloque, capa)),
-        thunk_borrar_capa_piso: (nivel, bloque, capa) =>
-            dispatch(thunk_borrar_capa_piso(nivel, bloque, capa)),
-        thunk_modificar_capa_piso: (nivel, bloque, indice, capa) =>
-            dispatch(thunk_modificar_capa_piso(nivel, bloque, indice, capa)),
-        thunk_aplicar_capa_pisos: (nivel, bloque, indices) =>
-            dispatch(thunk_aplicar_capa_pisos(nivel, bloque, indices)),
+        middleware_agregar_capa_piso: (nivel, bloque, capa) =>
+            dispatch(middleware_agregar_capa_piso(nivel, bloque, capa)),
+        middleware_borrar_capa_piso: (nivel, bloque, capa) =>
+            dispatch(middleware_borrar_capa_piso(nivel, bloque, capa)),
+        middleware_modificar_capa_piso: (nivel, bloque, indice, capa) =>
+            dispatch(middleware_modificar_capa_piso(nivel, bloque, indice, capa)),
+        middleware_aplicar_capa_pisos: (nivel, bloque, indices) =>
+            dispatch(middleware_aplicar_capa_pisos(nivel, bloque, indices)),
 
-        thunk_agregar_capa_techo: (nivel, bloque, capa) =>
-            dispatch(thunk_agregar_capa_techo(nivel, bloque, capa)),
-        thunk_borrar_capa_techo: (nivel, bloque, capa) =>
-            dispatch(thunk_borrar_capa_techo(nivel, bloque, capa)),
-        thunk_modificar_capa_techo: (nivel, bloque, indice, capa) =>
-            dispatch(thunk_modificar_capa_techo(nivel, bloque, indice, capa)),
-        thunk_aplicar_capa_techos: (nivel, bloque, indices) =>
-            dispatch(thunk_aplicar_capa_techos(nivel, bloque, indices)),
+        middleware_agregar_capa_techo: (nivel, bloque, capa) =>
+            dispatch(middleware_agregar_capa_techo(nivel, bloque, capa)),
+        middleware_borrar_capa_techo: (nivel, bloque, capa) =>
+            dispatch(middleware_borrar_capa_techo(nivel, bloque, capa)),
+        middleware_modificar_capa_techo: (nivel, bloque, indice, capa) =>
+            dispatch(middleware_modificar_capa_techo(nivel, bloque, indice, capa)),
+        middleware_aplicar_capa_techos: (nivel, bloque, indices) =>
+            dispatch(middleware_aplicar_capa_techos(nivel, bloque, indices)),
 
-        thunk_modificar_dimensiones_bloque: (bloque, nivel, dimensiones) =>
-            dispatch(thunk_modificar_dimensiones_bloque(bloque, nivel, dimensiones)),
+        middleware_modificar_dimensiones_bloque: (bloque, nivel, dimensiones) =>
+            dispatch(middleware_modificar_dimensiones_bloque(bloque, nivel, dimensiones)),
     }
 };
 
@@ -198,7 +198,7 @@ class InformacionPisoTecho extends Component {
             capaNueva.espesor = event.target.value/1000;
         }
 
-        this.props.thunk_modificar_capa_piso(indices.nivel,indices.bloque,this.state.capaSeleccionadaPiso,capaNueva);
+        this.props.middleware_modificar_capa_piso(indices.nivel,indices.bloque,this.state.capaSeleccionadaPiso,capaNueva);
 
     }
 
@@ -232,7 +232,7 @@ class InformacionPisoTecho extends Component {
             capaNueva.espesor = event.target.value/1000;
         }
 
-        this.props.thunk_modificar_capa_techo(indices.nivel,indices.bloque,this.state.capaSeleccionadaTecho,capaNueva);
+        this.props.middleware_modificar_capa_techo(indices.nivel,indices.bloque,this.state.capaSeleccionadaTecho,capaNueva);
     }
 
     handleClickAplicarPisos() {
@@ -243,7 +243,7 @@ class InformacionPisoTecho extends Component {
             indices.push(seleccionado.indices);
         }
         console.log(indices,indiceSel);
-        this.props.thunk_aplicar_capa_pisos(indiceSel.nivel,indiceSel.bloque,indices);
+        this.props.middleware_aplicar_capa_pisos(indiceSel.nivel,indiceSel.bloque,indices);
 
     }
 
@@ -254,7 +254,7 @@ class InformacionPisoTecho extends Component {
         for(let seleccionado of seleccionados){
             indices.push(seleccionado.indices);
         }
-        this.props.thunk_aplicar_capa_techos(indiceSel.nivel,indiceSel.bloque,indices);
+        this.props.middleware_aplicar_capa_techos(indiceSel.nivel,indiceSel.bloque,indices);
 
     }
 
@@ -274,7 +274,7 @@ class InformacionPisoTecho extends Component {
             ancho: ancho,
             largo: largo,
         };
-        this.props.thunk_modificar_dimensiones_bloque(indices.bloque,indices.nivel,dimensiones);
+        this.props.middleware_modificar_dimensiones_bloque(indices.bloque,indices.nivel,dimensiones);
     }
 
     handleClickBorrarPiso(event) {
@@ -282,7 +282,7 @@ class InformacionPisoTecho extends Component {
         let indiceCapa = parseInt(event.currentTarget.value);
         const indices = this.props.seleccionados[0].indices;
 
-        this.props.thunk_borrar_capa_piso(indices.nivel,indices.bloque,indiceCapa);
+        this.props.middleware_borrar_capa_piso(indices.nivel,indices.bloque,indiceCapa);
 
         if(this.state.capaSeleccionadaPiso === indiceCapa){
             this.setState({
@@ -300,7 +300,7 @@ class InformacionPisoTecho extends Component {
         let indiceCapa = parseInt(event.currentTarget.value);
         const indices = this.props.seleccionados[0].indices;
 
-        this.props.thunk_borrar_capa_techo(indices.nivel,indices.bloque,indiceCapa);
+        this.props.middleware_borrar_capa_techo(indices.nivel,indices.bloque,indiceCapa);
 
         if(this.state.capaSeleccionadaTecho === indiceCapa){
             this.setState({
@@ -341,7 +341,7 @@ class InformacionPisoTecho extends Component {
             propiedad: 0,
         };
 
-        this.props.thunk_agregar_capa_piso(indices.nivel,indices.bloque,capa);
+        this.props.middleware_agregar_capa_piso(indices.nivel,indices.bloque,capa);
 
     }
 
@@ -354,7 +354,7 @@ class InformacionPisoTecho extends Component {
             propiedad: 0,
         };
 
-        this.props.thunk_agregar_capa_techo(indices.nivel,indices.bloque,capa);
+        this.props.middleware_agregar_capa_techo(indices.nivel,indices.bloque,capa);
 
     }
 

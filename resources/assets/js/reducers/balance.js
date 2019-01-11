@@ -7,7 +7,7 @@ import {
     SET_PERDIDA_VENTILACION,
     SET_TRANSMITANCIAS,
     SET_TRANSMITANCIA_ELEMENTO,
-    SET_ELIMINAR_TRANSMITANCIA,
+    SET_ELIMINAR_TRANSMITANCIA, SET_PERDIDA_CONDUCCION,
 } from "../constants/action-types";
 import produce from "immer";
 
@@ -15,9 +15,15 @@ const initialState = {
     farVentanas: {
 
     },
-    aporteInterno : null,
-    aporteSolar : null,
-    perdidaVentilacion : null,
+    aporteInterno : 0,
+    aporteSolar : {
+        normal : 0,
+        objetivo : 0,
+    },
+    perdidaVentilacion : {
+        normal : 0,
+        objetivo : 0,
+    },
     transmitancias: {
         total: 0,
         totalObjetivo: 0,
@@ -27,7 +33,8 @@ const initialState = {
 
     },
     perdidaConduccion:{
-
+        normal: 0,
+        objetivo: 0,
     }
 
 };
@@ -52,6 +59,9 @@ const balance = (state = initialState , action) =>
                 break;
             case SET_PERDIDA_VENTILACION:
                 draft.perdidaVentilacion = action.perdida;
+                break;
+            case SET_PERDIDA_CONDUCCION:
+                draft.perdidaConduccion = action.perdida;
                 break;
             case SET_TRANSMITANCIAS:
                 draft.transmitancias = action.transmitancias;

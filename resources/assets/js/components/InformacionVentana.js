@@ -18,11 +18,11 @@ import TextField from "@material-ui/core/TextField/TextField";
 import CalendarToday from "@material-ui/icons/CalendarToday";
 import {connect} from "react-redux";
 import {
-    thunk_aplicar_marco_ventanas,
-    thunk_aplicar_material_ventanas,
-    thunk_modificar_dimensiones_ventana,
-    thunk_modificar_marco_ventana,
-    thunk_modificar_material_ventana, thunk_modificar_posicion_ventana
+    middleware_aplicar_marco_ventanas,
+    middleware_aplicar_material_ventanas,
+    middleware_modificar_dimensiones_ventana,
+    middleware_modificar_marco_ventana,
+    middleware_modificar_material_ventana, middleware_modificar_posicion_ventana
 } from "../actions";
 import Button from "@material-ui/core/es/Button";
 
@@ -67,18 +67,18 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_modificar_material_ventana: (nivel, bloque, pared, ventana, material) =>
-            dispatch(thunk_modificar_material_ventana(nivel, bloque, pared, ventana, material)),
-        thunk_modificar_marco_ventana: (nivel, bloque, pared, ventana, marco) =>
-            dispatch(thunk_modificar_marco_ventana(nivel, bloque, pared, ventana, marco)),
-        thunk_modificar_dimensiones_ventana: (nivel,bloque,pared,ventana, dimensiones) =>
-            dispatch(thunk_modificar_dimensiones_ventana(nivel,bloque,pared,ventana,dimensiones)),
-        thunk_modificar_posicion_ventana: (nivel,bloque,pared,ventana, posicion) =>
-            dispatch(thunk_modificar_posicion_ventana(nivel,bloque,pared,ventana,posicion)),
-        thunk_aplicar_material_ventanas: (nivel,bloque,pared,ventana,indices) =>
-            dispatch(thunk_aplicar_material_ventanas(nivel,bloque,pared,ventana,indices)),
-        thunk_aplicar_marco_ventanas: (nivel,bloque,pared,ventana,indices) =>
-            dispatch(thunk_aplicar_marco_ventanas(nivel,bloque,pared,ventana,indices)),
+        middleware_modificar_material_ventana: (nivel, bloque, pared, ventana, material) =>
+            dispatch(middleware_modificar_material_ventana(nivel, bloque, pared, ventana, material)),
+        middleware_modificar_marco_ventana: (nivel, bloque, pared, ventana, marco) =>
+            dispatch(middleware_modificar_marco_ventana(nivel, bloque, pared, ventana, marco)),
+        middleware_modificar_dimensiones_ventana: (nivel,bloque,pared,ventana, dimensiones) =>
+            dispatch(middleware_modificar_dimensiones_ventana(nivel,bloque,pared,ventana,dimensiones)),
+        middleware_modificar_posicion_ventana: (nivel,bloque,pared,ventana, posicion) =>
+            dispatch(middleware_modificar_posicion_ventana(nivel,bloque,pared,ventana,posicion)),
+        middleware_aplicar_material_ventanas: (nivel,bloque,pared,ventana,indices) =>
+            dispatch(middleware_aplicar_material_ventanas(nivel,bloque,pared,ventana,indices)),
+        middleware_aplicar_marco_ventanas: (nivel,bloque,pared,ventana,indices) =>
+            dispatch(middleware_aplicar_marco_ventanas(nivel,bloque,pared,ventana,indices)),
     }
 };
 class InformacionVentana extends Component {
@@ -122,7 +122,7 @@ class InformacionVentana extends Component {
             materialNuevo.tipo = 0;
         }
 
-        this.props.thunk_modificar_material_ventana(
+        this.props.middleware_modificar_material_ventana(
             indices.nivel,
             indices.bloque,
             indices.pared,
@@ -152,7 +152,7 @@ class InformacionVentana extends Component {
             marcoNuevo.tipo = 0;
         }
 
-        this.props.thunk_modificar_marco_ventana(
+        this.props.middleware_modificar_marco_ventana(
             indices.nivel,
             indices.bloque,
             indices.pared,
@@ -182,7 +182,7 @@ class InformacionVentana extends Component {
             nuevasDimensiones.ancho = parseFloat(event.target.value);
         }
 
-        this.props.thunk_modificar_dimensiones_ventana(
+        this.props.middleware_modificar_dimensiones_ventana(
             indices.nivel,
             indices.bloque,
             indices.pared,
@@ -198,7 +198,7 @@ class InformacionVentana extends Component {
         for(let seleccionado of seleccionados){
             indices.push(seleccionado.indices);
         }
-        this.props.thunk_aplicar_material_ventanas(
+        this.props.middleware_aplicar_material_ventanas(
             indiceSel.nivel,
             indiceSel.bloque,
             indiceSel.pared,
@@ -214,7 +214,7 @@ class InformacionVentana extends Component {
         for(let seleccionado of seleccionados){
             indices.push(seleccionado.indices);
         }
-        this.props.thunk_aplicar_marco_ventanas(
+        this.props.middleware_aplicar_marco_ventanas(
             indiceSel.nivel,
             indiceSel.bloque,
             indiceSel.pared,
@@ -240,7 +240,7 @@ class InformacionVentana extends Component {
         };
         nuevaPosicion[event.target.name] =  parseFloat(event.target.value);
 
-        this.props.thunk_modificar_posicion_ventana(
+        this.props.middleware_modificar_posicion_ventana(
             indices.nivel,
             indices.bloque,
             indices.pared,

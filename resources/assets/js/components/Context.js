@@ -11,9 +11,9 @@ import {
     eliminarObstruccion,
     modificarObstrucion,
     seleccionarObstruccion,
-    thunk_agregar_obstruccion,
-    thunk_eliminar_obstruccion,
-    thunk_actualizar_obstrucciones_app
+    middleware_agregar_obstruccion,
+    middleware_eliminar_obstruccion,
+    middleware_actualizar_obstrucciones_app
 } from "../actions";
 import {
     clearThree,
@@ -42,10 +42,10 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_agregar_obstruccion: (obstruccion) => dispatch(thunk_agregar_obstruccion(obstruccion)),
-        thunk_eliminar_obstruccion: (indice) => dispatch(thunk_eliminar_obstruccion(indice)),
+        middleware_agregar_obstruccion: (obstruccion) => dispatch(middleware_agregar_obstruccion(obstruccion)),
+        middleware_eliminar_obstruccion: (indice) => dispatch(middleware_eliminar_obstruccion(indice)),
         seleccionarObstruccion: (indice) => dispatch(seleccionarObstruccion(indice)),
-        thunk_actualizar_obstrucciones_app : (obstrucciones) => dispatch(thunk_actualizar_obstrucciones_app(obstrucciones)),
+        middleware_actualizar_obstrucciones_app : (obstrucciones) => dispatch(middleware_actualizar_obstrucciones_app(obstrucciones)),
     }
 };
 
@@ -181,7 +181,7 @@ class Context extends Component {
             this.obstrucciones.push(meshObstruccion);
             this.obstruccionesGroup.add(meshObstruccion);
         }
-        this.props.thunk_actualizar_obstrucciones_app(this.obstrucciones);
+        this.props.middleware_actualizar_obstrucciones_app(this.obstrucciones);
     }
 
     componentDidMount() {
@@ -431,7 +431,7 @@ class Context extends Component {
         if (this.props.acciones.agregar) {
             if(this.dibujando){
                 this.dibujando = false;
-                this.props.thunk_agregar_obstruccion(this.obstruccionDibujo.userData.info);
+                this.props.middleware_agregar_obstruccion(this.obstruccionDibujo.userData.info);
                 clearThree(this.obstruccionDibujo);
 
             }
@@ -487,10 +487,10 @@ class Context extends Component {
         let state = this.props.contexto.present;
 
         if(this.hoveredObstruction !== null){
-            this.props.thunk_eliminar_obstruccion(this.hoveredObstruction.userData.indice);
+            this.props.middleware_eliminar_obstruccion(this.hoveredObstruction.userData.indice);
         }else{
             if(this.props.seleccion !== null && this.hoveredSelected){
-                this.props.thunk_eliminar_obstruccion(this.seleccionado.userData.indice);
+                this.props.middleware_eliminar_obstruccion(this.seleccionado.userData.indice);
             }
         }
         this.hoveredObstruction = null;
@@ -573,8 +573,8 @@ class Context extends Component {
 
 Context.propTypes = {
     classes: PropTypes.object.isRequired,
-    thunk_agregar_obstruccion: PropTypes.func,
-    thunk_eliminar_obstruccion: PropTypes.func,
+    middleware_agregar_obstruccion: PropTypes.func,
+    middleware_eliminar_obstruccion: PropTypes.func,
     seleccionarObstruccion: PropTypes.func,
 };
 

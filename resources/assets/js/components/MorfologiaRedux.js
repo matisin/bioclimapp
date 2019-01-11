@@ -18,12 +18,12 @@ import {
 } from '../Utils/dibujosMesh'
 
 import {
-    thunk_agregar_bloque, thunk_agregar_ventana,
-    thunk_agregar_puerta, thunk_borrar_puerta,
-    thunk_borrar_ventana, thunk_borrar_bloque,
+    middleware_agregar_bloque, middleware_agregar_ventana,
+    middleware_agregar_puerta, middleware_borrar_puerta,
+    middleware_borrar_ventana, middleware_borrar_bloque,
 } from '../actions/index';
 
-import {seleccionarMorfologia, thunk_rotar_casa} from "../actions";
+import {seleccionarMorfologia, middleware_rotar_casa} from "../actions";
 import {createMuiTheme} from "@material-ui/core";
 import {transformGammaToDegree} from "../Utils/BalanceEnergetico";
 const uuidv4 = require('uuid/v4');
@@ -33,10 +33,6 @@ const uuidv4 = require('uuid/v4');
 //Se mapean los estados requeridos del componente como props
 const mapStateToProps = state => {
     return {
-        personas: state.variables.personas,
-        temperatura: state.variables.temperatura,
-        iluminacion: state.variables.iluminacion,
-        aire: state.variables.aire,
         morfologia: state.morfologia,
         acciones: state.barra_herramientas_morfologia.acciones,
         camara3D: state.barra_herramientas_morfologia.camara3D,
@@ -52,25 +48,25 @@ const mapStateToProps = state => {
 //Las acciones se mapean a props.
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_agregar_bloque: (bloque, nivel) => dispatch(thunk_agregar_bloque(bloque, nivel)),
-        thunk_agregar_ventana:
+        middleware_agregar_bloque: (bloque, nivel) => dispatch(middleware_agregar_bloque(bloque, nivel)),
+        middleware_agregar_ventana:
             (bloque, nivel, pared, ventana) =>
-                dispatch(thunk_agregar_ventana(bloque, nivel, pared, ventana)),
-        thunk_agregar_puerta:
+                dispatch(middleware_agregar_ventana(bloque, nivel, pared, ventana)),
+        middleware_agregar_puerta:
             (bloque, nivel, pared, puerta) =>
-                dispatch(thunk_agregar_puerta(bloque, nivel, pared, puerta)),
-        thunk_borrar_puerta:
+                dispatch(middleware_agregar_puerta(bloque, nivel, pared, puerta)),
+        middleware_borrar_puerta:
             (puerta, nivel, bloque, pared) =>
-                dispatch(thunk_borrar_puerta(puerta, nivel, bloque, pared)),
-        thunk_borrar_ventana:
+                dispatch(middleware_borrar_puerta(puerta, nivel, bloque, pared)),
+        middleware_borrar_ventana:
             (ventana, nivel, bloque, pared) =>
-                dispatch(thunk_borrar_ventana(ventana, nivel, bloque, pared)),
-        thunk_borrar_bloque:
+                dispatch(middleware_borrar_ventana(ventana, nivel, bloque, pared)),
+        middleware_borrar_bloque:
             (nivel, bloque) =>
-                dispatch(thunk_borrar_bloque(bloque, nivel)),
-        thunk_rotar_casa:
+                dispatch(middleware_borrar_bloque(bloque, nivel)),
+        middleware_rotar_casa:
             (angulo) =>
-                dispatch(thunk_rotar_casa(angulo)),
+                dispatch(middleware_rotar_casa(angulo)),
         seleccionarMorfologia: (seleccion,grupo) => dispatch(seleccionarMorfologia(seleccion,grupo)),
     }
 };
@@ -1180,7 +1176,7 @@ class Morfologia extends Component {
                 } else {
                     nivel = 0
                 }
-                this.props.thunk_agregar_bloque(bloque, nivel);
+                this.props.middleware_agregar_bloque(bloque, nivel);
                 clearThree(this.bloqueDibujo);
                 this.construyendo = false;
 
@@ -1195,11 +1191,11 @@ class Morfologia extends Component {
                 let pared = object.userData.pared;
                 if (this.props.acciones.agregar_ventana) {
                     let ventana = this.datosVentana(this.ventanaDibujo);
-                    this.props.thunk_agregar_ventana(bloque, nivel, pared, ventana);
+                    this.props.middleware_agregar_ventana(bloque, nivel, pared, ventana);
                     clearThree(this.ventanaDibujo);
                 } else {
                     let puerta = this.datosPuerta(this.puertaDibujo);
-                    this.props.thunk_agregar_puerta(bloque, nivel, pared, puerta);
+                    this.props.middleware_agregar_puerta(bloque, nivel, pared, puerta);
                     clearThree(this.puertaDibujo);
                 }
 
@@ -1233,7 +1229,7 @@ class Morfologia extends Component {
                 }
             }*/
             this.setState({dragging: this.dragging});
-            this.props.thunk_rotar_casa(this.angleRotated);
+            this.props.middleware_rotar_casa(this.angleRotated);
             this.angleRotatedTemp = 0;
             //if(this.paredes.length > 0) this.props.onParedesChanged(this.paredes);
             //if(this.ventanas.length > 0) this.props.onVentanasChanged(this.ventanas);
@@ -1531,31 +1527,31 @@ class Morfologia extends Component {
                 case  Tipos.PARED:
                     bloque = this.objApuntadoMouse.parent.userData.bloque;
                     nivel = this.objApuntadoMouse.parent.parent.userData.nivel;
-                    this.props.thunk_borrar_bloque(nivel, bloque);
+                    this.props.middleware_borrar_bloque(nivel, bloque);
                     break;
                 case  Tipos.VENTANA:
                     bloque = this.objApuntadoMouse.parent.parent.userData.bloque;
                     nivel = this.objApuntadoMouse.parent.parent.parent.userData.nivel;
                     pared = this.objApuntadoMouse.parent.userData.pared;
                     ventana = this.objApuntadoMouse.userData.ventana;
-                    this.props.thunk_borrar_ventana(ventana, nivel, bloque, pared);
+                    this.props.middleware_borrar_ventana(ventana, nivel, bloque, pared);
                     break;
                 case Tipos.PUERTA:
                     bloque = this.objApuntadoMouse.parent.parent.userData.bloque;
                     nivel = this.objApuntadoMouse.parent.parent.parent.userData.nivel;
                     pared = this.objApuntadoMouse.parent.userData.pared;
                     puerta = this.objApuntadoMouse.userData.puerta;
-                    this.props.thunk_borrar_puerta(puerta, nivel, bloque, pared);
+                    this.props.middleware_borrar_puerta(puerta, nivel, bloque, pared);
                     break;
                 case Tipos.PISO:
                     bloque = this.objApuntadoMouse.parent.userData.bloque;
                     nivel = this.objApuntadoMouse.parent.parent.userData.nivel;
-                    this.props.thunk_borrar_bloque(nivel, bloque);
+                    this.props.middleware_borrar_bloque(nivel, bloque);
                     break;
                 case Tipos.TECHO:
                     bloque = this.objApuntadoMouse.parent.userData.bloque;
                     nivel = this.objApuntadoMouse.parent.parent.userData.nivel;
-                    this.props.thunk_borrar_bloque(nivel, bloque);
+                    this.props.middleware_borrar_bloque(nivel, bloque);
                     break;
                 default:
                     break;
@@ -1628,12 +1624,12 @@ Morfologia.propTypes = {
     casaPredefinidaSimpleDosPisos: PropTypes.func,
     casaPredefinidaDobleDosPisos: PropTypes.func,
 
-    thunk_agregar_bloque: PropTypes.func,
-    thunk_agregar_ventana: PropTypes.func,
-    thunk_agregar_puerta: PropTypes.func,
-    thunk_borrar_puerta: PropTypes.func,
-    thunk_borrar_ventana: PropTypes.func,
-    thunk_borrar_bloque: PropTypes.func,
+    middleware_agregar_bloque: PropTypes.func,
+    middleware_agregar_ventana: PropTypes.func,
+    middleware_agregar_puerta: PropTypes.func,
+    middleware_borrar_puerta: PropTypes.func,
+    middleware_borrar_ventana: PropTypes.func,
+    middleware_borrar_bloque: PropTypes.func,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Morfologia);

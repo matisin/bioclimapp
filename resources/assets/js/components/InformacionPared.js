@@ -21,13 +21,12 @@ import Add from '@material-ui/icons/Add';
 import Clear from '@material-ui/icons/Clear';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from "@material-ui/core/Grid";
-import SvgIcon from "@material-ui/core/SvgIcon/SvgIcon";
 import {
-    thunk_agregar_capa_pared,
-    thunk_aplicar_capa_paredes,
-    thunk_borrar_capa_pared,
-    thunk_modificar_capa_pared,
-    thunk_modificar_dimensiones_bloque,
+    middleware_agregar_capa_pared,
+    middleware_aplicar_capa_paredes,
+    middleware_borrar_capa_pared,
+    middleware_modificar_capa_pared,
+    middleware_modificar_dimensiones_bloque,
 } from "../actions";
 import {connect} from "react-redux";
 import Button from "@material-ui/core/es/Button/Button";
@@ -89,7 +88,6 @@ const styles = theme => ({
 
 });
 
-
 const mapStateToProps = state => {
     return {
         morfologia: state.morfologia,
@@ -104,16 +102,16 @@ const mapStateToProps = state => {
 //Las acciones se mapean a props.
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_agregar_capa_pared: (nivel, bloque, pared, capa) =>
-            dispatch(thunk_agregar_capa_pared(nivel, bloque, pared, capa)),
-        thunk_borrar_capa_pared: (nivel, bloque, pared, capa) =>
-            dispatch(thunk_borrar_capa_pared(nivel, bloque, pared, capa)),
-        thunk_modificar_capa_pared: (nivel, bloque, pared, indice, capa) =>
-            dispatch(thunk_modificar_capa_pared(nivel, bloque, pared, indice, capa)),
-        thunk_aplicar_capa_paredes: (nivel, bloque, pared, indices) =>
-            dispatch(thunk_aplicar_capa_paredes(nivel, bloque, pared, indices)),
-        thunk_modificar_dimensiones_bloque: (bloque, nivel, dimensiones) =>
-            dispatch(thunk_modificar_dimensiones_bloque(bloque, nivel, dimensiones)),
+        middleware_agregar_capa_pared: (nivel, bloque, pared, capa) =>
+            dispatch(middleware_agregar_capa_pared(nivel, bloque, pared, capa)),
+        middleware_borrar_capa_pared: (nivel, bloque, pared, capa) =>
+            dispatch(middleware_borrar_capa_pared(nivel, bloque, pared, capa)),
+        middleware_modificar_capa_pared: (nivel, bloque, pared, indice, capa) =>
+            dispatch(middleware_modificar_capa_pared(nivel, bloque, pared, indice, capa)),
+        middleware_aplicar_capa_paredes: (nivel, bloque, pared, indices) =>
+            dispatch(middleware_aplicar_capa_paredes(nivel, bloque, pared, indices)),
+        middleware_modificar_dimensiones_bloque: (bloque, nivel, dimensiones) =>
+            dispatch(middleware_modificar_dimensiones_bloque(bloque, nivel, dimensiones)),
     }
 };
 
@@ -185,7 +183,7 @@ class InformacionPared extends Component {
             capaNueva.espesor = event.target.value / 1000;
         }
 
-        this.props.thunk_modificar_capa_pared(indices.nivel, indices.bloque, indices.pared, this.state.capaS, capaNueva);
+        this.props.middleware_modificar_capa_pared(indices.nivel, indices.bloque, indices.pared, this.state.capaS, capaNueva);
 
     }
 
@@ -218,7 +216,7 @@ class InformacionPared extends Component {
                 largo: ancho,
             }
         }
-        this.props.thunk_modificar_dimensiones_bloque(indices.bloque, indices.nivel, dimensiones);
+        this.props.middleware_modificar_dimensiones_bloque(indices.bloque, indices.nivel, dimensiones);
 
     }
 
@@ -227,7 +225,7 @@ class InformacionPared extends Component {
         let indiceCapa = parseInt(event.currentTarget.value);
         const indices = this.props.seleccionados[0].indices;
 
-        this.props.thunk_borrar_capa_pared(indices.nivel, indices.bloque, indices.pared, indiceCapa);
+        this.props.middleware_borrar_capa_pared(indices.nivel, indices.bloque, indices.pared, indiceCapa);
 
         if (this.state.capaS === indiceCapa) {
             this.setState({
@@ -254,7 +252,7 @@ class InformacionPared extends Component {
         for (let seleccionado of seleccionados) {
             indices.push(seleccionado.indices);
         }
-        this.props.thunk_aplicar_capa_paredes(indiceSel.nivel, indiceSel.bloque, indiceSel.pared, indices);
+        this.props.middleware_aplicar_capa_paredes(indiceSel.nivel, indiceSel.bloque, indiceSel.pared, indices);
 
 
     }
@@ -269,7 +267,7 @@ class InformacionPared extends Component {
             propiedad: 0,
         };
 
-        this.props.thunk_agregar_capa_pared(indices.nivel, indices.bloque, indices.pared, capa);
+        this.props.middleware_agregar_capa_pared(indices.nivel, indices.bloque, indices.pared, capa);
 
     }
 

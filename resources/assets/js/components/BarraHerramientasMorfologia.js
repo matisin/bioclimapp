@@ -33,7 +33,7 @@ import {
     activarSeleccionarMorfologia,
     verSol,
     activarRotar,
-    activarMoverCamara, morfologiaUndo, morfologiaRedo, thunk_cambiar_fecha,
+    activarMoverCamara, morfologiaUndo, morfologiaRedo, middleware_cambiar_fecha,
 } from "../actions";
 
 const styles = theme => ({
@@ -164,7 +164,7 @@ const mapDispatchToProps = dispatch => {
         verSol: () => dispatch(verSol()),
         activarRotar: () => dispatch(activarRotar()),
         activarMoverCamara: () => dispatch(activarMoverCamara()),
-        thunk_cambiar_fecha: (fecha) => dispatch(thunk_cambiar_fecha(fecha)),
+        middleware_cambiar_fecha: (fecha) => dispatch(middleware_cambiar_fecha(fecha)),
     }
 };
 
@@ -309,7 +309,7 @@ class BarraHerramientasMorfologia extends Component {
         date[event.target.name] = event.target.value;
 
         let newFecha = new Date(date.year, date.mes - 1, date.dia, date.hora, date.minutos);
-        this.props.thunk_cambiar_fecha(newFecha);
+        this.props.middleware_cambiar_fecha(newFecha);
     }
 
 

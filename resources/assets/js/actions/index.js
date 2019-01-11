@@ -76,7 +76,7 @@ import {
     SET_CALCULANDO,
     SET_APORTE_INTERNO,
     SET_FAR_VENTANA,
-    BORRAR_FAR_VENTANA, SET_APORTE_SOLAR, SET_PERDIDA_VENTILACION,
+    BORRAR_FAR_VENTANA, SET_APORTE_SOLAR, SET_PERDIDA_VENTILACION, SET_PERDIDA_CONDUCCION,
 
 } from "../constants/action-types";
 import store from "../store";
@@ -133,7 +133,7 @@ export const setCalculando = (calculando,sender) => (
 
 
 
-export const thunk_set_state_mapa = (lat, lng) => {
+export const middleware_set_state_mapa = (lat, lng) => {
 
 
     return function (dispatch, getState) {
@@ -177,11 +177,11 @@ export const thunk_set_state_mapa = (lat, lng) => {
                             let periodo = result[1];
                             let rbParedes = calcularRbParedes(lat,lng,periodo,angulo);
                             dispatch(setPeriodo(periodo, rbParedes, grados));
-                            dispatch(thunk_recalcular_perdida_ventilacion());
-                            dispatch(thunk_recalcular_aporte_interno());
+                            dispatch(middleware_recalcular_perdida_ventilacion());
+                            dispatch(middleware_recalcular_aporte_interno());
                             dispatch(setCalculando(false,'set_state_mapa'));
                             dispatch(setStateInfoGeo(infoGeo));
-                            dispatch(thunk_recalcular_transmitancias());
+                            dispatch(middleware_recalcular_transmitancias());
 
                         }));
 
@@ -231,7 +231,7 @@ export const agregarObstruccion = obstruccion => (
     }
 );
 
-export const thunk_agregar_obstruccion = (obstruccion) => {
+export const middleware_agregar_obstruccion = (obstruccion) => {
 
     //SETEAR CALCULANDO
     //store.dispatch(setCargando(true));
@@ -252,7 +252,7 @@ export const eliminarObstruccion = (indice) => (
     }
 );
 
-export const thunk_eliminar_obstruccion = (indice) => {
+export const middleware_eliminar_obstruccion = (indice) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
@@ -292,7 +292,7 @@ export const modificarObstrucion = (obstruccion, indice) => (
     }
 );
 
-export const thunk_modificar_obstruccion = (obstruccion, indice) => {
+export const middleware_modificar_obstruccion = (obstruccion, indice) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
@@ -308,7 +308,7 @@ export const setearComuna = comuna => (
     }
 );
 
-export const thunk_setear_comuna = comuna => {
+export const middleware_setear_comuna = comuna => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
@@ -332,7 +332,7 @@ export const setFarVentanas = farVentanas => (
     }
 );
 
-export const thunk_cambiar_variables_internas = (variable) =>{
+export const middleware_cambiar_variables_internas = (variable) =>{
     return function (dispatch,getState) {
         dispatch(setCalculando(true,'variables'));
         setTimeout(function() {
@@ -347,20 +347,20 @@ export const thunk_cambiar_variables_internas = (variable) =>{
                 let lng = variables.mapa.lng;
                 let rbParedes = calcularRbParedes(lat,lng,periodo,angulo);
                 dispatch(setPeriodo(periodo, rbParedes, grados));
-                dispatch(thunk_recalcular_aporte_interno());
-                dispatch(thunk_recalcular_perdida_ventilacion());
+                dispatch(middleware_recalcular_aporte_interno());
+                dispatch(middleware_recalcular_perdida_ventilacion());
             }
             if(variable.name === "iluminacion" || variable.name === "personas"){
-                dispatch(thunk_recalcular_aporte_interno());
+                dispatch(middleware_recalcular_aporte_interno());
             }else if(variable.name === "aire"){
-                dispatch(thunk_recalcular_perdida_ventilacion());
+                dispatch(middleware_recalcular_perdida_ventilacion());
             }
             dispatch(setCalculando(false,'variables'));
         }, 300);
     }
 };
 
-/*export const thunk_cambiar_variables_internas = variable => {
+/*export const middleware_cambiar_variables_internas = variable => {
     //SETEAR CALCULANDO
     return (dispatch,getState) => {
         //HACER CALCULOS NECESARIOS
@@ -386,16 +386,16 @@ export const agregarBloque = (bloque, nivel) => (
     }
 );
 
-export const thunk_agregar_bloque = (bloque, nivel) => {
+export const middleware_agregar_bloque = (bloque, nivel) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         //HACER CALCULOS
         const state = getState().morfologia.present;
         dispatch(agregarBloque(bloque, nivel));
-        dispatch(thunk_recalcular_aporte_interno());
-        dispatch(thunk_recalcular_perdida_ventilacion());
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_aporte_interno());
+        dispatch(middleware_recalcular_perdida_ventilacion());
+        dispatch(middleware_recalcular_transmitancias());
         console.log('niveles', state.niveles);
         //AGREGAR NIVEL EN CASAS PREDEFINIDAS
 
@@ -545,7 +545,7 @@ export const setFarVentana = (id, farVentana, indices) => (
     }
 );
 
-export const thunk_actualizar_obstrucciones_app = (obstrucciones) => {
+export const middleware_actualizar_obstrucciones_app = (obstrucciones) => {
     return (dispatch,getState) =>{
         dispatch(setCalculando(true,'calcFar'));
         setTimeout(function(){
@@ -555,7 +555,7 @@ export const thunk_actualizar_obstrucciones_app = (obstrucciones) => {
             dispatch(actualizarObstruccionesApp(obstrucciones));
             dispatch(setFarVentanas(result));
             dispatch(setCalculando(false,'calcFar'));
-            dispatch(thunk_recalcular_aporte_solar());
+            dispatch(middleware_recalcular_aporte_solar());
 
         },500);
 
@@ -587,31 +587,31 @@ export const thunk_actualizar_obstrucciones_app = (obstrucciones) => {
 
 
 
-export const thunk_aplicar_capa_paredes = (nivel, bloque, pared, indices) => {
+export const middleware_aplicar_capa_paredes = (nivel, bloque, pared, indices) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(aplicarCapaAParedes(nivel, bloque, pared, indices));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_aplicar_capa_pisos = (nivel, bloque, indices) => {
+export const middleware_aplicar_capa_pisos = (nivel, bloque, indices) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(aplicarCapaAPisos(nivel, bloque, indices));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_aplicar_capa_techos = (nivel, bloque, indices) => {
+export const middleware_aplicar_capa_techos = (nivel, bloque, indices) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(aplicarCapaATechos(nivel, bloque, indices));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_recalcular_transmitancias = () => {
+export const middleware_recalcular_transmitancias = () => {
     return function (dispatch,getState) {
         let elementos = getState().morfologia.present.elementos;
         let zona = getState().variables.mapa.comuna.zona;
@@ -635,11 +635,14 @@ export const thunk_recalcular_transmitancias = () => {
             normal: perdidasConduccion(res.total, gradosDias, puenteTermico),
             objetivo:  perdidasConduccion(res.totalObjetivo, gradosDias, puenteTermicoObjetivo),
         };
+
+        dispatch(setPerdidaConduccion(perdidas));
+
         console.log("PERDIDAS",perdidas);
     }
 };
 
-export const  thunk_recalcular_aporte_solar = () => {
+export const  middleware_recalcular_aporte_solar = () => {
     return function (dispatch,getState) {
         let ventanas = getState().morfologia.present.ventanas;
         let periodo = getState().variables.periodo;
@@ -649,12 +652,13 @@ export const  thunk_recalcular_aporte_solar = () => {
         let info_material = getState().app.materiales_ventanas;
         let marco = getState().app.materiales_marcos;
         let rb = getState().variables.rbParedes;
-        let res =calcularAporteSolar(periodo, farVentanas, ventanas, difusa, directa, info_material, marco, rb);
+        let res = calcularAporteSolar(periodo, farVentanas, ventanas, difusa, directa, info_material, marco, rb);
+        console.log("APORTE SOLAR",res);
         dispatch(setAporteSolar(res));
     }
 };
 
-export const  thunk_recalcular_perdida_ventilacion = () => {
+export const  middleware_recalcular_perdida_ventilacion = () => {
     return function (dispatch,getState) {
         let volumen = getState().morfologia.present.volumen;
         let gradosDias = getState().variables.gradosDias;
@@ -664,103 +668,103 @@ export const  thunk_recalcular_perdida_ventilacion = () => {
     }
 };
 
-export const thunk_agregar_ventana = (bloque, nivel, pared, ventana) => {
+export const middleware_agregar_ventana = (bloque, nivel, pared, ventana) => {
     return function (dispatch, getState) {
         //HACER CALCULOS
         const state = getState().morfologia.present;
         let paredInfo = state.niveles[nivel].bloques[bloque].paredes[pared];
         ventana.orientacion = paredInfo.orientacion;
         dispatch(agregarVentana(bloque, nivel, pared, ventana));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
 
         let obstrucciones = getState().app.obstrucciones;
         let rotacion = getState().morfologia.present.rotacion;
         let result = calcularFARVentana(obstrucciones,rotacion,ventana);
         dispatch(setFarVentana(ventana.id,result));
-        dispatch(thunk_recalcular_aporte_solar());
+        dispatch(middleware_recalcular_aporte_solar());
     }
 };
 
-export const thunk_modificar_capa_pared = (nivel, bloque, pared, indice, capa) => {
+export const middleware_modificar_capa_pared = (nivel, bloque, pared, indice, capa) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(modificarCapaPared(nivel, bloque, pared, indice, capa));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
-export const thunk_modificar_capa_piso = (nivel, bloque, indice, capa) => {
+export const middleware_modificar_capa_piso = (nivel, bloque, indice, capa) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(modificarCapaPiso(nivel, bloque, indice, capa));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
-export const thunk_modificar_capa_techo = (nivel, bloque, indice, capa) => {
+export const middleware_modificar_capa_techo = (nivel, bloque, indice, capa) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(modificarCapaTecho(nivel, bloque, indice, capa));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
 
     }
 };
 
-export const thunk_agregar_capa_pared = (nivel, bloque, pared, capa) => {
+export const middleware_agregar_capa_pared = (nivel, bloque, pared, capa) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(agregarCapaPared(nivel, bloque, pared, capa));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_agregar_capa_piso = (nivel, bloque, capa) => {
+export const middleware_agregar_capa_piso = (nivel, bloque, capa) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(agregarCapaPiso(nivel, bloque, capa));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
 
-export const thunk_agregar_capa_techo = (nivel, bloque, capa) => {
+export const middleware_agregar_capa_techo = (nivel, bloque, capa) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(agregarCapaTecho(nivel, bloque, capa));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_borrar_capa_pared = (nivel, bloque, pared, capa) => {
+export const middleware_borrar_capa_pared = (nivel, bloque, pared, capa) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(borrarCapaPared(nivel, bloque, pared, capa));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_borrar_capa_piso = (nivel, bloque, capa) => {
+export const middleware_borrar_capa_piso = (nivel, bloque, capa) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(borrarCapaPiso(nivel, bloque, capa));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_borrar_capa_techo = (nivel, bloque, capa) => {
+export const middleware_borrar_capa_techo = (nivel, bloque, capa) => {
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         dispatch(borrarCapaTecho(nivel, bloque, capa));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
 
-export const thunk_agregar_puerta = (bloque, nivel, pared, puerta) => {
+export const middleware_agregar_puerta = (bloque, nivel, pared, puerta) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         //HACER CALCULOS
         dispatch(agregarPuerta(bloque, nivel, pared, puerta));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
 
     }
 };
@@ -825,16 +829,16 @@ export const borrarBloque = (bloque, nivel) => (
     }
 );
 
-export const thunk_borrar_bloque = (nivel, bloque) => {
+export const middleware_borrar_bloque = (nivel, bloque) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         //HACER CALCULOS
         const state = getState().morfologia.present;
         dispatch(borrarBloque(nivel, bloque));
-        dispatch(thunk_recalcular_aporte_interno());
-        dispatch(thunk_recalcular_perdida_ventilacion());
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_aporte_interno());
+        dispatch(middleware_recalcular_perdida_ventilacion());
+        dispatch(middleware_recalcular_transmitancias());
 
     }
 };
@@ -849,7 +853,7 @@ export const borrarVentana = (ventana, nivel, bloque, pared) => (
 );
 
 
-export const thunk_borrar_ventana = (ventana, nivel, bloque, pared) => {
+export const middleware_borrar_ventana = (ventana, nivel, bloque, pared) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
@@ -858,8 +862,8 @@ export const thunk_borrar_ventana = (ventana, nivel, bloque, pared) => {
         let id = state[nivel].bloques[bloque].paredes[pared].ventanas[ventana].id;
         dispatch(borrarVentana(ventana, nivel, bloque, pared));
         dispatch(borrarFarVentana(id));
-        dispatch(thunk_recalcular_aporte_solar());
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_aporte_solar());
+        dispatch(middleware_recalcular_transmitancias());
 
     }
 };
@@ -881,13 +885,13 @@ export const borrarPuerta = (puerta, nivel, bloque, pared) => (
     }
 );
 
-export const thunk_borrar_puerta = (puerta, nivel, bloque, pared) => {
+export const middleware_borrar_puerta = (puerta, nivel, bloque, pared) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
         //HACER CALCULOS
         dispatch(borrarPuerta(puerta, nivel, bloque, pared));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
 
     }
 };
@@ -906,13 +910,20 @@ export const setPerdidaVentilacion = (perdida) => (
     }
 );
 
+export const setPerdidaConduccion = (perdida) => (
+    {
+        type: SET_PERDIDA_CONDUCCION,
+        perdida: perdida,
+    }
+);
+
 export const setAporteSolar = (aporteSolar) => (
     {
         type: SET_APORTE_SOLAR,
         aporteSolar: aporteSolar,
     }
 );
-export const thunk_recalcular_aporte_interno = () => {
+export const middleware_recalcular_aporte_interno = () => {
     return function (dispatch, getState) {
         dispatch(setCalculando(true,'aporteInterno'));
         setTimeout(function () {
@@ -928,7 +939,7 @@ export const thunk_recalcular_aporte_interno = () => {
     }
 };
 
-export const thunk_rotar_casa = (angulo) => {
+export const middleware_rotar_casa = (angulo) => {
 
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
@@ -941,9 +952,9 @@ export const thunk_rotar_casa = (angulo) => {
             let lng = variables.mapa.lng;
             let rbParedes = calcularRbParedes(lat,lng,periodo,angulo);
             dispatch(setPeriodo(periodo, rbParedes, gradosDias));
-            dispatch(thunk_recalcular_aporte_interno());
+            dispatch(middleware_recalcular_aporte_interno());
             dispatch(rotarCasa(angulo));
-            dispatch(thunk_recalcular_aporte_solar());
+            dispatch(middleware_recalcular_aporte_solar());
 
             dispatch(setCalculando(false,'rotacion'));
         },300);
@@ -958,7 +969,7 @@ export const rotarCasa = angulo => (
     }
 );
 
-export const thunk_modificar_dimensiones_bloque = (bloque, nivel, dimensiones) => {
+export const middleware_modificar_dimensiones_bloque = (bloque, nivel, dimensiones) => {
     //SETEAR CALCULAMO
     return function (dispatch, getState) {
         let morfologia = getState().morfologia.present;
@@ -977,56 +988,56 @@ export const thunk_modificar_dimensiones_bloque = (bloque, nivel, dimensiones) =
             }
         } else {
             dispatch(modificarDimensionesBloque(bloque, nivel, dimensiones));
-            dispatch(thunk_recalcular_aporte_interno());
+            dispatch(middleware_recalcular_aporte_interno());
         }
-        dispatch(thunk_recalcular_perdida_ventilacion());
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_perdida_ventilacion());
+        dispatch(middleware_recalcular_transmitancias());
 
     }
 
 };
 
-export const thunk_modificar_material_ventana = (nivel, bloque, pared, ventana, material) => {
+export const middleware_modificar_material_ventana = (nivel, bloque, pared, ventana, material) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(modificarMaterialVentana(nivel,bloque,pared,ventana,material));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_modificar_material_puerta = (nivel, bloque, pared, puerta, material) => {
+export const middleware_modificar_material_puerta = (nivel, bloque, pared, puerta, material) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(modificarMaterialPuerta(nivel,bloque,pared,puerta,material));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_modificar_marco_ventana = (nivel, bloque, pared, ventana, marco) => {
+export const middleware_modificar_marco_ventana = (nivel, bloque, pared, ventana, marco) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(modificarMarcoVentana(nivel,bloque,pared,ventana,marco));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_modificar_dimensiones_ventana = (nivel, bloque, pared, ventana, dimensiones) => {
+export const middleware_modificar_dimensiones_ventana = (nivel, bloque, pared, ventana, dimensiones) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(modificarDimensionesVentana(nivel,bloque,pared,ventana,dimensiones));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_modificar_dimensiones_puerta = (nivel, bloque, pared, puerta, dimensiones) => {
+export const middleware_modificar_dimensiones_puerta = (nivel, bloque, pared, puerta, dimensiones) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(modificarDimensionesPuerta(nivel,bloque,pared,puerta,dimensiones));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_modificar_posicion_ventana = (nivel, bloque, pared, ventana, posicion) => {
+export const middleware_modificar_posicion_ventana = (nivel, bloque, pared, ventana, posicion) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(modificarPosicionVentana(nivel,bloque,pared,ventana,posicion));
@@ -1037,41 +1048,41 @@ export const thunk_modificar_posicion_ventana = (nivel, bloque, pared, ventana, 
         let ventanaInfo = estadoCasa[nivel].bloques[bloque].paredes[pared].ventanas[ventana];
         let result = calcularFARVentana(obstrucciones,rotacion,ventanaInfo);
         dispatch(setFarVentana(ventanaInfo.id,result));
-        dispatch(thunk_recalcular_aporte_solar());
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_aporte_solar());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_modificar_posicion_puerta = (nivel, bloque, pared, puerta, posicion) => {
+export const middleware_modificar_posicion_puerta = (nivel, bloque, pared, puerta, posicion) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(modificarPosicionPuerta(nivel,bloque,pared,puerta,posicion));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_aplicar_material_ventanas = (nivel,bloque,pared,ventana,indices) => {
+export const middleware_aplicar_material_ventanas = (nivel,bloque,pared,ventana,indices) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(aplicarMaterialAVentanas(nivel,bloque,pared,ventana,indices));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
     }
 };
 
-export const thunk_aplicar_marco_ventanas = (nivel,bloque,pared,ventana,indices) => {
+export const middleware_aplicar_marco_ventanas = (nivel,bloque,pared,ventana,indices) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(aplicarMarcosAVentanas(nivel,bloque,pared,ventana,indices));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
 
     }
 };
 
-export const thunk_aplicar_material_puertas = (nivel,bloque,pared,puerta,indices) => {
+export const middleware_aplicar_material_puertas = (nivel,bloque,pared,puerta,indices) => {
     //SETEAR CALCULANDO
     return function (dispatch,getState) {
         dispatch(aplicarMaterialAPuertas(nivel,bloque,pared,puerta,indices));
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
 
     }
 };
@@ -1260,7 +1271,7 @@ export const setMaterialesMarcos = (materiales_marcos) => ({
     }
 );
 
-export const thunk_set_materiales = () => {
+export const middleware_set_materiales = () => {
     return function (dispatch, getState) {
         getMateriales().then(
             response => {
@@ -1291,7 +1302,7 @@ export const cambiarFecha = (fecha) => (
     }
 );
 
-export const thunk_cambiar_fecha = (fecha) => {
+export const middleware_cambiar_fecha = (fecha) => {
     //SET CALC]ULANDO
     return function (dispatch, getState) {
         const {lat, lng, comuna} = getState().variables.mapa;
@@ -1351,7 +1362,7 @@ export const morfologiaUndo = () => {
         let action = getState().morfologia.present.action;
         dispatch({type: MORFOLOGIA_UNDO});
         if(action.type === MODIFICAR_DIMENSIONES_BLOQUE || action.type === AGREGAR_BLOQUE || action.type === BORRAR_BLOQUE){
-            dispatch(thunk_recalcular_aporte_interno());
+            dispatch(middleware_recalcular_aporte_interno());
         }else if(action.type === ROTAR_CASA){
             let angulo = getState().morfologia.present.rotacion;
             dispatch(setCalculando(true,'rotacion'));
@@ -1364,11 +1375,11 @@ export const morfologiaUndo = () => {
                 let lng = variables.mapa.lng;
                 let rbParedes = calcularRbParedes(lat,lng,periodo,angulo);
                 dispatch(setPeriodo(periodo, rbParedes, gradosDias));
-                dispatch(thunk_recalcular_aporte_interno());
+                dispatch(middleware_recalcular_aporte_interno());
                 dispatch(setCalculando(false,'rotacion'));
             },300);
         }
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
 
 
     }
@@ -1382,7 +1393,7 @@ export const morfologiaRedo = () => {
         let action = getState().morfologia.future[0].action;
         dispatch({type: MORFOLOGIA_REDO});
         if(action.type === MODIFICAR_DIMENSIONES_BLOQUE || action.type === AGREGAR_BLOQUE || action.type === BORRAR_BLOQUE){
-            dispatch(thunk_recalcular_aporte_interno());
+            dispatch(middleware_recalcular_aporte_interno());
         }else if(action.type === ROTAR_CASA){
             dispatch(setCalculando(true,'rotacion'));
             setTimeout(function () {
@@ -1394,11 +1405,11 @@ export const morfologiaRedo = () => {
                 let lng = variables.mapa.lng;
                 let rbParedes = calcularRbParedes(lat,lng,periodo,angulo);
                 dispatch(setPeriodo(periodo, rbParedes, gradosDias));
-                dispatch(thunk_recalcular_aporte_interno());
+                dispatch(middleware_recalcular_aporte_interno());
                 dispatch(setCalculando(false,'rotacion'));
             },300);
         }
-        dispatch(thunk_recalcular_transmitancias());
+        dispatch(middleware_recalcular_transmitancias());
 
     }
 };
@@ -1414,7 +1425,7 @@ setTimeout(function () {
     let lng = variables.mapa.lng;
     let rbParedes = calcularRbParedes(lat,lng,periodo,angulo);
     dispatch(setPeriodo(periodo, rbParedes, gradosDias));
-    dispatch(thunk_recalcular_aporte_interno());
+    dispatch(middleware_recalcular_aporte_interno());
     dispatch(rotarCasa(angulo));
     dispatch(setCalculando(false,'rotacion'));
 },300);*/

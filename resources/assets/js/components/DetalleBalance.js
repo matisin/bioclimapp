@@ -1,25 +1,22 @@
 import React, {Component} from 'react';
-import {Bar, Doughnut} from 'react-chartjs-2';
+import {Doughnut} from 'react-chartjs-2';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
-import Konva from 'konva';
 import { render } from 'react-dom';
 import {Stage, Layer, Text, Label, Tag, Line} from 'react-konva';
 import {Parser as HtmlToReactParser} from 'html-to-react';
+import {connect} from "react-redux";
 
 const htmlToReactParser = new HtmlToReactParser();
 
-
 const styles = theme => ({
     root: {
-        //flexGrow: 1,
         background: '#fdfdfd'
     },
     paper: {
-        //padding: theme.spacing.unit * 2,
         textAlign: 'center',
         color: theme.palette.text.secondary,
         background: '#fdfdfd',
@@ -75,7 +72,6 @@ function Chart(props){
                     <Doughnut
                         data={props.data}
                         options={props.options}
-                        //width={1000}
                         height={props.height}
                     />
                 </Grid>
@@ -168,7 +164,7 @@ function Grades(props){
                         </Label>
                     </Layer>
                     :
-                    <Layer></Layer>
+                    <Layer/>
                 }
             </Stage>
             <Grid container spacing={8}>
@@ -192,68 +188,25 @@ function Grades(props){
     );
 }
 
+const mapStateToProps = state => {
+    return {
+        area: state.morfologia.present.area,
+        volumen: state.morfologia.present.volumen,
+        perdida_conduccion : state.balance.perdidaConduccion.normal,
+        perdida_conduccion_objetivo : state.balance.perdidaConduccion.objetivo,
+        perdida_ventilacion : state.balance.perdidaVentilacion.normal,
+        perdida_ventilacion_objetivo : state.balance.perdidaVentilacion.objetivo,
+        aporte_solar : state.balance.aporteSolar.normal,
+        aporte_solar_objetivo : state.balance.aporteSolar.objetivo,
+        aporte_interno : state.balance.aporteInterno,
+
+    }
+};
+
 class DetalleBalance extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            clicked: null,
-            dataAportes: {
-                labels: ['Solares', 'Internos'],
-                datasets: [
-                    {
-                        data: [0, 0],
-                        backgroundColor: ['#F19C00', '#F16600'],
-                        borderColor: ['#F19C00', '#F16600'],
-                        label: 'Aportes'
-                    }
-                ]
-            },
-            dataPerdidas: {
-                labels: ['Conducción', 'Ventilación'],
-                datasets: [
-                    {
-                        data: [0, 0],
-                        backgroundColor: ['#009688', '#1043A0'],
-                        borderColor: ['#009688', '#1043A0'],
-                        label: 'Perdidas'
-                    }
-                ]
-            }
-        };
-        this.aporte_interno_objetivo = 0;
-        this.aporte_solar_objetivo = 0;
-        this.perdida_conduccion_objetivo = 0;
-        this.perdida_ventilacion_objetivo = 0;
-        this.aporte_solar = 0;
-        this.perdida_ventilacion = 0;
-        this.perdida_conduccion = 0;
-        this.handleClick = this.handleClick.bind(this);
-    }
-
-    handleClick(e) {
-        if (e[0]._index === 0) {
-            this.setState({clicked: this.aporte_solar})
-        }
-        if (e[0]._index === 1) {
-            this.setState({clicked: this.aporte_interno})
-        }
-        if (e[0]._index === 2) {
-            this.setState({clicked: this.perdida_conduccion})
-        }
-        if (e[0]._index === 3) {
-            this.setState({clicked: this.perdida_ventilacion})
-        }
-
-    }
-
-    componentDidMount() {
-        this.setState({
-           grafico_aporte: this.aporte,
-           grafico_perdida: this.perdida,
-        });
         this.options = {
-            // maintainAspectRatio: false,
-            // responsive: false,
             cutoutPercentage: 50,
             legend: {
                 display: false,
@@ -266,11 +219,6 @@ class DetalleBalance extends Component {
                     label: function (tooltipItem, data) {
                         return data['datasets'][0]['data'][tooltipItem['index']] + " KWh/m2";
                     },
-                    // afterLabel: function (tooltipItem, data) {
-                    //     var dataset = data['datasets'][0];
-                    //     var percent = Math.round((dataset['data'][tooltipItem['index']] / dataset["_meta"][0]['total']) * 100)
-                    //     return '(' + percent + '%)';
-                    // }
                 },
                 backgroundColor: '#FFF',
                 titleFontSize: 16,
@@ -280,102 +228,42 @@ class DetalleBalance extends Component {
                 displayColors: false
             }
         };
-
-    }
-
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        //console.log("PROPS", this.props);
-        if (this.props.aporte_solar !== prevProps.aporte_solar) {
-            this.setState({
-                dataAportes: {
-                    labels: ['Solares', 'Internos'],
-                    datasets: [
-                        {
-                            data: [Math.round(this.props.aporte_solar / this.props.area), Math.round(this.aporte_interno_objetivo)], //el objetivo es el mismo
-                            backgroundColor: ['#F19C00', '#F16600'],
-                            borderColor: ['#F19C00', '#F16600'],
-                            label: 'Aportes'
-                        }
-                    ]
-                }
-            });
-            this.aporte_solar = this.props.aporte_solar / this.props.area;
-        }
-        if (this.props.aporte_interno !== prevProps.aporte_interno) {
-            this.setState({
-                dataAportes: {
-                    labels: ['Solares', 'Internos'],
-                    datasets: [
-                        {
-                            data: [Math.round(this.aporte_solar), Math.round(this.props.aporte_interno / (1000 *this.props.area))],
-                            backgroundColor: ['#F19C00', '#F16600'],
-                            borderColor: ['#F19C00', '#F16600'],
-                            label: 'Aportes'
-                        }
-                    ]
-                }
-            });
-            this.aporte_interno_objetivo = this.props.aporte_interno / (1000 * this.props.area);
-        }
-        if (this.props.perdida_conduccion !== prevProps.perdida_conduccion) {
-            this.setState({
-                dataPerdidas: {
-                    labels: ['Por Conducción', 'Por Ventilación'],
-                    datasets: [
-                        {
-                            data: [Math.round(this.props.perdida_conduccion / (1000 * this.props.area)), Math.round(this.perdida_ventilacion)],
-                            backgroundColor: ['#009688', '#1043A0'],
-                            borderColor: ['#009688', '#1043A0'],
-                            label: 'Perdidas'
-                        }
-                    ]
-                }
-            });
-            this.perdida_conduccion = this.props.perdida_conduccion / (1000 * this.props.area);
-        }
-        if (this.props.perdida_ventilacion !== prevProps.perdida_ventilacion) {
-            this.setState({
-                dataPerdidas: {
-                    labels: ['Por Conducción', 'Por Ventilación'],
-                    datasets: [
-                        {
-                            data: [Math.round(this.perdida_conduccion), Math.round(this.props.perdida_ventilacion / (1000 * this.props.area))],
-                            backgroundColor: ['#009688', '#1043A0'],
-                            borderColor: ['#009688', '#1043A0'],
-                            label: 'Perdidas'
-                        }
-                    ]
-                }
-            });
-            this.perdida_ventilacion = this.props.perdida_ventilacion / (1000 * this.props.area);
-        }
-        if(this.props.perdida_conduccion_objetivo !== prevProps.perdida_conduccion_objetivo){
-            this.perdida_conduccion_objetivo = this.props.perdida_conduccion_objetivo / (1000 *this.props.area);
-            let balanceObjetivo =  ((this.perdida_conduccion_objetivo/ + this.perdida_ventilacion_objetivo)
-            -(this.aporte_solar_objetivo + this.aporte_interno_objetivo));
-            this.setState({balanceObjetivo: balanceObjetivo});
-        }
-        if(this.props.perdida_ventilacion_objetivo !== prevProps.perdida_ventilacion_objetivo){
-            this.perdida_ventilacion_objetivo = this.props.perdida_ventilacion_objetivo / (1000 * this.props.area);
-            let balanceObjetivo =  ((this.perdida_conduccion_objetivo + this.perdida_ventilacion_objetivo)
-                -(this.aporte_solar_objetivo + this.aporte_interno_objetivo));
-            this.setState({balanceObjetivo: balanceObjetivo});
-        }
-        if(this.props.aporte_solar_objetivo !== prevProps.aporte_solar_objetivo){
-            this.aporte_solar_objetivo = (this.props.aporte_solar_objetivo) / (1000 *this.props.area);
-            let balanceObjetivo =  ((this.perdida_conduccion_objetivo + this.perdida_ventilacion_objetivo)
-                -(this.aporte_solar_objetivo + this.aporte_interno_objetivo));
-            this.setState({balanceObjetivo: balanceObjetivo});
-        }
     }
 
     render() {
-        const {classes} = this.props;
-        let balance = Math.round( ((this.state.dataPerdidas.datasets[0].data[0] + this.state.dataPerdidas.datasets[0].data[1]) -
-            (this.state.dataAportes.datasets[0].data[0] + this.state.dataAportes.datasets[0].data[1]) ));
-        let ahorro = balance * 100 / this.state.balanceObjetivo;
-        //console.log("balance", balance, "ahorro", ahorro, "perdidaConduccion", this.state.dataPerdidas.datasets[0].data[0], "perdidaVentilacion", this.state.dataPerdidas.datasets[0].data[1],
-         //   "aporteSolar", this.state.dataAportes.datasets[0].data[0], "aporteInterno", this.state.dataAportes.datasets[0].data[1]);
+        const {classes, aporte_solar, aporte_interno, area, volumen, perdida_conduccion, perdida_ventilacion,
+            perdida_conduccion_objetivo, perdida_ventilacion_objetivo, aporte_solar_objetivo} = this.props;
+        const balance = Math.round( ((perdida_conduccion + perdida_ventilacion) -
+            (aporte_solar*1000 + aporte_interno) ) / (1000 * area));
+        const balanceObjetivo = Math.round( ((perdida_conduccion_objetivo + perdida_ventilacion_objetivo) -
+            (aporte_solar_objetivo*1000 + aporte_interno) ) / (1000 * area));
+        const ahorro = 100 - balance * 100 / balanceObjetivo;
+        const valores = {
+            clicked: null,
+            dataAportes: {
+                labels: ['Solares', 'Internos'],
+                datasets: [
+                    {
+                        data: [Math.round(aporte_solar/ area), Math.round(aporte_interno / (1000 * area))],
+                        backgroundColor: ['#F19C00', '#F16600'],
+                        borderColor: ['#F19C00', '#F16600'],
+                        label: 'Aportes'
+                    }
+                ]
+            },
+            dataPerdidas: {
+                labels: ['Conducción', 'Ventilación'],
+                datasets: [
+                    {
+                        data: [Math.round(perdida_conduccion/ area), Math.round(perdida_ventilacion / (1000 * area))],
+                        backgroundColor: ['#009688', '#1043A0'],
+                        borderColor: ['#009688', '#1043A0'],
+                        label: 'Perdidas'
+                    }
+                ]
+            }
+        };
+
         return (
             <Grid container spacing={16} className={classes.root} style={{
                 margin: 0,
@@ -387,17 +275,17 @@ class DetalleBalance extends Component {
                         <Grid container spacing={16} justify="center"
                               alignItems="center">
                             <Grid item xs={12}>
-                                {this.props.area != null ? <Typography align="center" variant="title" style={{color: '#3a3b3d'}}>
+                                {area !== null ? <Typography align="center" variant="title" style={{color: '#3a3b3d'}}>
                                         Balance Energético: {balance > 0 ? balance : 0} KWh/m<sup>2</sup></Typography>
                                     : <Typography align="center" variant="title" style={{color: '#3a3b3d'}} >Balance Energético:</Typography>}
                             </Grid>
                             <Grid item xs={6}>
-                                {this.props.area != null ? <Typography align="center">Area Vivienda : {this.props.area} m<sup>2</sup></Typography>
+                                {area !== null ? <Typography align="center">Area Vivienda : {area} m<sup>2</sup></Typography>
                                 :  <Typography align="center">Área Vivienda:</Typography>}
 
                             </Grid>
                             <Grid item xs={6}>
-                                {this.props.volumen != null ? <Typography align="center">Volumen Vivienda : {this.props.volumen} m<sup>3</sup></Typography>
+                                {this.props.volumen != null ? <Typography align="center">Volumen Vivienda : {volumen} m<sup>3</sup></Typography>
                                     :  <Typography align="center">Volumen Vivienda:</Typography>}
                             </Grid>
                         </Grid>
@@ -405,7 +293,7 @@ class DetalleBalance extends Component {
                 </Grid>
                 <Grid item xs={6} >
                     <Chart
-                        data={this.state.dataAportes}
+                        data={valores.dataAportes}
                         options={this.options}
                         height={160}
                         title={"Aportes"}
@@ -413,7 +301,7 @@ class DetalleBalance extends Component {
                 </Grid>
                 <Grid item xs={6} >
                     <Chart
-                        data={this.state.dataPerdidas}
+                        data={valores.dataPerdidas}
                         options={this.options}
                         height={160}
                         title={"Pérdidas"}
@@ -421,7 +309,7 @@ class DetalleBalance extends Component {
                 </Grid>
                 <Grid item xs={12}>
                     <Grades balance = {ahorro}
-                    objetivo = {this.state.balanceObjetivo}/>
+                    objetivo = {balanceObjetivo}/>
                 </Grid>
             </Grid>
         );
@@ -431,4 +319,4 @@ class DetalleBalance extends Component {
 DetalleBalance.propTypes = {
     classes: PropTypes.object.isRequired,
 };
-export default withStyles(styles)(DetalleBalance);
+export default connect(mapStateToProps, null)(withStyles(styles)(DetalleBalance));

@@ -29,7 +29,7 @@ import DialogTitle from "@material-ui/core/DialogTitle/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent/DialogContent";
 import CircularProgress from "@material-ui/core/CircularProgress/CircularProgress";
 import MorfologiaRedux from "./MorfologiaRedux";
-import { thunk_set_materiales,
+import { middleware_set_materiales,
 } from "../actions";
 
 function TabContainer(props) {
@@ -190,7 +190,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        thunk_set_materiales: () => dispatch(thunk_set_materiales()),
+        middleware_set_materiales: () => dispatch(middleware_set_materiales()),
     }
 };
 
@@ -220,7 +220,7 @@ class App extends Component {
             value: 0,
             openDashboard: false,
         };
-        this.props.thunk_set_materiales();
+        this.props.middleware_set_materiales();
         this.handleChange = this.handleChange.bind(this);
         this.handleChangeIndex = this.handleChangeIndex.bind(this);
         this.handleDashboardOpen = this.handleDashboardOpen.bind(this);
