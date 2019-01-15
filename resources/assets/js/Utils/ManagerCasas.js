@@ -199,7 +199,7 @@ class ManagerCasas {
 
     setZona(zona){
         this.zona = zona;
-        //console.log("seteando zona",this.zona,zona);
+        //("seteando zona",this.zona,zona);
     }
 
     setPersonas(personas){
@@ -426,7 +426,7 @@ class ManagerCasas {
         this.casa.userData.transmitanciaSuperficies += transmitanciaSuperficies;
         this.casa.userData.perdidaPorConduccion += habitacion.userData.perdidaPorConduccion;
 
-        //console.log("estructura "+Morfologia.tipos_texto[estructura.userData.tipo],estructura.userData.transSup);
+        //("estructura "+Morfologia.tipos_texto[estructura.userData.tipo],estructura.userData.transSup);
     }
 
     casasChocan(habitacion) {
@@ -782,7 +782,7 @@ class ManagerCasas {
         //habitacion.userData.perdidaPorConduccion = perdidaPorConduccion;
         //habitacion.userData.perdidaVentilacionObjetivo = perdidaVentilacionObjetivo;
         //habitacion.userData.perdidaPorConduccionObjetivo = perdidaPorConduccionObjetivo;
-        //console.log("perdida objetivo",perdidaPorConduccionObjetivo,transmitanciaSuperficiesObjetivo,this.gradoDias,puenteTermico.objetivo);
+        //("perdida objetivo",perdidaPorConduccionObjetivo,transmitanciaSuperficiesObjetivo,this.gradoDias,puenteTermico.objetivo);
 
         let nivel = this.casa.children[habitacion.userData.nivel - 1];
         nivel.add(habitacion);
@@ -796,7 +796,7 @@ class ManagerCasas {
         this.casa.userData.volumen += habitacion.userData.volumen;
         this.casa.updateMatrixWorld();
 
-        //console.log(habitacion);
+        //(habitacion);
     }
 
     recalcularBalancePorVolumen(habitacion){
@@ -816,8 +816,8 @@ class ManagerCasas {
             perdidaVentilacion = 0
             perdidaVentilacionObjetivo = 0;
         }
-        //console.log("calculando aporte interno", this.ocupantes, piso.userData.superficie, this.horasIluminacion, this.periodo, aporteInterno)
-        //console.log("calculando perdida ventilacion",habitacion.userData.volumen, this.aireRenovado, this.gradoDias, perdidaVentilacion)
+        //("calculando aporte interno", this.ocupantes, piso.userData.superficie, this.horasIluminacion, this.periodo, aporteInterno)
+        //("calculando perdida ventilacion",habitacion.userData.volumen, this.aireRenovado, this.gradoDias, perdidaVentilacion)
 
         habitacion.userData.aporteInterno = aporteInterno;
         habitacion.userData.perdidaVentilacion = perdidaVentilacion;
@@ -827,7 +827,7 @@ class ManagerCasas {
         this.casa.userData.perdidaVentilacion += perdidaVentilacion;
         this.casa.userData.perdidaVentilacionObjetivo += perdidaVentilacionObjetivo;
 
-        //console.log("casa en recalculo aporte y perdida por volumen",this.casa);
+        //("casa en recalculo aporte y perdida por volumen",this.casa);
     }
 
     aumentarNivelHabitacion(habitacion){
@@ -2075,7 +2075,7 @@ class ManagerCasas {
 
         habitacion.userData.error = this.casasChocan(habitacion);
         if(habitacion.userData.error){
-            //console.log('yes');
+            //('yes');
             let prevEnd = new THREE.Vector3(
                 prevHabitacion.userData.end.x,
                 prevHabitacion.userData.end.y,

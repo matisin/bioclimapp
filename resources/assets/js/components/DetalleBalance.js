@@ -189,6 +189,7 @@ function Grades(props){
 }
 
 const mapStateToProps = state => {
+    console.log("ESTADO",state);
     return {
         area: state.morfologia.present.area,
         volumen: state.morfologia.present.volumen,
@@ -255,7 +256,7 @@ class DetalleBalance extends Component {
                 labels: ['Conducción', 'Ventilación'],
                 datasets: [
                     {
-                        data: [Math.round(perdida_conduccion/ area), Math.round(perdida_ventilacion / (1000 * area))],
+                        data: [Math.round(perdida_conduccion/ (1000 * area)), Math.round(perdida_ventilacion / (1000 * area))],
                         backgroundColor: ['#009688', '#1043A0'],
                         borderColor: ['#009688', '#1043A0'],
                         label: 'Perdidas'

@@ -34,7 +34,7 @@ const barra_herramientas_morfologia = (state = initialState , action) =>
                 draft.accion = 'mover_camara';
                 break;
             case ACTIVAR_AGREGAR_BLOQUE :
-                console.log("ddd");
+                ("ddd");
                 if(draft.accion !== null){
                     draft.acciones[draft.accion] = false;
                 }
@@ -49,7 +49,7 @@ const barra_herramientas_morfologia = (state = initialState , action) =>
                 draft.accion = 'agregar_ventana';
                 break;
             case ACTIVAR_AGREGAR_PUERTA :
-                console.log("asdsda");
+                ("asdsda");
                 if(draft.accion !== null){
                     draft.acciones[draft.accion] = false;
                 }
@@ -57,7 +57,7 @@ const barra_herramientas_morfologia = (state = initialState , action) =>
                 draft.accion = 'agregar_puerta';
                 break;
             case ACTIVAR_SELECCIONAR_MORFOLOGIA :
-                console.log(draft.acciones[draft.accion] );
+                (draft.acciones[draft.accion] );
                 if(draft.accion !== null){
                     draft.acciones[draft.accion] = false;
                 }
@@ -65,7 +65,7 @@ const barra_herramientas_morfologia = (state = initialState , action) =>
                 draft.accion = 'seleccionar';
                 break;
             case ACTIVAR_ELIMINAR_MORFOLOGIA :
-                console.log(draft.acciones[draft.accion] );
+                (draft.acciones[draft.accion] );
                 if(draft.accion !== null){
                     draft.acciones[draft.accion] = false;
                 }

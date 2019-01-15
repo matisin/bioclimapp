@@ -31,7 +31,7 @@ const app = (state = initialState , action) =>
                 draft.seleccion_contexto = action.indice;
                 break;
             case SELECCIONAR_MORFOLOGIA:
-                console.log('grupo',action.grupo);
+                ('grupo',action.grupo);
                 if(action.grupo){
                     draft.seleccion_morfologia.push(action.seleccion);
                 }else{

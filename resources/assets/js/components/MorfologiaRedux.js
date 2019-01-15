@@ -486,7 +486,7 @@ class Morfologia extends Component {
                                 y: pos.y,
                                 z : pos.z,
                         };
-                        console.log('casaPred',pos);
+                        ('casaPred',pos);
                     }
                     for (let puerta of pared.puertas) {
                         let puertaMesh = crearMeshPuerta(puerta.dimensiones.ancho, puerta.dimensiones.alto);
@@ -1031,7 +1031,7 @@ class Morfologia extends Component {
 
                     this.indicador_dibujado.position.y = worldPosition.y + this.heightWall / 2;
 
-                    console.log(this.heightWall);
+                    (this.heightWall);
                     if (this.construyendo) {
                         this.indicador_dibujado.position.y = this.worldPosition.y + this.heightWall / 2;
                         let nextPosition = (intersect.point).add(intersect.face.normal).clone();

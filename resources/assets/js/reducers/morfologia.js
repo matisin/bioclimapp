@@ -45,8 +45,6 @@ import {
     MODIFICAR_POSICION_VENTANA,
     APLICAR_MARCOS_A_VENTANAS, APLICAR_MATERIAL_A_VENTANAS, APLICAR_MATERIAL_A_PUERTAS, MODIFICAR_POSICION_PUERTA,
 } from "../constants/action-types";
-import {agregarNivel} from "../actions";
-import * as Tipos from '../constants/morofologia-types'
 
 const initialState = {
     rotacion: 0,//TODO: REVISAR ROTACION INICIAL.
@@ -56,10 +54,6 @@ const initialState = {
     }],
     ventanas:{},
     elementos:{},
-    aporteInterno: 0,
-    perdidaVentilacion: 0,
-    perdidaConduccion: 0,
-    transmitanciaSuperficies: 0,
     volumen: 0,
     area: 0,
     action: null,
@@ -275,9 +269,9 @@ const morfologia = (state = initialState, action) =>
                     (draft.niveles[action.nivel].altura +
                     action.dimensiones.alto)){
                     for(let i = action.nivel+1; i < draft.niveles.length ; i++){
-                        console.log(draft.niveles[i-1].bloques[0],'bloques a subir');
+                        (draft.niveles[i-1].bloques[0],'bloques a subir');
                         if(draft.niveles[i-1].bloques[0] !== undefined){
-                            console.log(i);
+                            (i);
                             draft.niveles[i].altura =
                                 draft.niveles[i-1].altura +
                                 draft.niveles[i-1].bloques[0].dimensiones.alto;
@@ -380,7 +374,7 @@ const morfologia = (state = initialState, action) =>
                         .bloques[action.bloque]
                         .paredes[action.pared]
                         .puertas[action.puerta].superficie;
-                console.log(superficie);
+                (superficie);
                 draft.niveles[action.nivel]
                     .bloques[action.bloque]
                     .paredes[action.pared].superficie+= superficie;

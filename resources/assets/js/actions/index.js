@@ -79,7 +79,6 @@ import {
     BORRAR_FAR_VENTANA, SET_APORTE_SOLAR, SET_PERDIDA_VENTILACION, SET_PERDIDA_CONDUCCION,
 
 } from "../constants/action-types";
-import store from "../store";
 import axios from "axios";
 import {getSunPath, getSunPosition} from "../Utils/sunMethods";
 import {
@@ -114,14 +113,6 @@ export const setStateInfoGeo = (infoGeo) => (
     }
 );
 
-export const setCargando = (cargando,sender) => (
-    {
-        type: SET_CARGANDO,
-        cargando: cargando,
-        sender: sender,
-    }
-);
-
 export const setCalculando = (calculando,sender) => (
     {
         type: SET_CALCULANDO,
@@ -130,11 +121,7 @@ export const setCalculando = (calculando,sender) => (
     }
 );
 
-
-
-
 export const middleware_set_state_mapa = (lat, lng) => {
-
 
     return function (dispatch, getState) {
         const date = getState().barra_herramientas_morfologia.fecha;
@@ -369,13 +356,6 @@ export const middleware_cambiar_variables_internas = (variable) =>{
     }
 };*/
 
-export const agregarNivel = (altura) => (
-    {
-        type: AGREGAR_NIVEL,
-        altura: altura,
-
-    }
-);
 
 export const agregarBloque = (bloque, nivel) => (
     {
@@ -387,19 +367,12 @@ export const agregarBloque = (bloque, nivel) => (
 );
 
 export const middleware_agregar_bloque = (bloque, nivel) => {
-
-    //SETEAR CALCULANDO
     return function (dispatch, getState) {
-        //HACER CALCULOS
-        const state = getState().morfologia.present;
         dispatch(agregarBloque(bloque, nivel));
         dispatch(middleware_recalcular_aporte_interno());
         dispatch(middleware_recalcular_perdida_ventilacion());
         dispatch(middleware_recalcular_transmitancias());
-        console.log('niveles', state.niveles);
-        //AGREGAR NIVEL EN CASAS PREDEFINIDAS
-
-
+        dispatch(seleccionarMorfologia(null,null));
     }
 };
 
@@ -545,6 +518,17 @@ export const setFarVentana = (id, farVentana, indices) => (
     }
 );
 
+export const middleware_recalcular_far = () => {
+    return (dispatch, getState) =>{
+        let estadoCasa = getState().morfologia.present.niveles;
+        let rotacion = getState().morfologia.present.rotacion;
+        let obstrucciones = getState().app.obstrucciones;
+        let result = calcularFAR(obstrucciones, estadoCasa,rotacion);
+        dispatch(setFarVentanas(result));
+        dispatch(middleware_recalcular_aporte_solar());
+    };
+};
+
 export const middleware_actualizar_obstrucciones_app = (obstrucciones) => {
     return (dispatch,getState) =>{
         dispatch(setCalculando(true,'calcFar'));
@@ -554,21 +538,21 @@ export const middleware_actualizar_obstrucciones_app = (obstrucciones) => {
             let result = calcularFAR(obstrucciones, estadoCasa,rotacion);
             dispatch(actualizarObstruccionesApp(obstrucciones));
             dispatch(setFarVentanas(result));
-            dispatch(setCalculando(false,'calcFar'));
             dispatch(middleware_recalcular_aporte_solar());
+            dispatch(setCalculando(false,'calcFar'));
 
         },500);
 
     }
 };
     /*return function (dispatch,getState) {
-        //console.log("ESPERANDO 20 segundos]");
+        //("ESPERANDO 20 segundos]");
         return hola(dispatch).then(result => {
             dispatch(setCargando(false,'calcFar'));
         })
 
 
-            /!*console.log("YOOOO");
+            /!*("YOOOO");
             let estadoCasa = getState().morfologia.present.niveles;
             let rotacion = getState().morfologia.present.rotacion;
             dispatch(actualizarObstruccionesApp(obstrucciones));
@@ -617,7 +601,7 @@ export const middleware_recalcular_transmitancias = () => {
         let zona = getState().variables.mapa.comuna.zona;
         let info_materiales = getState().app.materiales;
         let info_ventanas = getState().app.materiales_ventanas;
-        let res =transmitanciaSuperficies(elementos,zona,info_materiales, info_ventanas);
+        let res = transmitanciaSuperficies(elementos,zona,info_materiales, info_ventanas);
         let gradosDias = getState().variables.gradosDias;
 
         let puenteTermico = 0;
@@ -637,8 +621,6 @@ export const middleware_recalcular_transmitancias = () => {
         };
 
         dispatch(setPerdidaConduccion(perdidas));
-
-        console.log("PERDIDAS",perdidas);
     }
 };
 
@@ -653,7 +635,6 @@ export const  middleware_recalcular_aporte_solar = () => {
         let marco = getState().app.materiales_marcos;
         let rb = getState().variables.rbParedes;
         let res = calcularAporteSolar(periodo, farVentanas, ventanas, difusa, directa, info_material, marco, rb);
-        console.log("APORTE SOLAR",res);
         dispatch(setAporteSolar(res));
     }
 };
@@ -664,7 +645,19 @@ export const  middleware_recalcular_perdida_ventilacion = () => {
         let gradosDias = getState().variables.gradosDias;
         let volumenAire = getState().variables.aire;
         let res = perdidasVentilacion(volumen, volumenAire, gradosDias);
+        console.log("PERDIDA", res);
         dispatch(setPerdidaVentilacion(res));
+    }
+};
+
+export const middleware_agregar_far = (ventana) => {
+    return function (dispatch, getState) {
+        let obstrucciones = getState().app.obstrucciones;
+        let rotacion = getState().morfologia.present.rotacion;
+        let result = calcularFARVentana(obstrucciones,rotacion,ventana);
+
+        dispatch(setFarVentana(ventana.id,result));
+        dispatch(middleware_recalcular_aporte_solar());
     }
 };
 
@@ -674,14 +667,11 @@ export const middleware_agregar_ventana = (bloque, nivel, pared, ventana) => {
         const state = getState().morfologia.present;
         let paredInfo = state.niveles[nivel].bloques[bloque].paredes[pared];
         ventana.orientacion = paredInfo.orientacion;
+
         dispatch(agregarVentana(bloque, nivel, pared, ventana));
         dispatch(middleware_recalcular_transmitancias());
-
-        let obstrucciones = getState().app.obstrucciones;
-        let rotacion = getState().morfologia.present.rotacion;
-        let result = calcularFARVentana(obstrucciones,rotacion,ventana);
-        dispatch(setFarVentana(ventana.id,result));
-        dispatch(middleware_recalcular_aporte_solar());
+        dispatch(middleware_agregar_far(ventana));
+        dispatch(seleccionarMorfologia(null,null));
     }
 };
 
@@ -759,13 +749,10 @@ export const middleware_borrar_capa_techo = (nivel, bloque, capa) => {
 
 
 export const middleware_agregar_puerta = (bloque, nivel, pared, puerta) => {
-
-    //SETEAR CALCULANDO
     return function (dispatch, getState) {
-        //HACER CALCULOS
         dispatch(agregarPuerta(bloque, nivel, pared, puerta));
         dispatch(middleware_recalcular_transmitancias());
-
+        dispatch(seleccionarMorfologia(null,null));
     }
 };
 
@@ -830,16 +817,13 @@ export const borrarBloque = (bloque, nivel) => (
 );
 
 export const middleware_borrar_bloque = (nivel, bloque) => {
-
     //SETEAR CALCULANDO
     return function (dispatch, getState) {
-        //HACER CALCULOS
-        const state = getState().morfologia.present;
         dispatch(borrarBloque(nivel, bloque));
         dispatch(middleware_recalcular_aporte_interno());
         dispatch(middleware_recalcular_perdida_ventilacion());
         dispatch(middleware_recalcular_transmitancias());
-
+        dispatch(seleccionarMorfologia(null,null));
     }
 };
 export const borrarVentana = (ventana, nivel, bloque, pared) => (
@@ -864,6 +848,7 @@ export const middleware_borrar_ventana = (ventana, nivel, bloque, pared) => {
         dispatch(borrarFarVentana(id));
         dispatch(middleware_recalcular_aporte_solar());
         dispatch(middleware_recalcular_transmitancias());
+        dispatch(seleccionarMorfologia(null,null));
 
     }
 };
@@ -892,6 +877,7 @@ export const middleware_borrar_puerta = (puerta, nivel, bloque, pared) => {
         //HACER CALCULOS
         dispatch(borrarPuerta(puerta, nivel, bloque, pared));
         dispatch(middleware_recalcular_transmitancias());
+        dispatch(seleccionarMorfologia(null,null));
 
     }
 };
@@ -934,6 +920,7 @@ export const middleware_recalcular_aporte_interno = () => {
             let area = getState().morfologia.present.area;
             let aporte = aporteInterno(ocupantes,area,horasIluminacion,periodo);
             dispatch(setAporteInterno(aporte));
+            console.log("APORTE",aporte);
             dispatch(setCalculando(false,'aporteInterno'));
         },200);
     }
@@ -988,8 +975,8 @@ export const middleware_modificar_dimensiones_bloque = (bloque, nivel, dimension
             }
         } else {
             dispatch(modificarDimensionesBloque(bloque, nivel, dimensiones));
-            dispatch(middleware_recalcular_aporte_interno());
         }
+        dispatch(middleware_recalcular_aporte_interno());
         dispatch(middleware_recalcular_perdida_ventilacion());
         dispatch(middleware_recalcular_transmitancias());
 
@@ -1002,6 +989,7 @@ export const middleware_modificar_material_ventana = (nivel, bloque, pared, vent
     return function (dispatch,getState) {
         dispatch(modificarMaterialVentana(nivel,bloque,pared,ventana,material));
         dispatch(middleware_recalcular_transmitancias());
+        dispatch(middleware_recalcular_aporte_solar());
     }
 };
 
@@ -1018,6 +1006,7 @@ export const middleware_modificar_marco_ventana = (nivel, bloque, pared, ventana
     return function (dispatch,getState) {
         dispatch(modificarMarcoVentana(nivel,bloque,pared,ventana,marco));
         dispatch(middleware_recalcular_transmitancias());
+        dispatch(middleware_recalcular_aporte_solar());
     }
 };
 
@@ -1026,6 +1015,7 @@ export const middleware_modificar_dimensiones_ventana = (nivel, bloque, pared, v
     return function (dispatch,getState) {
         dispatch(modificarDimensionesVentana(nivel,bloque,pared,ventana,dimensiones));
         dispatch(middleware_recalcular_transmitancias());
+        dispatch(middleware_recalcular_aporte_solar());
     }
 };
 
@@ -1042,13 +1032,9 @@ export const middleware_modificar_posicion_ventana = (nivel, bloque, pared, vent
     return function (dispatch,getState) {
         dispatch(modificarPosicionVentana(nivel,bloque,pared,ventana,posicion));
 
-        let obstrucciones = getState().app.obstrucciones;
-        let estadoCasa = getState().morfologia.present.niveles;
-        let rotacion = getState().morfologia.present.rotacion;
+
         let ventanaInfo = estadoCasa[nivel].bloques[bloque].paredes[pared].ventanas[ventana];
-        let result = calcularFARVentana(obstrucciones,rotacion,ventanaInfo);
-        dispatch(setFarVentana(ventanaInfo.id,result));
-        dispatch(middleware_recalcular_aporte_solar());
+        dispatch(middleware_agregar_far(ventanaInfo));
         dispatch(middleware_recalcular_transmitancias());
     }
 };
@@ -1363,8 +1349,10 @@ export const morfologiaUndo = () => {
         dispatch({type: MORFOLOGIA_UNDO});
         if(action.type === MODIFICAR_DIMENSIONES_BLOQUE || action.type === AGREGAR_BLOQUE || action.type === BORRAR_BLOQUE){
             dispatch(middleware_recalcular_aporte_interno());
+            dispatch(middleware_recalcular_perdida_ventilacion());
+        }else if(action.type === AGREGAR_VENTANA || action.type === BORRAR_VENTANA || action.type === MODIFICAR_DIMENSIONES_VENTANA){
+            dispatch(middleware_recalcular_far());
         }else if(action.type === ROTAR_CASA){
-            let angulo = getState().morfologia.present.rotacion;
             dispatch(setCalculando(true,'rotacion'));
             setTimeout(function () {
                 let variables = getState().variables;
@@ -1376,6 +1364,7 @@ export const morfologiaUndo = () => {
                 let rbParedes = calcularRbParedes(lat,lng,periodo,angulo);
                 dispatch(setPeriodo(periodo, rbParedes, gradosDias));
                 dispatch(middleware_recalcular_aporte_interno());
+                dispatch(middleware_recalcular_far());
                 dispatch(setCalculando(false,'rotacion'));
             },300);
         }
@@ -1386,14 +1375,14 @@ export const morfologiaUndo = () => {
 };
 
 export const morfologiaRedo = () => {
-
-    //SETEAR CALCULANDO
     return function (dispatch,getState) {
-        //HACER CALCULOS
-        let action = getState().morfologia.future[0].action;
+        let action = getState().morfologia.present.action;
         dispatch({type: MORFOLOGIA_REDO});
         if(action.type === MODIFICAR_DIMENSIONES_BLOQUE || action.type === AGREGAR_BLOQUE || action.type === BORRAR_BLOQUE){
             dispatch(middleware_recalcular_aporte_interno());
+            dispatch(middleware_recalcular_perdida_ventilacion());
+        }else if(action.type === AGREGAR_VENTANA || action.type === BORRAR_VENTANA || action.type === MODIFICAR_DIMENSIONES_VENTANA){
+            dispatch(middleware_recalcular_far());
         }else if(action.type === ROTAR_CASA){
             dispatch(setCalculando(true,'rotacion'));
             setTimeout(function () {
@@ -1406,6 +1395,7 @@ export const morfologiaRedo = () => {
                 let rbParedes = calcularRbParedes(lat,lng,periodo,angulo);
                 dispatch(setPeriodo(periodo, rbParedes, gradosDias));
                 dispatch(middleware_recalcular_aporte_interno());
+                dispatch(middleware_recalcular_far());
                 dispatch(setCalculando(false,'rotacion'));
             },300);
         }
@@ -1413,22 +1403,6 @@ export const morfologiaRedo = () => {
 
     }
 };
-
-/*
-dispatch(setCalculando(true,'rotacion'));
-setTimeout(function () {
-    let variables = getState().variables;
-    let gradosDias = variables.gradosDias;
-    let periodo = variables.periodo;
-    let angulo = getState().morfologia.anglo;
-    let lat = variables.mapa.lat;
-    let lng = variables.mapa.lng;
-    let rbParedes = calcularRbParedes(lat,lng,periodo,angulo);
-    dispatch(setPeriodo(periodo, rbParedes, gradosDias));
-    dispatch(middleware_recalcular_aporte_interno());
-    dispatch(rotarCasa(angulo));
-    dispatch(setCalculando(false,'rotacion'));
-},300);*/
 
 
 

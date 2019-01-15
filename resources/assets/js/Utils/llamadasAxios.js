@@ -33,7 +33,7 @@ export function getMaterialesMarcos(){
 }
 
 export function getFilteredRadiationDifusa(id){
-    console.log('difusa',id);
+    ('difusa',id);
     let month = new Date().getMonth()+1;
     return axios.get("https://bioclimapp.host/api/radiaciones/"+id+"/"+"2"+"/"+month);
 }

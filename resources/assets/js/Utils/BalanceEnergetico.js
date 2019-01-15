@@ -60,7 +60,7 @@ function gradosDias(temperaturasMes, temperaturaConfort) {
 
 function transmitanciaSuperficieRedux(elemento, zona, info_materiales, info_ventanas) {
     let transmitancia = 0, u, res,conductividad;
-    console.log("ELEMENTO",elemento);
+    ("ELEMENTO",elemento);
     switch (elemento.tipo) {
         case PARED:
             for (let capa of elemento.capas) {
@@ -114,7 +114,7 @@ function transmitanciaSuperficieRedux(elemento, zona, info_materiales, info_vent
         case PUERTA:
 
             conductividad = getConductividadCapa(elemento.material,info_materiales);
-            console.log(conductividad);
+            (conductividad);
             transmitancia += elemento.material.espesor / conductividad;
             transmitancia += resistenciasTermicasSuperficie[elemento.tipo][elemento.separacion];
 
@@ -337,8 +337,8 @@ function calcularFAR(threejsObs, estadoCasa, rotacion) {
                             .applyAxisAngle(axisY, -Math.PI + (Math.PI / 180) * rotacion);
                         let obstruccion = obstrucciones[indice];
                         if(obstruccion.end === undefined){
-                            console.log("BUG");
-                            console.log(obstruccion.start,obstruccion.end);
+                            ("BUG");
+                            (obstruccion.start,obstruccion.end);
                             indicesBorrar.push(indicesBorrar);
                             continue;
                         }
@@ -453,8 +453,8 @@ export function calcularFARVentana(threejsObs, rotacion, ventana) {
             .applyAxisAngle(axisY, -Math.PI + (Math.PI / 180) * rotacion);
         let obstruccion = obstrucciones[indice];
         if(obstruccion.end === undefined){
-            console.log("BUG");
-            console.log(obstruccion.start,obstruccion.end);
+            ("BUG");
+            (obstruccion.start,obstruccion.end);
             indicesBorrar.push(indicesBorrar);
             continue;
         }
@@ -631,7 +631,7 @@ function toDegrees(angle) {
 }
 
 function calcularRbParedes(latitud, longitud, periodo, anguloRotado) {
-    //console.log("periodo en calcularrbparedes", periodo);
+    //("periodo en calcularrbparedes", periodo);
     let angulos = calcularAngulos(periodo, 90, latitud);
     //se determina el gamma de cuatro orientaciones y se le suma el angulo rotado.
     let rbParedes = [];
@@ -642,7 +642,7 @@ function calcularRbParedes(latitud, longitud, periodo, anguloRotado) {
     for (let i = 0; i < 4; i++) {
         let rb = [];
         let gammas = calcularGammasPared(gamma);
-        console.log("VALOR GAMMA", gamma);
+        ("VALOR GAMMA", gamma);
         for (let angulo of angulos) {
             let omega_mna = calcularOmegaPared(angulo.date, angulo.delta, gammas.gamma1, latitud, longitud);
             let omega_tde = calcularOmegaPared(angulo.date, angulo.delta, gammas.gamma2, latitud, longitud);
@@ -686,7 +686,7 @@ function calcularRbParedes(latitud, longitud, periodo, anguloRotado) {
     /*for (let [index, pared] of paredes.entries()) {
         if (pared.userData.separacion === Morfologia.separacion.EXTERIOR) {
             let rbPared = [];
-            //console.log(pared.userData.gamma);
+            //(pared.userData.gamma);
             let gammas = calcularGammasPared(pared.userData.gamma);
             pared.userData.gammas = gammas;
             for (let angulo of angulos) {
@@ -737,12 +737,12 @@ function calcularAporteSolar(periodo, farVentanas, ventanas, difusa, directa,inf
         index = ventana.orientacion.z !== 0 ? ventana.orientacion.z === 1 ? 1 : 3 : ventana.orientacion.x === 1 ? 0 : 2;
         let Igb = 0;
         for (let i = 0; i < (periodo[1] - periodo[0]) + 1; i++) {
-            //console.log("Igb", difusa[i].valor,directa[i].valor, pared.userData.rb[i], pared.userData.rb.length, (periodo[1]-periodo[0])+1);
+            //("Igb", difusa[i].valor,directa[i].valor, pared.userData.rb[i], pared.userData.rb.length, (periodo[1]-periodo[0])+1);
             Igb += calcularIgb(difusa[i].valor, directa[i].valor, parseFloat(rb[0][i].omegasDate.rb));
         }
         let area_ventana = ventana.superficie;
         aporte_solar += Igb * area_ventana * f.normal;
-        //console.log("aporte_solar", Igb, area_ventana, f.normal);
+        //("aporte_solar", Igb, area_ventana, f.normal);
         aporte_solar_objetivo += Igb * area_ventana * f.objetivo;
     }
     return {normal: aporte_solar, objetivo: aporte_solar_objetivo}

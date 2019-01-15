@@ -242,7 +242,7 @@ class InformacionPisoTecho extends Component {
         for(let seleccionado of seleccionados){
             indices.push(seleccionado.indices);
         }
-        console.log(indices,indiceSel);
+        (indices,indiceSel);
         this.props.middleware_aplicar_capa_pisos(indiceSel.nivel,indiceSel.bloque,indices);
 
     }

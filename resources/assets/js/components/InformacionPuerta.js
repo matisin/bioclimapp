@@ -148,7 +148,7 @@ class InformacionPuerta extends Component {
             materialNuevo.espesor = event.target.value/1000;
         }
 
-        console.log(materialNuevo,material);
+        (materialNuevo,material);
 
         this.props.middleware_modificar_material_puerta(
             indices.nivel,

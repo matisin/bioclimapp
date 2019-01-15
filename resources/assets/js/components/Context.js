@@ -423,7 +423,7 @@ class Context extends Component {
             this.dibujando = true;
             this.puntoInicial = new THREE.Vector3(Math.round(this.mousePoint.x), 0,
                 -Math.round(this.mousePoint.y));
-            console.log(this.mousePoint.y);
+            (this.mousePoint.y);
         }
     }
 
