@@ -48,7 +48,7 @@ Install these packages with npm
 	<li>Three.js</li>
 	<li>Reactstrap</li>
 	<li>Chart.js</li>
-	<li>react-chartjs-2 https://github.com/jerairrest/react-chartjs-2</li>
+	<li>react-chartjs-2</li>
 	<li>axios</li>
 	<li>react</li>
 	<li>react-redux</li>
