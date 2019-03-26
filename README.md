@@ -1,8 +1,16 @@
-# bioclimapp
-Ejecutar estos comandos para montar laravel
+# Single page application for the simulation of house energetic consumption based on morphology, materials and bioclimatic variables. 
+
+This project consist in the development of a prototype that supports the bioclimatic design of houses. The goals of this project is to improve what already exist in this field and to make a tool that can be used by non-expert users. This is an University internal project supported by the Faculty of Engineering, with the joint work of Informatic Engineering and Computer Science Department and Civil Engineering Department of the University of Concepcion.
+
+
+## Getting Started
+
+To get the page up and running in your machine, follow these steps.
+
+### Commands to mount laravel
  - `composer install`
  - `cp .env.example .env`
- -  Modificar .env para establecer conexión con localhost:
+ -  Modify .env to establish connection with localhost:
 	
 
 >     DB_CONNECTION=mysql
@@ -14,29 +22,50 @@ Ejecutar estos comandos para montar laravel
 
  - `php artisan key:generate`
 
-Para que laravel funcione con REACT:
-  - `sudo npm run watch` : para auto compilar y ejecutar react al modificar el archivo
-  - `php artisan serve` : para correr laravel
+### Commands to make laravel work with REACT:
+  - `sudo npm run watch` : to auto compile and execute react when a file is modified
+  - `php artisan serve` : to run laravel
 
-Para activar localhost:
- -  `sudo service apache2 stop` (en caso de tenerlo)
- -  `sudo service mysql stop` (en caso de tenerlo)
+### Commands to activate localhost:
+ -  `sudo service apache2 stop` (when is running)
+ -  `sudo service mysql stop` (when is running)
  -  `sudo /opt/lampp/xampp start`
 
-En caso de error, hace falta preparar react en laravel:
+In case of an error, to prep react:
   - `php artisan preset react`
-  - `sudo npm install`   (en caso de error de escritura usar 
+  - `sudo npm install`   (if you encounter write permission error 
    `sudo npm install --unsafe-perm=true --allow-root`)
    
-Copiar archivo de configuracion del servidor bioclimapp.conf a /etc/nginx/sites-available/ y crear un enlace simbólico en /etc/nginx/sites-enabled/   
+### External server
 
+Copy the server configuration bioclimapp.conf to /etc/nginx/sites-available/ and create a symbolic link in /etc/nginx/sites-enabled/
 
-# Paquetes
+### Prerequisites
+
+Install these packages with npm
+
 <ul>
 	<li>Three.js</li>
 	<li>Reactstrap</li>
 	<li>Chart.js</li>
 	<li>react-chartjs-2 https://github.com/jerairrest/react-chartjs-2</li>
 	<li>axios</li>
+	<li>react</li>
+	<li>react-redux</li>
+	<li>redux</li>
+	<li>suncalc<li>
 </ul>
+
+## Authors
+
+* **Matías Medina** - *Morphology and Materiales* - [matisin](https://github.com/matisin)
+* **Diego Rodriguez** - *bioclimatic variables* - [dirodriguezm](https://github.com/dirodriguezm)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Professor Luis Merino of the University of Concepcion for the project leadership.
 	
