@@ -68,4 +68,5 @@ This project is licensed under the GNU General Public License v3.0 License - see
 ## Acknowledgments
 
 * Professor Luis Merino of the University of Concepcion for the project leadership.
+* For more details, check the [dissertation](memoria de titulo.pdf)
 	
