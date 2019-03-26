@@ -53,13 +53,13 @@ Install these packages with npm
 	<li>react</li>
 	<li>react-redux</li>
 	<li>redux</li>
-	<li>suncalc<li>
+	<li>suncalc</li>
 </ul>
 
 ## Authors
 
 * **Matías Medina** - *Morphology and Materiales* - [matisin](https://github.com/matisin)
-* **Diego Rodriguez** - *bioclimatic variables* - [dirodriguezm](https://github.com/dirodriguezm)
+* **Diego Rodriguez** - *Bioclimatic variables* - [dirodriguezm](https://github.com/dirodriguezm)
 
 ## License
 
